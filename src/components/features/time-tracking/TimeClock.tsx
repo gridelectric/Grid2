@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { APP_CONFIG, WORK_TYPES } from '@/lib/config/appConfig';
 import { useGPSValidation } from '@/hooks/useGPSValidation';
+import { useSubcontractorId } from '@/hooks/useSubcontractorId';
 import { timeEntryService } from '@/lib/services/timeEntryService';
 import { formatDateTime } from '@/lib/utils/formatters';
 import type { TimeEntry, WorkType } from '@/types';
@@ -36,6 +37,11 @@ function isGpsReadyForClockAction(
 
 export function TimeClock() {
   const { profile } = useAuth();
+  const {
+    subcontractorId: resolvedSubcontractorId,
+    isLoading: isResolvingSubcontractorId,
+  } = useSubcontractorId(profile?.id);
+  const subcontractorId = resolvedSubcontractorId ?? profile?.id;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeEntry, setActiveEntry] = useState<TimeEntry | null>(null);
   const [lastEntry, setLastEntry] = useState<TimeEntry | null>(null);
@@ -48,12 +54,12 @@ export function TimeClock() {
   });
 
   const loadActiveEntry = useCallback(async () => {
-    if (!profile?.id) {
+    if (!subcontractorId) {
       setActiveEntry(null);
       return;
     }
 
-    const entry = await timeEntryService.getActiveEntry(profile.id);
+    const entry = await timeEntryService.getActiveEntry(subcontractorId);
     setActiveEntry(entry);
 
     if (entry) {
@@ -61,7 +67,7 @@ export function TimeClock() {
       setWorkTypeRate(entry.work_type_rate);
       setBreakMinutes(entry.break_minutes ?? 0);
     }
-  }, [profile?.id]);
+  }, [subcontractorId]);
 
   useEffect(() => {
     void loadActiveEntry();
@@ -72,11 +78,14 @@ export function TimeClock() {
     setWorkTypeRate(WORK_TYPE_DEFAULT_RATES[nextWorkType]);
   };
 
-  const canClockIn = useMemo(() => !activeEntry && profile?.id, [activeEntry, profile?.id]);
+  const canClockIn = useMemo(
+    () => !activeEntry && !isResolvingSubcontractorId && Boolean(subcontractorId),
+    [activeEntry, isResolvingSubcontractorId, subcontractorId],
+  );
   const canClockOut = useMemo(() => Boolean(activeEntry), [activeEntry]);
 
   const handleClockIn = async () => {
-    if (!profile?.id) {
+    if (!subcontractorId) {
       toast.error('Unable to clock in without an authenticated profile.');
       return;
     }
@@ -93,7 +102,7 @@ export function TimeClock() {
       }
 
       const entry = await timeEntryService.clockIn({
-        subcontractorId: profile.id,
+        subcontractorId,
         workType,
         workTypeRate,
         breakMinutes,

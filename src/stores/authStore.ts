@@ -20,7 +20,6 @@ interface AuthState {
   
   // Computed
   isAdmin: () => boolean;
-  isTeamLead: () => boolean;
   isContractor: () => boolean;
   hasRole: (roles: UserRole[]) => boolean;
 }
@@ -56,12 +55,7 @@ export const useAuthStore = create<AuthState>()(
       // Computed helpers
       isAdmin: () => {
         const { user } = get();
-        return user?.role === 'SUPER_ADMIN';
-      },
-      
-      isTeamLead: () => {
-        const { user } = get();
-        return user?.role === 'TEAM_LEAD';
+        return user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
       },
       
       isContractor: () => {

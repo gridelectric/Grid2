@@ -12,8 +12,21 @@ interface StatusHistoryTimelineProps {
   refreshKey?: number;
 }
 
+interface StatusHistoryItem {
+  id: string;
+  to_status: string;
+  changed_at: string;
+  change_reason: string | null;
+  profiles:
+    | {
+        first_name: string | null;
+        last_name: string | null;
+      }
+    | null;
+}
+
 export function StatusHistoryTimeline({ ticketId, refreshKey }: StatusHistoryTimelineProps) {
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<StatusHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -21,7 +34,7 @@ export function StatusHistoryTimeline({ ticketId, refreshKey }: StatusHistoryTim
       setIsLoading(true);
       try {
         const data = await ticketService.getStatusHistory(ticketId);
-        setHistory(data);
+        setHistory((data ?? []) as StatusHistoryItem[]);
       } catch (error) {
         console.error('Failed to load status history:', error);
       } finally {
@@ -54,7 +67,7 @@ export function StatusHistoryTimeline({ ticketId, refreshKey }: StatusHistoryTim
       </CardHeader>
       <CardContent className="px-0">
         <div className="relative space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
-          {history.map((item, index) => (
+          {history.map((item) => (
             <div key={item.id} className="relative flex items-start group">
               {/* Dot */}
               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-background border-2 border-primary z-10 shrink-0 mt-0.5">

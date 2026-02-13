@@ -8,8 +8,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import {
   ADMIN_SIDEBAR_NAV_ITEMS,
+  CONTRACTOR_SIDEBAR_NAV_ITEMS,
   NavLinkItem,
-  SUBCONTRACTOR_SIDEBAR_NAV_ITEMS,
 } from './navigationConfig';
 import {
   BarChart3,
@@ -20,7 +20,6 @@ import {
   Map,
   Menu,
   Receipt,
-  Settings,
   Ticket,
   Users,
 } from 'lucide-react';
@@ -28,26 +27,25 @@ import {
 interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
-  userRole: 'admin' | 'subcontractor';
+  userRole: 'admin' | 'contractor';
 }
 
 const iconByHref = {
   '/admin/dashboard': LayoutDashboard,
   '/tickets': Ticket,
-  '/admin/subcontractors': Users,
+  '/admin/contractors': Users,
   '/admin/storms': Cloud,
   '/admin/time-review': Clock,
   '/admin/expense-review': Receipt,
-  '/admin/invoices': FileText,
+  '/admin/assessment-review': FileText,
+  '/admin/invoice-generation': FileText,
   '/admin/reports': BarChart3,
   '/admin/map': Map,
-  '/admin/settings': Settings,
-  '/subcontractor/dashboard': LayoutDashboard,
-  '/subcontractor/map': Map,
-  '/subcontractor/time': Clock,
-  '/subcontractor/expenses': Receipt,
-  '/subcontractor/invoices': FileText,
-  '/subcontractor/profile': Users,
+  '/contractor/map': Map,
+  '/contractor/time': Clock,
+  '/contractor/expenses': Receipt,
+  '/contractor/assessments/create': FileText,
+  '/contractor/invoices': FileText,
 } as const;
 
 function getNavIcon(href: string) {
@@ -57,7 +55,7 @@ function getNavIcon(href: string) {
 export function Sidebar({ isOpen, onClose, userRole }: SidebarProps) {
   const pathname = usePathname();
   const navItems: NavLinkItem[] =
-    userRole === 'admin' ? ADMIN_SIDEBAR_NAV_ITEMS : SUBCONTRACTOR_SIDEBAR_NAV_ITEMS;
+    userRole === 'admin' ? ADMIN_SIDEBAR_NAV_ITEMS : CONTRACTOR_SIDEBAR_NAV_ITEMS;
 
   const renderNavContent = () => (
     <div className="flex flex-col h-full">

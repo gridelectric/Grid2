@@ -17,9 +17,26 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.is_super_admin()
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM profiles
+    WHERE id = auth.uid()
+    AND role = 'SUPER_ADMIN'
+  );
+END;
+$$;
+
 -- Grant execute permission on the helper function
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO anon;
+GRANT EXECUTE ON FUNCTION public.is_super_admin() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_super_admin() TO anon;
 
 -- Profiles RLS Policies
 -- Users can view their own profile
@@ -33,11 +50,24 @@ CREATE POLICY profiles_select_admin ON profiles
 -- Users can update their own profile
 CREATE POLICY profiles_update_own ON profiles
   FOR UPDATE USING (id = auth.uid())
-  WITH CHECK (id = auth.uid());
+  WITH CHECK (
+    id = auth.uid()
+    AND role = (
+      SELECT p.role
+      FROM profiles p
+      WHERE p.id = auth.uid()
+    )
+  );
 
 -- Only admins can insert/delete profiles
 CREATE POLICY profiles_insert_admin ON profiles
-  FOR INSERT WITH CHECK (is_admin());
+  FOR INSERT WITH CHECK (
+    is_admin()
+    AND (
+      role <> 'SUPER_ADMIN'
+      OR is_super_admin()
+    )
+  );
 
 CREATE POLICY profiles_delete_admin ON profiles
   FOR DELETE USING (is_admin());

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/common/layout/PageHeader';
 import { MetricCard } from '@/components/common/data-display/MetricCard';
@@ -15,97 +15,125 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { subcontractorService, type SubcontractorListItem } from '@/lib/services/subcontractorService';
+import { formatCurrency } from '@/lib/utils/formatters';
 import { Users, UserCheck, UserPlus, UserX, AlertTriangle } from 'lucide-react';
 
-interface Subcontractor {
-  id: string;
-  name: string;
-  status: string;
-  eligible: boolean;
-  tickets: number;
-  ytdEarnings: string;
-  alerts?: string;
+function toDisplayStatus(item: SubcontractorListItem): string {
+  if (item.onboardingStatus.toUpperCase() === 'APPROVED') {
+    return item.eligibleForAssignment ? 'Active' : 'Inactive';
+  }
+
+  if (item.onboardingStatus.toUpperCase() === 'PENDING') {
+    return 'Pending';
+  }
+
+  return 'Onboarding';
 }
 
-const mockSubcontractors: Subcontractor[] = [
-  { id: '1', name: 'John Smith', status: 'Active', eligible: true, tickets: 12, ytdEarnings: '$45,230', alerts: undefined },
-  { id: '2', name: 'Maria Johnson', status: 'Active', eligible: true, tickets: 8, ytdEarnings: '$38,150', alerts: undefined },
-  { id: '3', name: 'David Chen', status: 'Active', eligible: true, tickets: 15, ytdEarnings: '$52,400', alerts: 'Insurance expiring' },
-  { id: '4', name: 'Sarah Williams', status: 'Pending', eligible: false, tickets: 0, ytdEarnings: '-', alerts: undefined },
-  { id: '5', name: 'Michael Brown', status: 'Active', eligible: true, tickets: 10, ytdEarnings: '$41,800', alerts: undefined },
-  { id: '6', name: 'Lisa Davis', status: 'Inactive', eligible: false, tickets: 0, ytdEarnings: '$12,500', alerts: 'Credential expired' },
-  { id: '7', name: 'Robert Wilson', status: 'Active', eligible: true, tickets: 6, ytdEarnings: '$28,900', alerts: undefined },
-  { id: '8', name: 'Jennifer Lee', status: 'Onboarding', eligible: false, tickets: 0, ytdEarnings: '-', alerts: undefined },
-];
-
-const columns: Column<Subcontractor>[] = [
-  {
-    key: 'name',
-    header: 'Name',
-    cell: (sub) => (
-      <Link
-        href={`/admin/subcontractors/${sub.id}`}
-        className="font-medium text-blue-600 hover:text-blue-800"
-      >
-        {sub.name}
-      </Link>
-    ),
-  },
-  {
-    key: 'status',
-    header: 'Status',
-    cell: (sub) => <StatusBadge status={sub.status} size="sm" />,
-  },
-  {
-    key: 'eligible',
-    header: 'Eligible',
-    cell: (sub) => (
-      <span className={sub.eligible ? 'text-green-600' : 'text-slate-400'}>
-        {sub.eligible ? '✓ Yes' : '✗ No'}
-      </span>
-    ),
-  },
-  {
-    key: 'tickets',
-    header: 'Tickets',
-    cell: (sub) => sub.tickets,
-  },
-  {
-    key: 'ytdEarnings',
-    header: 'YTD Earnings',
-    cell: (sub) => sub.ytdEarnings,
-  },
-  {
-    key: 'alerts',
-    header: 'Alerts',
-    cell: (sub) => sub.alerts ? (
-      <span className="flex items-center gap-1 text-yellow-600 text-sm">
-        <AlertTriangle className="w-4 h-4" />
-        {sub.alerts}
-      </span>
-    ) : (
-      <span className="text-slate-400">-</span>
-    ),
-  },
-];
-
 export default function SubcontractorsListPage() {
+  const [subcontractors, setSubcontractors] = useState<SubcontractorListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Calculate metrics
-  const totalCount = mockSubcontractors.length;
-  const activeCount = mockSubcontractors.filter(s => s.status === 'Active').length;
-  const onboardingCount = mockSubcontractors.filter(s => s.status === 'Onboarding').length;
-  const pendingCount = mockSubcontractors.filter(s => s.status === 'Pending').length;
-  const expiringCount = mockSubcontractors.filter(s => s.alerts?.includes('expiring')).length;
+  useEffect(() => {
+    let active = true;
 
-  // Filter data
-  const filteredData = mockSubcontractors.filter(sub => {
-    const matchesSearch = sub.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || sub.status.toLowerCase() === statusFilter.toLowerCase();
+    const loadSubcontractors = async () => {
+      setIsLoading(true);
+      try {
+        const items = await subcontractorService.listSubcontractors();
+        if (active) {
+          setSubcontractors(items);
+        }
+      } catch (error) {
+        console.error('Failed to load subcontractors:', error);
+        if (active) {
+          setSubcontractors([]);
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadSubcontractors();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const filteredData = useMemo(() => subcontractors.filter((subcontractor) => {
+    const matchesSearch = searchQuery.trim().length === 0
+      || subcontractor.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+      || subcontractor.businessName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all'
+      || toDisplayStatus(subcontractor).toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
-  });
+  }), [searchQuery, statusFilter, subcontractors]);
+
+  const columns: Column<SubcontractorListItem>[] = useMemo(() => [
+    {
+      key: 'fullName',
+      header: 'Name',
+      cell: (subcontractor) => (
+        <div className="space-y-1">
+          <Link
+            href={`/admin/contractors/${subcontractor.id}`}
+            className="font-medium text-blue-600 hover:text-blue-800"
+          >
+            {subcontractor.fullName}
+          </Link>
+          <p className="text-xs text-slate-500">{subcontractor.businessName}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      cell: (subcontractor) => <StatusBadge status={toDisplayStatus(subcontractor)} size="sm" />,
+    },
+    {
+      key: 'eligible',
+      header: 'Eligible',
+      cell: (subcontractor) => (
+        <span className={subcontractor.eligibleForAssignment ? 'text-green-600' : 'text-slate-400'}>
+          {subcontractor.eligibleForAssignment ? 'Yes' : 'No'}
+        </span>
+      ),
+    },
+    {
+      key: 'tickets',
+      header: 'Active Tickets',
+      cell: (subcontractor) => subcontractor.activeTicketCount,
+    },
+    {
+      key: 'ytdEarnings',
+      header: 'YTD Earnings',
+      cell: (subcontractor) => formatCurrency(subcontractor.ytdEarnings),
+    },
+    {
+      key: 'alerts',
+      header: 'Alerts',
+      cell: (subcontractor) => subcontractor.alerts.length > 0 ? (
+        <span className="flex items-center gap-1 text-yellow-600 text-sm">
+          <AlertTriangle className="w-4 h-4" />
+          {subcontractor.alerts[0]}
+        </span>
+      ) : (
+        <span className="text-slate-400">-</span>
+      ),
+    },
+  ], []);
+
+  const totalCount = subcontractors.length;
+  const activeCount = subcontractors.filter((subcontractor) => toDisplayStatus(subcontractor) === 'Active').length;
+  const onboardingCount = subcontractors.filter((subcontractor) => toDisplayStatus(subcontractor) === 'Onboarding').length;
+  const pendingCount = subcontractors.filter((subcontractor) => toDisplayStatus(subcontractor) === 'Pending').length;
+  const expiringCount = subcontractors.filter((subcontractor) => subcontractor.alerts.length > 0).length;
 
   return (
     <div className="space-y-6">
@@ -180,8 +208,8 @@ export default function SubcontractorsListPage() {
       <DataTable
         columns={columns}
         data={filteredData}
-        keyExtractor={(sub) => sub.id}
-        onRowClick={(sub) => console.log('Clicked:', sub.name)}
+        keyExtractor={(subcontractor) => subcontractor.id}
+        isLoading={isLoading}
       />
     </div>
   );

@@ -20,9 +20,9 @@ import { TicketAssign } from './TicketAssign';
 import { toast } from 'sonner';
 
 interface TicketListProps {
-    userRole: 'admin' | 'subcontractor';
+    userRole: 'admin' | 'contractor';
     profileRole: UserRole;
-    userId?: string; // For subcontractor view
+    userId?: string; // For contractor view
 }
 
 export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
@@ -39,10 +39,16 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
     const canAssignContractor = canPerformManagementAction(profileRole, 'contractor_assignment_write');
 
     const loadTickets = useCallback(async () => {
+        if (userRole === 'contractor' && !userId) {
+            setTickets([]);
+            setIsLoading(false);
+            return;
+        }
+
         setIsLoading(true);
         try {
             let data: Ticket[];
-            if (userRole === 'subcontractor' && userId) {
+            if (userRole === 'contractor' && userId) {
                 data = await ticketService.getTicketsByAssignee(userId);
             } else {
                 data = await ticketService.getTickets();

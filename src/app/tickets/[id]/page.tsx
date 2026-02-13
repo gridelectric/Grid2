@@ -25,11 +25,11 @@ export default function TicketDetailPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [refreshKey, setRefreshKey] = useState(0);
 
-    const userRole: 'admin' | 'subcontractor' =
-        profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN' || profile?.role === 'TEAM_LEAD'
+    const userRole: 'admin' | 'contractor' =
+        profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN'
             ? 'admin'
-            : 'subcontractor';
-    const requiresGPSStatusFlow = profile?.role === 'TEAM_LEAD' || profile?.role === 'CONTRACTOR';
+            : 'contractor';
+    const requiresGPSStatusFlow = profile?.role === 'CONTRACTOR';
 
     const loadTicket = useCallback(async () => {
         if (!params.id) return;
@@ -126,12 +126,12 @@ export default function TicketDetailPage() {
                             </Card>
                         </TabsContent>
                         <TabsContent value="assessments">
-                            {userRole === 'subcontractor' ? (
+                            {userRole === 'contractor' ? (
                                 <div className="text-muted-foreground p-4 text-center border-2 border-dashed rounded-lg">
                                     <p>No assessment submitted yet.</p>
                                     {(ticket.status === 'ON_SITE' || ticket.status === 'IN_PROGRESS' || ticket.status === 'NEEDS_REWORK') && (
                                         <Button asChild className="mt-3">
-                                            <Link href={`/subcontractor/assessments/create?ticketId=${encodeURIComponent(ticket.id)}`}>
+                                            <Link href={`/contractor/assessments/create?ticketId=${encodeURIComponent(ticket.id)}`}>
                                                 Start Assessment Form
                                             </Link>
                                         </Button>
@@ -152,15 +152,15 @@ export default function TicketDetailPage() {
                 <div className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>{userRole === 'subcontractor' ? 'Metadata' : 'Info'}</CardTitle>
+                            <CardTitle>{userRole === 'contractor' ? 'Metadata' : 'Info'}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
                                 <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Assigned To</span>
                                 <p className="font-semibold">
-                                    {userRole === 'subcontractor'
+                                    {userRole === 'contractor'
                                         ? 'You'
-                                        : (ticket.assigned_to ? 'Subcontractor Assigned' : 'Unassigned')}
+                                        : (ticket.assigned_to ? 'Contractor Assigned' : 'Unassigned')}
                                 </p>
                             </div>
                             <div>

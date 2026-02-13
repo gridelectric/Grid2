@@ -5,11 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { PageHeader } from '@/components/common/layout/PageHeader';
 import { AssessmentForm } from '@/components/features/assessments';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { useSubcontractorId } from '@/hooks/useSubcontractorId';
 
 export default function SubcontractorAssessmentCreatePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { profile } = useAuth();
+  const { subcontractorId } = useSubcontractorId(profile?.id);
 
   const ticketId = searchParams.get('ticketId') ?? undefined;
   const backHref = ticketId ? `/tickets/${ticketId}` : '/tickets';
@@ -25,7 +27,7 @@ export default function SubcontractorAssessmentCreatePage() {
 
       <AssessmentForm
         ticketId={ticketId}
-        subcontractorId={profile?.id}
+        subcontractorId={subcontractorId}
         onSaved={() => {
           router.push(backHref);
         }}

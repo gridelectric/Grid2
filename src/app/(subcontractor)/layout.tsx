@@ -15,7 +15,7 @@ interface ProfilesRoleTableClient {
     };
 }
 
-export default async function SubcontractorLayout({ children }: { children: ReactNode }) {
+export default async function ContractorLayout({ children }: { children: ReactNode }) {
     const supabase = await createClient();
     const {
         data: { user },
@@ -31,12 +31,12 @@ export default async function SubcontractorLayout({ children }: { children: Reac
         .eq('id', user.id)
         .single();
 
-    if (getPortalRole(profile?.role) !== 'subcontractor') {
+    if (getPortalRole(profile?.role) !== 'contractor') {
         forbidden();
     }
 
     return (
-        <AppShell userRole="subcontractor">
+        <AppShell userRole="contractor">
             {children}
         </AppShell>
     );

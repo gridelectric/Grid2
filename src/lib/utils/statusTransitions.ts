@@ -36,8 +36,8 @@ export function isValidTransition(
     }
   }
 
-  // Subcontractor Transitions
-  if (role === 'TEAM_LEAD' || role === 'CONTRACTOR') {
+  // Contractor transitions
+  if (role === 'CONTRACTOR') {
     switch (current) {
       case 'ASSIGNED':
         return next === 'IN_ROUTE';
@@ -48,7 +48,7 @@ export function isValidTransition(
       case 'IN_PROGRESS':
         return next === 'COMPLETE';
       case 'COMPLETE':
-        // Subcontractor submission leads to system review
+        // Contractor submission leads to system review
         return next === 'PENDING_REVIEW';
       case 'NEEDS_REWORK':
         return next === 'IN_PROGRESS';

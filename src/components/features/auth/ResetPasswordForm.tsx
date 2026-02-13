@@ -67,13 +67,15 @@ export function ResetPasswordForm() {
       }
 
       setIsSuccess(true);
-      
+
       // Redirect to login after 3 seconds
       setTimeout(() => {
         router.push('/login');
       }, 3000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to reset password. Please try again.');
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to reset password. Please try again.',
+      );
     } finally {
       setIsLoading(false);
     }

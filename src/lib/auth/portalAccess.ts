@@ -1,8 +1,8 @@
 import type { UserRole } from '../../types';
 
-export type PortalRole = 'admin' | 'subcontractor';
+export type PortalRole = 'admin' | 'contractor';
 
-const ADMIN_PORTAL_ROLES: UserRole[] = ['SUPER_ADMIN', 'ADMIN', 'TEAM_LEAD', 'READ_ONLY'];
+const ADMIN_PORTAL_ROLES: UserRole[] = ['SUPER_ADMIN', 'ADMIN'];
 
 function normalizePath(pathname: string): string {
   if (!pathname.startsWith('/')) {
@@ -17,9 +17,14 @@ function isAdminPortalPath(pathname: string): boolean {
   return normalizedPath === '/admin' || normalizedPath.startsWith('/admin/');
 }
 
-function isSubcontractorPortalPath(pathname: string): boolean {
+function isContractorPortalPath(pathname: string): boolean {
   const normalizedPath = normalizePath(pathname);
-  return normalizedPath === '/subcontractor' || normalizedPath.startsWith('/subcontractor/');
+  return (
+    normalizedPath === '/contractor'
+    || normalizedPath.startsWith('/contractor/')
+    || normalizedPath === '/subcontractor'
+    || normalizedPath.startsWith('/subcontractor/')
+  );
 }
 
 export function getPortalRole(role: UserRole | string | null | undefined): PortalRole | null {
@@ -28,7 +33,7 @@ export function getPortalRole(role: UserRole | string | null | undefined): Porta
   }
 
   if (role === 'CONTRACTOR') {
-    return 'subcontractor';
+    return 'contractor';
   }
 
   if (ADMIN_PORTAL_ROLES.includes(role as UserRole)) {
@@ -43,8 +48,8 @@ export function isPortalPathAllowed(pathname: string, portalRole: PortalRole | n
     return portalRole === 'admin';
   }
 
-  if (isSubcontractorPortalPath(pathname)) {
-    return portalRole === 'subcontractor';
+  if (isContractorPortalPath(pathname)) {
+    return portalRole === 'contractor';
   }
 
   return true;

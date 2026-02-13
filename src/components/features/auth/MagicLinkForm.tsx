@@ -38,7 +38,7 @@ export function MagicLinkForm() {
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email: data.email,
         options: {
-          emailRedirectTo: `${window.location.origin}/subcontractor/dashboard`,
+          emailRedirectTo: `${window.location.origin}/contractor/time`,
         },
       });
 
@@ -47,8 +47,10 @@ export function MagicLinkForm() {
       }
 
       setIsSuccess(true);
-    } catch (err: any) {
-      setError(err.message || 'Failed to send magic link. Please try again.');
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to send magic link. Please try again.',
+      );
     } finally {
       setIsLoading(false);
     }

@@ -10,6 +10,7 @@ export interface User {
   role: UserRole;
   is_active: boolean;
   is_email_verified: boolean;
+  must_reset_password: boolean;
   last_login_at?: string;
   created_at: string;
   updated_at: string;
@@ -18,9 +19,7 @@ export interface User {
 export type UserRole =
   | 'SUPER_ADMIN'
   | 'ADMIN'
-  | 'TEAM_LEAD'
-  | 'CONTRACTOR'
-  | 'READ_ONLY';
+  | 'CONTRACTOR';
 
 // Subcontractor Types
 export interface Subcontractor {

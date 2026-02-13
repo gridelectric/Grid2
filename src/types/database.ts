@@ -10,9 +10,10 @@ export interface Database {
           first_name: string;
           last_name: string;
           phone: string | null;
-          role: 'SUPER_ADMIN' | 'ADMIN' | 'TEAM_LEAD' | 'CONTRACTOR' | 'READ_ONLY';
+          role: 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
           is_active: boolean;
           is_email_verified: boolean;
+          must_reset_password: boolean;
           last_login_at: string | null;
           mfa_enabled: boolean;
           created_at: string;
@@ -24,9 +25,10 @@ export interface Database {
           first_name: string;
           last_name: string;
           phone?: string | null;
-          role?: 'SUPER_ADMIN' | 'ADMIN' | 'TEAM_LEAD' | 'CONTRACTOR' | 'READ_ONLY';
+          role?: 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
           is_active?: boolean;
           is_email_verified?: boolean;
+          must_reset_password?: boolean;
           last_login_at?: string | null;
           mfa_enabled?: boolean;
           created_at?: string;
@@ -38,9 +40,10 @@ export interface Database {
           first_name?: string;
           last_name?: string;
           phone?: string | null;
-          role?: 'SUPER_ADMIN' | 'ADMIN' | 'TEAM_LEAD' | 'CONTRACTOR' | 'READ_ONLY';
+          role?: 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
           is_active?: boolean;
           is_email_verified?: boolean;
+          must_reset_password?: boolean;
           last_login_at?: string | null;
           mfa_enabled?: boolean;
           created_at?: string;

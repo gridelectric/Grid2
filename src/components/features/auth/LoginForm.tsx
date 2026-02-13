@@ -7,8 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import type { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
-import { getLandingPathForRole } from '@/lib/auth/roleLanding';
 import type { Database } from '@/types/database';
+import { getLandingPathForRole } from '@/lib/auth/roleLanding';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +21,7 @@ const loginSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
-type LoginProfile = Pick<Database['public']['Tables']['profiles']['Row'], 'role' | 'is_active'>;
+type LoginProfile = Pick<Database['public']['Tables']['profiles']['Row'], 'role' | 'is_active' | 'must_reset_password'>;
 
 interface ProfilesTableClient {
   select: (columns: string) => {
@@ -65,7 +65,7 @@ export function LoginForm() {
       // Generated DB typings are currently incomplete for this table in strict mode.
       const profilesTable = supabase.from('profiles') as unknown as ProfilesTableClient;
       const { data: profile, error: profileError } = await profilesTable
-        .select('role, is_active')
+        .select('role, is_active, must_reset_password')
         .eq('id', signInData.user.id)
         .single();
 
@@ -80,7 +80,9 @@ export function LoginForm() {
         .update({ last_login_at: new Date().toISOString() })
         .eq('id', signInData.user.id);
 
-      const landingPath = getLandingPathForRole(profile.role);
+      const landingPath = profile.must_reset_password
+        ? '/set-password'
+        : getLandingPathForRole(profile.role);
       router.push(landingPath);
       router.refresh();
     } catch {

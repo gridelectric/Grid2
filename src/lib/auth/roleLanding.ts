@@ -1,6 +1,6 @@
 import type { UserRole } from '../../types';
 
-const ADMIN_LANDING_ROLES: UserRole[] = ['SUPER_ADMIN', 'ADMIN', 'TEAM_LEAD', 'READ_ONLY'];
+const ADMIN_LANDING_ROLES: UserRole[] = ['SUPER_ADMIN', 'ADMIN'];
 
 export function getLandingPathForRole(role: UserRole | string | null | undefined): string {
   if (!role) {
@@ -8,7 +8,7 @@ export function getLandingPathForRole(role: UserRole | string | null | undefined
   }
 
   if (role === 'CONTRACTOR') {
-    return '/tickets';
+    return '/contractor/time';
   }
 
   if (ADMIN_LANDING_ROLES.includes(role as UserRole)) {

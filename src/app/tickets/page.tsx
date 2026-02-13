@@ -4,15 +4,17 @@
 import { TicketList } from '@/components/features/tickets/TicketList';
 import { PageHeader } from '@/components/common/layout/PageHeader';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { useSubcontractorId } from '@/hooks/useSubcontractorId';
 
 export default function TicketsPage() {
     const { profile, isLoading } = useAuth();
+    const { subcontractorId } = useSubcontractorId(profile?.id);
 
     // Map UserRole to TicketList role format
-    const userRole: 'admin' | 'subcontractor' =
-        profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN' || profile?.role === 'TEAM_LEAD'
+    const userRole: 'admin' | 'contractor' =
+        profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN'
             ? 'admin'
-            : 'subcontractor';
+            : 'contractor';
 
     if (isLoading) {
         return <div className="text-sm text-slate-500">Loading tickets...</div>;
@@ -28,7 +30,7 @@ export default function TicketsPage() {
                 <TicketList
                     userRole={userRole}
                     profileRole={profile.role}
-                    userId={userRole === 'subcontractor' ? profile.id : undefined}
+                    userId={userRole === 'contractor' ? subcontractorId : undefined}
                 />
             ) : (
                 <div>Please log in to view tickets.</div>

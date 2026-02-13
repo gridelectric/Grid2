@@ -230,7 +230,7 @@ export function ExpenseList({ subcontractorId }: ExpenseListProps) {
                 Refresh
               </Button>
               <Button asChild>
-                <Link href="/subcontractor/expenses/create">
+                <Link href="/contractor/expenses/create">
                   <Plus className="mr-2 h-4 w-4" />
                   New Expense
                 </Link>

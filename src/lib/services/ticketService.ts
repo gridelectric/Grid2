@@ -150,7 +150,7 @@ export const ticketService = {
         }
 
         const gpsRequiredStatuses: TicketStatus[] = ['IN_ROUTE', 'ON_SITE', 'COMPLETE'];
-        const isFieldRole = role === 'TEAM_LEAD' || role === 'CONTRACTOR';
+        const isFieldRole = role === 'CONTRACTOR';
         const requiresGeofence = newStatus === 'ON_SITE' || newStatus === 'COMPLETE';
 
         if (isFieldRole && gpsRequiredStatuses.includes(newStatus)) {

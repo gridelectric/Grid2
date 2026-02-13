@@ -3,7 +3,7 @@
 
 -- 1. Create User Roles Enum
 DO $$ BEGIN
-    CREATE TYPE user_role AS ENUM ('SUPER_ADMIN', 'ADMIN', 'TEAM_LEAD', 'CONTRACTOR', 'READ_ONLY');
+    CREATE TYPE user_role AS ENUM ('SUPER_ADMIN', 'ADMIN', 'CONTRACTOR');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     role user_role NOT NULL DEFAULT 'CONTRACTOR',
     is_active BOOLEAN DEFAULT true,
     is_email_verified BOOLEAN DEFAULT false,
+    must_reset_password BOOLEAN NOT NULL DEFAULT false,
     last_login_at TIMESTAMPTZ,
     mfa_enabled BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -25,6 +26,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     created_by UUID REFERENCES public.profiles(id),
     updated_by UUID REFERENCES public.profiles(id)
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_single_super_admin
+  ON public.profiles(role)
+  WHERE role = 'SUPER_ADMIN';
 
 -- 3. Enable RLS
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -45,9 +50,26 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.is_super_admin()
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid()
+    AND role = 'SUPER_ADMIN'
+  );
+END;
+$$;
+
 -- 5. Grant permissions
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO anon;
+GRANT EXECUTE ON FUNCTION public.is_super_admin() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_super_admin() TO anon;
 
 -- 6. RLS Policies for Profiles
 DO $$ BEGIN
@@ -63,12 +85,25 @@ EXCEPTION WHEN duplicate_object THEN null; END $$;
 DO $$ BEGIN
     CREATE POLICY profiles_update_own ON public.profiles
       FOR UPDATE USING (id = auth.uid())
-      WITH CHECK (id = auth.uid());
+      WITH CHECK (
+        id = auth.uid()
+        AND role = (
+          SELECT p.role
+          FROM public.profiles p
+          WHERE p.id = auth.uid()
+        )
+      );
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN
     CREATE POLICY profiles_insert_admin ON public.profiles
-      FOR INSERT WITH CHECK (public.is_admin());
+      FOR INSERT WITH CHECK (
+        public.is_admin()
+        AND (
+          role <> 'SUPER_ADMIN'
+          OR public.is_super_admin()
+        )
+      );
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN

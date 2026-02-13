@@ -100,14 +100,14 @@ grid-electric-app/
 
 ---
 
-### OVERALL PROGRESS: 84% (Phase 4 - Week 13 Ready)
+### OVERALL PROGRESS: 88% (Phase 4 - Week 13 Complete)
 
 | Phase | Progress | Status |
 |-------|----------|--------|
 | Phase 1: Foundation | 100% | ✅ COMPLETE |
 | Phase 2: Core Features | 100% | ✅ COMPLETE |
 | Phase 3: Operations | 100% | ✅ COMPLETE |
-| Phase 4: Polish & Launch | 0% | Not Started |
+| Phase 4: Polish & Launch | 20% | In Progress |
 
 ---
 
@@ -606,17 +606,23 @@ grid-electric-app/
 
 ### PHASE 4: POLISH & LAUNCH (Weeks 13-16)
 
-#### Week 13: Testing & QA (NOT STARTED)
+#### Week 13: Testing & QA (COMPLETE)
 
 ##### Task 13.1: Testing Suite
 
-- [ ] Write unit tests (Jest/Vitest)
-- [ ] Write integration tests
-- [ ] Perform end-to-end testing
-- [ ] Test offline functionality
-- [ ] Conduct security audit
-- [ ] Cross-browser testing
-- [ ] Mobile device testing
+- [x] Write unit tests (Jest/Vitest)
+- [x] Write integration tests
+- [x] Perform end-to-end testing
+- [x] Test offline functionality
+- [x] Conduct security audit
+- [x] Cross-browser testing
+- [x] Mobile device testing
+- **Status Update:** 2026-02-13
+- **Agent:** GPT-5 Codex
+- **Notes:** Completed execution gates for `npm run typecheck`, `npm run test`, `npm run test:integration`, `npm run test:security`, `npm run test:e2e`, `npm run test:offline`, `npm run test:mobile`, and `npm run test:cross-browser`. Added integration config (`vitest.integration.config.ts`) and Playwright browser installation to support full Week 13 validation in this environment.
+- **Status Update:** 2026-02-13
+- **Agent:** GPT-5 Codex
+- **Notes:** Decommissioned active onboarding entry paths and approval route access, added first-login password enforcement (`must_reset_password` + `/set-password` gate), introduced contractor canonical routing with legacy redirects, and implemented CSV-driven provisioning via `scripts/provision-users-from-csv.ts` with dry-run/apply modes and provisioning tests.
 
 ---
 

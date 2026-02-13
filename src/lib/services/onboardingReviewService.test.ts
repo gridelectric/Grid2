@@ -10,7 +10,7 @@ import {
 
 interface MockOptions {
   userId?: string | null;
-  role?: 'SUPER_ADMIN' | 'ADMIN' | 'TEAM_LEAD' | 'CONTRACTOR' | 'READ_ONLY';
+  role?: 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
   pendingRows?: Array<{
     id: string;
     profile_id: string;

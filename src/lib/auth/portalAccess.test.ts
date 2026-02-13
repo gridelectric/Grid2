@@ -5,15 +5,15 @@ import { getPortalRole, isPortalPathAllowed } from './portalAccess';
 
 describe('getPortalRole', () => {
   it('maps admin-class roles to admin portal', () => {
-    const adminRoles: UserRole[] = ['SUPER_ADMIN', 'ADMIN', 'TEAM_LEAD', 'READ_ONLY'];
+    const adminRoles: UserRole[] = ['SUPER_ADMIN', 'ADMIN'];
 
     for (const role of adminRoles) {
       expect(getPortalRole(role)).toBe('admin');
     }
   });
 
-  it('maps contractor to subcontractor portal', () => {
-    expect(getPortalRole('CONTRACTOR')).toBe('subcontractor');
+  it('maps contractor to contractor portal', () => {
+    expect(getPortalRole('CONTRACTOR')).toBe('contractor');
   });
 
   it('returns null for unknown role inputs', () => {
@@ -29,20 +29,22 @@ describe('isPortalPathAllowed', () => {
   });
 
   it('blocks subcontractor portal paths for admin users', () => {
+    expect(isPortalPathAllowed('/contractor/dashboard', 'admin')).toBe(false);
     expect(isPortalPathAllowed('/subcontractor/dashboard', 'admin')).toBe(false);
   });
 
-  it('allows subcontractor portal paths for subcontractors', () => {
-    expect(isPortalPathAllowed('/subcontractor/dashboard', 'subcontractor')).toBe(true);
-    expect(isPortalPathAllowed('/subcontractor/map', 'subcontractor')).toBe(true);
+  it('allows contractor portal paths for contractors', () => {
+    expect(isPortalPathAllowed('/contractor/dashboard', 'contractor')).toBe(true);
+    expect(isPortalPathAllowed('/contractor/map', 'contractor')).toBe(true);
+    expect(isPortalPathAllowed('/subcontractor/map', 'contractor')).toBe(true);
   });
 
-  it('blocks admin portal paths for subcontractors', () => {
-    expect(isPortalPathAllowed('/admin/dashboard', 'subcontractor')).toBe(false);
+  it('blocks admin portal paths for contractors', () => {
+    expect(isPortalPathAllowed('/admin/dashboard', 'contractor')).toBe(false);
   });
 
   it('keeps shared routes available to both portal roles', () => {
     expect(isPortalPathAllowed('/tickets', 'admin')).toBe(true);
-    expect(isPortalPathAllowed('/tickets', 'subcontractor')).toBe(true);
+    expect(isPortalPathAllowed('/tickets', 'contractor')).toBe(true);
   });
 });

@@ -21,7 +21,7 @@ describe('canPerformManagementAction', () => {
   });
 
   it('blocks non-super-admin roles for management actions', () => {
-    const blockedRoles: UserRole[] = ['ADMIN', 'TEAM_LEAD', 'CONTRACTOR', 'READ_ONLY'];
+    const blockedRoles: UserRole[] = ['ADMIN', 'CONTRACTOR'];
 
     for (const role of blockedRoles) {
       for (const action of superAdminActions) {
@@ -36,8 +36,8 @@ describe('getManagementActionForPath', () => {
     expect(getManagementActionForPath('/tickets/create')).toBe('ticket_entry_write');
   });
 
-  it('maps contractor-assignment paths', () => {
-    expect(getManagementActionForPath('/admin/subcontractors/approval')).toBe('contractor_assignment_write');
+  it('does not map deprecated onboarding approval path', () => {
+    expect(getManagementActionForPath('/admin/subcontractors/approval')).toBeNull();
   });
 
   it('maps storm project write paths', () => {

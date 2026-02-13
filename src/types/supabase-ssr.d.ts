@@ -17,21 +17,21 @@ declare module '@supabase/ssr' {
 
   export interface CookieMethods {
     get(name: string): string | undefined;
-    set(name: string, value: string, options?: any): void;
-    remove(name: string, options?: any): void;
+    set(name: string, value: string, options?: CookieOptions): void;
+    remove(name: string, options?: CookieOptions): void;
   }
 
   export interface CreateServerClientOptions {
     cookies: CookieMethods;
   }
 
-  export function createServerClient<Database = any>(
+  export function createServerClient<Database = unknown>(
     supabaseUrl: string,
     supabaseKey: string,
     options: CreateServerClientOptions
   ): SupabaseClient<Database>;
 
-  export function createBrowserClient<Database = any>(
+  export function createBrowserClient<Database = unknown>(
     supabaseUrl: string,
     supabaseKey: string
   ): SupabaseClient<Database>;

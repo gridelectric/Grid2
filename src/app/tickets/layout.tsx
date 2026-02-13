@@ -7,11 +7,10 @@ import { useAuth } from '@/components/providers/AuthProvider';
 export default function TicketsLayout({ children }: { children: ReactNode }) {
     const { profile } = useAuth();
 
-    // Dynamically determine user role for the shell
-    const userRole: 'admin' | 'subcontractor' =
-        profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN' || profile?.role === 'TEAM_LEAD'
+    const userRole: 'admin' | 'contractor' =
+        profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN'
             ? 'admin'
-            : 'subcontractor';
+            : 'contractor';
 
     return (
         <AppShell userRole={userRole}>

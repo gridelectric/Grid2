@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusUpdateFlow } from '@/components/features/tickets/StatusUpdateFlow';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { useSubcontractorId } from '@/hooks/useSubcontractorId';
 import { ticketService } from '@/lib/services/ticketService';
 import type { Ticket } from '@/types';
 import type { GeofenceOverlay, LngLatTuple } from '@/components/features/map/types';
@@ -35,6 +36,7 @@ function getTicketCenter(ticket: MapTicketMarker | undefined): LngLatTuple | nul
 
 export default function SubcontractorMapPage() {
   const { profile, isLoading: isAuthLoading } = useAuth();
+  const { subcontractorId, isLoading: isResolvingSubcontractorId } = useSubcontractorId(profile?.id);
   const [isLoading, setIsLoading] = useState(true);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState<string | undefined>();
@@ -46,7 +48,7 @@ export default function SubcontractorMapPage() {
   );
 
   useEffect(() => {
-    if (!profile?.id) {
+    if (!subcontractorId) {
       setTickets([]);
       setIsLoading(false);
       return;
@@ -57,7 +59,7 @@ export default function SubcontractorMapPage() {
     const loadTicketsForMap = async () => {
       setIsLoading(true);
       try {
-        const data = await fetchAssignedTickets(profile.id);
+        const data = await fetchAssignedTickets(subcontractorId);
         if (active) {
           setTickets(data);
         }
@@ -77,7 +79,7 @@ export default function SubcontractorMapPage() {
     return () => {
       active = false;
     };
-  }, [fetchAssignedTickets, profile?.id]);
+  }, [fetchAssignedTickets, subcontractorId]);
 
   const mapTickets = useMemo(() => tickets.map(toMapTicket), [tickets]);
 
@@ -128,17 +130,17 @@ export default function SubcontractorMapPage() {
   );
 
   const handleStatusUpdated = useCallback(async () => {
-    if (!profile?.id) {
+    if (!subcontractorId) {
       return;
     }
 
     try {
-      const data = await fetchAssignedTickets(profile.id);
+      const data = await fetchAssignedTickets(subcontractorId);
       setTickets(data);
     } catch {
       toast.error('Status updated, but ticket refresh failed.');
     }
-  }, [fetchAssignedTickets, profile?.id]);
+  }, [fetchAssignedTickets, subcontractorId]);
 
   return (
     <div className="space-y-6">
@@ -156,7 +158,7 @@ export default function SubcontractorMapPage() {
         </Button>
       </PageHeader>
 
-      {isAuthLoading || isLoading ? (
+      {isAuthLoading || isResolvingSubcontractorId || isLoading ? (
         <div className="rounded-md border bg-white px-4 py-6 text-sm text-slate-500">Loading assigned map data...</div>
       ) : hasCoordinateTickets ? (
         <MapView

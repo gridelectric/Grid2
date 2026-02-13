@@ -5,15 +5,15 @@ import { getLandingPathForRole } from './roleLanding';
 
 describe('getLandingPathForRole', () => {
   it('routes admin-class roles to /admin/dashboard', () => {
-    const adminRoles: UserRole[] = ['SUPER_ADMIN', 'ADMIN', 'TEAM_LEAD', 'READ_ONLY'];
+    const adminRoles: UserRole[] = ['SUPER_ADMIN', 'ADMIN'];
 
     for (const role of adminRoles) {
       expect(getLandingPathForRole(role)).toBe('/admin/dashboard');
     }
   });
 
-  it('routes contractor role to /tickets', () => {
-    expect(getLandingPathForRole('CONTRACTOR')).toBe('/tickets');
+  it('routes contractor role to /contractor/time', () => {
+    expect(getLandingPathForRole('CONTRACTOR')).toBe('/contractor/time');
   });
 
   it('falls back to /login for unknown roles', () => {

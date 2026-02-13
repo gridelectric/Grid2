@@ -5,9 +5,7 @@
 CREATE TYPE user_role AS ENUM (
   'SUPER_ADMIN',
   'ADMIN',
-  'TEAM_LEAD',
-  'CONTRACTOR',
-  'READ_ONLY'
+  'CONTRACTOR'
 );
 
 -- Ticket Status

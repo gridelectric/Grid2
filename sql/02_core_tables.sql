@@ -12,6 +12,7 @@ CREATE TABLE profiles (
   -- Status
   is_active BOOLEAN DEFAULT true,
   is_email_verified BOOLEAN DEFAULT false,
+  must_reset_password BOOLEAN NOT NULL DEFAULT false,
   last_login_at TIMESTAMPTZ,
   
   -- MFA
@@ -32,6 +33,9 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 CREATE INDEX idx_profiles_email ON profiles(email);
 CREATE INDEX idx_profiles_role ON profiles(role);
 CREATE INDEX idx_profiles_active ON profiles(is_active);
+CREATE UNIQUE INDEX idx_profiles_single_super_admin
+  ON profiles(role)
+  WHERE role = 'SUPER_ADMIN';
 
 -- Subcontractors table
 CREATE TABLE subcontractors (

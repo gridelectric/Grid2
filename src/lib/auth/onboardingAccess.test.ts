@@ -10,6 +10,8 @@ describe('isStormFeaturePath', () => {
   it('matches contractor storm feature routes', () => {
     expect(isStormFeaturePath('/tickets')).toBe(true);
     expect(isStormFeaturePath('/tickets/123')).toBe(true);
+    expect(isStormFeaturePath('/contractor')).toBe(true);
+    expect(isStormFeaturePath('/contractor/map')).toBe(true);
     expect(isStormFeaturePath('/subcontractor')).toBe(true);
     expect(isStormFeaturePath('/subcontractor/map')).toBe(true);
   });

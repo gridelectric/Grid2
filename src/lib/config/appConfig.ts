@@ -46,9 +46,7 @@ export const APP_CONFIG = {
 export const USER_ROLES = {
   SUPER_ADMIN: 'SUPER_ADMIN',
   ADMIN: 'ADMIN',
-  TEAM_LEAD: 'TEAM_LEAD',
   CONTRACTOR: 'CONTRACTOR',
-  READ_ONLY: 'READ_ONLY',
 } as const;
 
 // Ticket statuses

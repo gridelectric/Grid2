@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import type { CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { canPerformManagementAction, getManagementActionForPath } from '@/lib/auth/authorization';
-import { getOnboardingResolutionPath, isOnboardingVerified, isStormFeaturePath } from '@/lib/auth/onboardingAccess';
+import { shouldEnforcePasswordReset } from '@/lib/auth/passwordResetGate';
 import { getPortalRole, isPortalPathAllowed } from '@/lib/auth/portalAccess';
 import { getActivityCookieValue, isSessionExpired, SESSION_ACTIVITY_COOKIE } from '@/lib/auth/sessionTimeout';
 import { Database } from '@/types/database';
@@ -12,6 +12,10 @@ const PUBLIC_ROUTE_PREFIXES = [
     '/forgot-password',
     '/reset-password',
     '/magic-link',
+    '/forbidden',
+];
+
+const REMOVED_ONBOARDING_ROUTE_PREFIXES = [
     '/welcome',
     '/personal-info',
     '/business-info',
@@ -24,24 +28,14 @@ const PUBLIC_ROUTE_PREFIXES = [
     '/profile-photo',
     '/review',
     '/pending',
-    '/forbidden',
 ];
 
-type ProfileRole = Pick<Database['public']['Tables']['profiles']['Row'], 'role'>;
-type SubcontractorOnboarding = Pick<Database['public']['Tables']['subcontractors']['Row'], 'onboarding_status'>;
+type ProfileAccess = Pick<Database['public']['Tables']['profiles']['Row'], 'role' | 'must_reset_password'>;
 
-interface ProfilesRoleTableClient {
+interface ProfilesAccessTableClient {
     select: (columns: string) => {
         eq: (column: string, value: string) => {
-            single: () => Promise<{ data: ProfileRole | null; error: unknown }>;
-        };
-    };
-}
-
-interface SubcontractorsOnboardingTableClient {
-    select: (columns: string) => {
-        eq: (column: string, value: string) => {
-            maybeSingle: () => Promise<{ data: SubcontractorOnboarding | null; error: unknown }>;
+            single: () => Promise<{ data: ProfileAccess | null; error: unknown }>;
         };
     };
 }
@@ -60,16 +54,27 @@ function isPublicRoute(pathname: string): boolean {
     return PUBLIC_ROUTE_PREFIXES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 }
 
+function isRemovedOnboardingRoute(pathname: string): boolean {
+    return REMOVED_ONBOARDING_ROUTE_PREFIXES.some(
+        (route) => pathname === route || pathname.startsWith(`${route}/`),
+    );
+}
+
 function isPortalScopedPath(pathname: string): boolean {
     return pathname === '/admin'
         || pathname.startsWith('/admin/')
+        || pathname === '/contractor'
+        || pathname.startsWith('/contractor/')
         || pathname === '/subcontractor'
         || pathname.startsWith('/subcontractor/');
 }
 
-function getLoginRedirectResponse(request: NextRequest): NextResponse {
+function getLoginRedirectResponse(request: NextRequest, reason?: string): NextResponse {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
+    if (reason) {
+        loginUrl.searchParams.set('reason', reason);
+    }
     return NextResponse.redirect(loginUrl);
 }
 
@@ -80,12 +85,11 @@ function getForbiddenResponse(request: NextRequest): NextResponse {
     return NextResponse.rewrite(forbiddenUrl, { status: 403 });
 }
 
-function getOnboardingResolutionRedirectResponse(request: NextRequest): NextResponse {
-    const resolutionUrl = request.nextUrl.clone();
-    const [pathname, searchParams] = getOnboardingResolutionPath().split('?');
-    resolutionUrl.pathname = pathname;
-    resolutionUrl.search = searchParams ? `?${searchParams}` : '';
-    return NextResponse.redirect(resolutionUrl);
+function getSetPasswordRedirectResponse(request: NextRequest): NextResponse {
+    const passwordUrl = request.nextUrl.clone();
+    passwordUrl.pathname = '/set-password';
+    passwordUrl.search = '';
+    return NextResponse.redirect(passwordUrl);
 }
 
 function setActivityCookie(response: NextResponse) {
@@ -100,6 +104,18 @@ function setActivityCookie(response: NextResponse) {
 }
 
 export async function updateSession(request: NextRequest) {
+    const pathname = request.nextUrl.pathname;
+
+    if (pathname === '/subcontractor' || pathname.startsWith('/subcontractor/')) {
+        const contractorUrl = request.nextUrl.clone();
+        contractorUrl.pathname = pathname.replace(/^\/subcontractor/, '/contractor');
+        return NextResponse.redirect(contractorUrl);
+    }
+
+    if (isRemovedOnboardingRoute(pathname)) {
+        return getLoginRedirectResponse(request, 'onboarding-removed');
+    }
+
     let supabaseResponse = NextResponse.next({
         request,
     });
@@ -138,9 +154,7 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser();
 
-    const pathname = request.nextUrl.pathname;
     const managementAction = getManagementActionForPath(pathname);
-    const onboardingGatedPath = isStormFeaturePath(pathname);
 
     if (!user) {
         supabaseResponse.cookies.delete(SESSION_ACTIVITY_COOKIE);
@@ -164,35 +178,25 @@ export async function updateSession(request: NextRequest) {
         return expiredResponse;
     }
 
-    if (isPortalScopedPath(pathname) || managementAction || onboardingGatedPath) {
-        const profilesTable = supabase.from('profiles') as unknown as ProfilesRoleTableClient;
-        const { data: profile } = await profilesTable
-            .select('role')
-            .eq('id', user.id)
-            .single();
+    const profilesTable = supabase.from('profiles') as unknown as ProfilesAccessTableClient;
+    const { data: profile } = await profilesTable
+        .select('role, must_reset_password')
+        .eq('id', user.id)
+        .single();
 
-        if (isPortalScopedPath(pathname)) {
-            const portalRole = getPortalRole(profile?.role);
-            if (!isPortalPathAllowed(pathname, portalRole)) {
-                return getForbiddenResponse(request);
-            }
-        }
+    if (shouldEnforcePasswordReset(profile?.must_reset_password, pathname)) {
+        return getSetPasswordRedirectResponse(request);
+    }
 
-        if (managementAction && !canPerformManagementAction(profile?.role, managementAction)) {
+    if (isPortalScopedPath(pathname)) {
+        const portalRole = getPortalRole(profile?.role);
+        if (!isPortalPathAllowed(pathname, portalRole)) {
             return getForbiddenResponse(request);
         }
+    }
 
-        if (onboardingGatedPath && profile?.role === 'CONTRACTOR') {
-            const subcontractorsTable = supabase.from('subcontractors') as unknown as SubcontractorsOnboardingTableClient;
-            const { data: subcontractor } = await subcontractorsTable
-                .select('onboarding_status')
-                .eq('profile_id', user.id)
-                .maybeSingle();
-
-            if (!isOnboardingVerified(subcontractor?.onboarding_status)) {
-                return getOnboardingResolutionRedirectResponse(request);
-            }
-        }
+    if (managementAction && !canPerformManagementAction(profile?.role, managementAction)) {
+        return getForbiddenResponse(request);
     }
 
     setActivityCookie(supabaseResponse);

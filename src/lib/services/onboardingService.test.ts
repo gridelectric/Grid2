@@ -20,7 +20,7 @@ const validInput = {
 
 interface MockOptions {
   userId?: string | null;
-  role?: 'SUPER_ADMIN' | 'ADMIN' | 'TEAM_LEAD' | 'CONTRACTOR' | 'READ_ONLY';
+  role?: 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
   existingSubcontractor?: {
     id: string;
     business_name: string;

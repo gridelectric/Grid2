@@ -578,7 +578,8 @@ function buildSimplePdf(lines: string[]): Uint8Array {
   }
   pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
 
-  return new TextEncoder().encode(pdf);
+  const encoded = new TextEncoder().encode(pdf);
+  return encoded instanceof Uint8Array ? encoded : new Uint8Array(encoded);
 }
 
 export function buildReportExportArtifact(

@@ -20,10 +20,6 @@ export function getManagementActionForPath(pathname: string): ManagementAction |
     return 'ticket_entry_write';
   }
 
-  if (normalizedPath === '/admin/subcontractors/approval') {
-    return 'contractor_assignment_write';
-  }
-
   if (
     normalizedPath === '/admin/storms/create'
     || (normalizedPath.startsWith('/admin/storms/') && normalizedPath.endsWith('/edit'))

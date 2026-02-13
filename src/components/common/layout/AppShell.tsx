@@ -8,7 +8,7 @@ import { useAuth } from '@/components/providers/AuthProvider';
 
 interface AppShellProps {
   children: ReactNode;
-  userRole?: 'admin' | 'subcontractor';
+  userRole?: 'admin' | 'contractor';
 }
 
 export function AppShell({ children, userRole = 'admin' }: AppShellProps) {

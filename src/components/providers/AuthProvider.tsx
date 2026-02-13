@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { User as AppUser } from '@/types';
+import { getLandingPathForRole } from '@/lib/auth/roleLanding';
 
 interface AuthContextType {
   user: User | null;
@@ -23,18 +24,7 @@ const PUBLIC_ROUTES = [
   '/forgot-password',
   '/reset-password',
   '/magic-link',
-  '/welcome',
-  '/personal-info',
-  '/business-info',
-  '/insurance',
-  '/credentials',
-  '/banking',
-  '/rates',
-  '/agreements',
-  '/training',
-  '/profile-photo',
-  '/review',
-  '/pending',
+  '/forbidden',
 ];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -134,9 +124,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!isLoading) {
       if (!user && !isPublicRoute) {
         router.push('/login');
+        return;
+      }
+
+      if (user && profile?.must_reset_password && !pathname?.startsWith('/set-password')) {
+        router.push('/set-password');
+        return;
+      }
+
+      if (user && !profile?.must_reset_password && pathname?.startsWith('/set-password')) {
+        router.push(getLandingPathForRole(profile?.role));
       }
     }
-  }, [user, isLoading, pathname, isPublicRoute, router]);
+  }, [user, profile, isLoading, pathname, isPublicRoute, router]);
 
   const value = {
     user,

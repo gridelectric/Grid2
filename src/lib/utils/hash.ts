@@ -18,9 +18,51 @@ async function getSubtleCrypto(): Promise<HashSubtle> {
   return cryptoModule.webcrypto.subtle as unknown as HashSubtle;
 }
 
+function isArrayBuffer(value: unknown): value is ArrayBuffer {
+  return Object.prototype.toString.call(value) === '[object ArrayBuffer]';
+}
+
+async function readBlobWithFileReader(input: Blob): Promise<ArrayBuffer> {
+  return new Promise<ArrayBuffer>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onerror = () => {
+      reject(reader.error ?? new Error('Failed to read blob.'));
+    };
+
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new TypeError('Unexpected FileReader result type.'));
+    };
+
+    reader.readAsArrayBuffer(input);
+  });
+}
+
+async function toArrayBuffer(input: Blob | ArrayBuffer): Promise<ArrayBuffer> {
+  if (isArrayBuffer(input)) {
+    return input;
+  }
+
+  if (typeof input.arrayBuffer === 'function') {
+    return input.arrayBuffer();
+  }
+
+  if (typeof FileReader !== 'undefined') {
+    return readBlobWithFileReader(input);
+  }
+
+  const response = new Response(input);
+  return response.arrayBuffer();
+}
+
 export async function calculateSHA256Hash(input: Blob | ArrayBuffer): Promise<string> {
   const subtle = await getSubtleCrypto();
-  const buffer = input instanceof ArrayBuffer ? input : await input.arrayBuffer();
+  const buffer = await toArrayBuffer(input);
   const digest = await subtle.digest('SHA-256', buffer);
   return bufferToHex(digest);
 }

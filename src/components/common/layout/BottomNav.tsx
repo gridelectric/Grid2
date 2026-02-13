@@ -5,10 +5,11 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   ADMIN_BOTTOM_NAV_ITEMS,
+  CONTRACTOR_BOTTOM_NAV_ITEMS,
   NavLinkItem,
-  SUBCONTRACTOR_BOTTOM_NAV_ITEMS,
 } from './navigationConfig';
 import {
+  Clock,
   LayoutDashboard,
   Map,
   Ticket,
@@ -16,16 +17,16 @@ import {
 } from 'lucide-react';
 
 interface BottomNavProps {
-  userRole: 'admin' | 'subcontractor';
+  userRole: 'admin' | 'contractor';
 }
 
 const iconByHref = {
   '/admin/dashboard': LayoutDashboard,
   '/tickets': Ticket,
-  '/admin/subcontractors': User,
+  '/admin/contractors': User,
   '/admin/map': Map,
-  '/subcontractor/map': Map,
-  '/subcontractor/profile': User,
+  '/contractor/map': Map,
+  '/contractor/time': Clock,
 } as const;
 
 function getNavIcon(href: string) {
@@ -35,7 +36,7 @@ function getNavIcon(href: string) {
 export function BottomNav({ userRole }: BottomNavProps) {
   const pathname = usePathname();
   const navItems: NavLinkItem[] =
-    userRole === 'admin' ? ADMIN_BOTTOM_NAV_ITEMS : SUBCONTRACTOR_BOTTOM_NAV_ITEMS;
+    userRole === 'admin' ? ADMIN_BOTTOM_NAV_ITEMS : CONTRACTOR_BOTTOM_NAV_ITEMS;
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t z-40 safe-area-pb">
