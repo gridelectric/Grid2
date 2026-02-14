@@ -623,6 +623,9 @@ grid-electric-app/
 - **Status Update:** 2026-02-13
 - **Agent:** GPT-5 Codex
 - **Notes:** Decommissioned active onboarding entry paths and approval route access, added first-login password enforcement (`must_reset_password` + `/set-password` gate), introduced contractor canonical routing with legacy redirects, and implemented CSV-driven provisioning via `scripts/provision-users-from-csv.ts` with dry-run/apply modes and provisioning tests.
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Stabilized first-login password setup by replacing async auth-state callback deadlock patterns in `AuthProvider`, hardened `/set-password` error/session handling, and validated login -> `/set-password` -> role landing redirect with live Playwright flow and Supabase profile flag verification.
 
 ---
 

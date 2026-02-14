@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import type { CookieOptions } from '@supabase/ssr';
+import { createClient as createAdminSupabaseClient } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
 import { canPerformManagementAction, getManagementActionForPath } from '@/lib/auth/authorization';
 import { shouldEnforcePasswordReset } from '@/lib/auth/passwordResetGate';
@@ -30,15 +31,10 @@ const REMOVED_ONBOARDING_ROUTE_PREFIXES = [
     '/pending',
 ];
 
-type ProfileAccess = Pick<Database['public']['Tables']['profiles']['Row'], 'role' | 'must_reset_password'>;
-
-interface ProfilesAccessTableClient {
-    select: (columns: string) => {
-        eq: (column: string, value: string) => {
-            single: () => Promise<{ data: ProfileAccess | null; error: unknown }>;
-        };
-    };
-}
+type ProfileAccess = {
+    role?: string | null;
+    must_reset_password?: boolean;
+};
 
 function clearSupabaseAuthCookies(request: NextRequest, response: NextResponse) {
     const authCookies = request.cookies
@@ -105,6 +101,23 @@ function setActivityCookie(response: NextResponse) {
 
 export async function updateSession(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
+
+    if (
+        pathname === '/sw.js'
+        || pathname === '/manifest.webmanifest'
+        || pathname === '/favicon.ico'
+        || pathname.startsWith('/_next/')
+    ) {
+        return NextResponse.next({
+            request,
+        });
+    }
+
+    if (pathname.startsWith('/api/')) {
+        return NextResponse.next({
+            request,
+        });
+    }
 
     if (pathname === '/subcontractor' || pathname.startsWith('/subcontractor/')) {
         const contractorUrl = request.nextUrl.clone();
@@ -178,11 +191,34 @@ export async function updateSession(request: NextRequest) {
         return expiredResponse;
     }
 
-    const profilesTable = supabase.from('profiles') as unknown as ProfilesAccessTableClient;
-    const { data: profile } = await profilesTable
-        .select('role, must_reset_password')
-        .eq('id', user.id)
-        .single();
+    let profile: ProfileAccess | null = null;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (supabaseUrl && serviceRoleKey) {
+        const adminClient = createAdminSupabaseClient<Database>(supabaseUrl, serviceRoleKey, {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false,
+            },
+        });
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const adminProfiles = adminClient.from('profiles') as any;
+        const { data } = await adminProfiles
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (data) {
+            profile = {
+                role: data.role,
+                must_reset_password: typeof data.must_reset_password === 'boolean'
+                    ? data.must_reset_password
+                    : false,
+            };
+        }
+    }
 
     if (shouldEnforcePasswordReset(profile?.must_reset_password, pathname)) {
         return getSetPasswordRedirectResponse(request);

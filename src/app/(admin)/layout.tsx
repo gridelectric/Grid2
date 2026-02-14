@@ -2,18 +2,8 @@ import { ReactNode } from 'react';
 import { forbidden, redirect } from 'next/navigation';
 import { AppShell } from '@/components/common/layout/AppShell';
 import { getPortalRole } from '@/lib/auth/portalAccess';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
-import { Database } from '@/types/database';
-
-type ProfileRole = Pick<Database['public']['Tables']['profiles']['Row'], 'role'>;
-
-interface ProfilesRoleTableClient {
-  select: (columns: string) => {
-    eq: (column: string, value: string) => {
-      single: () => Promise<{ data: ProfileRole | null; error: unknown }>;
-    };
-  };
-}
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient();
@@ -25,13 +15,15 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     redirect('/login');
   }
 
-  const profilesTable = supabase.from('profiles') as unknown as ProfilesRoleTableClient;
+  const admin = createAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const profilesTable = admin.from('profiles') as any;
   const { data: profile } = await profilesTable
-    .select('role')
+    .select('*')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
-  if (getPortalRole(profile?.role) !== 'admin') {
+  if (getPortalRole(profile?.role as string | null | undefined) !== 'admin') {
     forbidden();
   }
 

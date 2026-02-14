@@ -5,9 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import type { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
-import type { Database } from '@/types/database';
 import { getLandingPathForRole } from '@/lib/auth/roleLanding';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,18 +19,11 @@ const loginSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
-type LoginProfile = Pick<Database['public']['Tables']['profiles']['Row'], 'role' | 'is_active' | 'must_reset_password'>;
-
-interface ProfilesTableClient {
-  select: (columns: string) => {
-    eq: (column: string, value: string) => {
-      single: () => Promise<{ data: LoginProfile | null; error: PostgrestError | null }>;
-    };
-  };
-  update: (values: Database['public']['Tables']['profiles']['Update']) => {
-    eq: (column: string, value: string) => Promise<unknown>;
-  };
-}
+type LoginProfile = {
+  role: string;
+  is_active: boolean;
+  must_reset_password?: boolean;
+};
 
 export function LoginForm() {
   const router = useRouter();
@@ -62,25 +53,48 @@ export function LoginForm() {
         return;
       }
 
-      // Generated DB typings are currently incomplete for this table in strict mode.
-      const profilesTable = supabase.from('profiles') as unknown as ProfilesTableClient;
-      const { data: profile, error: profileError } = await profilesTable
-        .select('role, is_active, must_reset_password')
-        .eq('id', signInData.user.id)
-        .single();
+      const accessToken = signInData.session?.access_token;
+      const profileResponse = await fetch('/api/auth/profile', {
+        cache: 'no-store',
+        headers: accessToken
+          ? {
+            Authorization: `Bearer ${accessToken}`,
+          }
+          : undefined,
+      });
 
-      if (profileError || !profile?.is_active) {
+      if (!profileResponse.ok) {
+        await supabase.auth.signOut();
+        setError('Unable to sign in. Please contact your administrator.');
+        return;
+      }
+
+      const profilePayload = (await profileResponse.json()) as { profile?: LoginProfile };
+      const profile = profilePayload.profile;
+
+      if (!profile?.is_active) {
         await supabase.auth.signOut();
         setError('Unable to sign in. Please contact your administrator.');
         return;
       }
 
       // Best-effort audit metadata update for authentication visibility.
-      await profilesTable
-        .update({ last_login_at: new Date().toISOString() })
-        .eq('id', signInData.user.id);
+      await fetch('/api/auth/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken
+            ? {
+              Authorization: `Bearer ${accessToken}`,
+            }
+            : {}),
+        },
+        body: JSON.stringify({
+          last_login_at: new Date().toISOString(),
+        }),
+      });
 
-      const landingPath = profile.must_reset_password
+      const landingPath = profile.must_reset_password === true
         ? '/set-password'
         : getLandingPathForRole(profile.role);
       router.push(landingPath);

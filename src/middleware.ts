@@ -11,9 +11,13 @@ export const config = {
          * Match all request paths except for the ones starting with:
          * - _next/static (static files)
          * - _next/image (image optimization files)
+         * - _next/ (Next runtime assets)
          * - favicon.ico (favicon file)
+         * - sw.js (service worker script)
+         * - manifest.webmanifest (PWA manifest)
+         * - files with an extension
          * Feel free to modify this pattern to include more paths.
          */
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        '/((?!_next/static|_next/image|_next/|favicon.ico|sw.js|manifest.webmanifest|.*\\..*).*)',
     ],
 }

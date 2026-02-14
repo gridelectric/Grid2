@@ -9,7 +9,6 @@ import { Loader2 } from 'lucide-react';
 
 import { supabase } from '@/lib/supabase/client';
 import { getLandingPathForRole } from '@/lib/auth/roleLanding';
-import type { Database } from '@/types/database';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,20 +30,17 @@ const setPasswordSchema = z.object({
 
 type SetPasswordFormData = z.infer<typeof setPasswordSchema>;
 
-type ProfileSecurityRow = Pick<
-  Database['public']['Tables']['profiles']['Row'],
-  'id' | 'role' | 'must_reset_password'
->;
+type ProfileSecurityRow = {
+  id: string;
+  role: string;
+  must_reset_password?: boolean;
+};
 
-interface ProfilesSecurityTableClient {
-  select: (columns: string) => {
-    eq: (column: string, value: string) => {
-      single: () => Promise<{ data: ProfileSecurityRow | null; error: unknown }>;
-    };
-  };
-  update: (values: Database['public']['Tables']['profiles']['Update']) => {
-    eq: (column: string, value: string) => Promise<{ error: unknown }>;
-  };
+async function getAccessToken(): Promise<string | undefined> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  return session?.access_token;
 }
 
 export function SetPasswordForm() {
@@ -52,7 +48,7 @@ export function SetPasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
-  const [profileRole, setProfileRole] = useState<ProfileSecurityRow['role'] | null>(null);
+  const [profileRole, setProfileRole] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const {
@@ -70,33 +66,52 @@ export function SetPasswordForm() {
       setIsBootstrapping(true);
       try {
         const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        const sessionUser = session?.user;
+
+        const {
           data: { user },
           error: userError,
         } = await supabase.auth.getUser();
 
-        if (userError || !user) {
+        const resolvedUser = sessionUser ?? user;
+
+        if (userError || !resolvedUser) {
           router.push('/login');
           return;
         }
 
-        const profilesTable = supabase.from('profiles') as unknown as ProfilesSecurityTableClient;
-        const { data: profile, error: profileError } = await profilesTable
-          .select('id, role, must_reset_password')
-          .eq('id', user.id)
-          .single();
-
-        if (profileError || !profile) {
+        const accessToken = await getAccessToken();
+        const profileResponse = await fetch('/api/auth/profile', {
+          cache: 'no-store',
+          headers: accessToken
+            ? {
+              Authorization: `Bearer ${accessToken}`,
+            }
+            : undefined,
+        });
+        if (!profileResponse.ok) {
           setError('Unable to load your profile. Please contact an administrator.');
           return;
         }
 
-        if (!profile.must_reset_password) {
+        const profilePayload = (await profileResponse.json()) as { profile?: ProfileSecurityRow };
+        const profile = profilePayload.profile;
+
+        if (!profile) {
+          setError('Unable to load your profile. Please contact an administrator.');
+          return;
+        }
+
+        if (profile.must_reset_password !== true) {
           router.push(getLandingPathForRole(profile.role));
           return;
         }
 
         if (active) {
-          setUserId(user.id);
+          setUserId(resolvedUser.id);
           setProfileRole(profile.role);
         }
       } catch {
@@ -127,6 +142,29 @@ export function SetPasswordForm() {
     setError(null);
 
     try {
+      const {
+        data: { session: currentSession },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      let accessToken = currentSession?.access_token;
+      if (!accessToken) {
+        const {
+          data: { session: refreshedSession },
+          error: refreshError,
+        } = await supabase.auth.refreshSession();
+
+        if (refreshError || !refreshedSession?.access_token) {
+          throw new Error('Your session expired. Please sign in again.');
+        }
+
+        accessToken = refreshedSession.access_token;
+      }
+
       const { error: passwordError } = await supabase.auth.updateUser({
         password: data.password,
       });
@@ -135,19 +173,37 @@ export function SetPasswordForm() {
         throw passwordError;
       }
 
-      const profilesTable = supabase.from('profiles') as unknown as ProfilesSecurityTableClient;
-      const { error: profileUpdateError } = await profilesTable
-        .update({ must_reset_password: false })
-        .eq('id', userId);
+      const profileResponse = await fetch('/api/auth/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken
+            ? {
+              Authorization: `Bearer ${accessToken}`,
+            }
+            : {}),
+        },
+        body: JSON.stringify({
+          must_reset_password: false,
+        }),
+      });
 
-      if (profileUpdateError) {
-        throw profileUpdateError;
+      if (!profileResponse.ok) {
+        const body = await profileResponse.text();
+        throw new Error(body || 'Password updated but profile sync failed. Please contact an administrator.');
+      }
+
+      const profilePayload = (await profileResponse.json()) as { applied?: boolean };
+      if (profilePayload.applied === false) {
+        throw new Error('Password updated but reset flag was not applied. Please contact an administrator.');
       }
 
       router.push(getLandingPathForRole(profileRole));
       router.refresh();
-    } catch {
-      setError('Unable to set your password. Please try again.');
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : 'Unable to set your password. Please try again.',
+      );
     } finally {
       setIsLoading(false);
     }

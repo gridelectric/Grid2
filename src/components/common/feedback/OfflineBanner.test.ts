@@ -30,4 +30,22 @@ describe('readOnlineStatus', () => {
       value: originalNavigator,
     });
   });
+
+  it('defaults to true when navigator.onLine is not a boolean', () => {
+    const originalNavigator = globalThis.navigator;
+
+    Object.defineProperty(globalThis, 'navigator', {
+      configurable: true,
+      writable: true,
+      value: { onLine: undefined },
+    });
+
+    expect(readOnlineStatus()).toBe(true);
+
+    Object.defineProperty(globalThis, 'navigator', {
+      configurable: true,
+      writable: true,
+      value: originalNavigator,
+    });
+  });
 });

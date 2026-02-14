@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 export function readOnlineStatus(): boolean {
-  if (typeof navigator === 'undefined') {
+  if (typeof navigator === 'undefined' || typeof navigator.onLine !== 'boolean') {
     return true;
   }
 

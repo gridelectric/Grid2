@@ -48,7 +48,7 @@ interface SyncContextValue {
 const SyncContext = createContext<SyncContextValue | undefined>(undefined);
 
 function readOnlineStatus(): boolean {
-  if (typeof navigator === 'undefined') {
+  if (typeof navigator === 'undefined' || typeof navigator.onLine !== 'boolean') {
     return true;
   }
 

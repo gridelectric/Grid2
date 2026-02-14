@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { User } from '@supabase/supabase-js';
+import { Session, User } from '@supabase/supabase-js';
 import { User as AppUser } from '@/types';
 import { getLandingPathForRole } from '@/lib/auth/roleLanding';
 
@@ -37,21 +37,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route));
 
   // Fetch user profile from profiles table
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+  const fetchProfile = async (userId: string, accessToken?: string) => {
+    if (!userId) {
+      return;
+    }
 
-      if (error) {
-        console.error('Error fetching profile:', error);
+    try {
+      let token = accessToken;
+      if (!token) {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        token = session?.access_token;
+      }
+
+      const response = await fetch('/api/auth/profile', {
+        cache: 'no-store',
+        headers: token
+          ? {
+            Authorization: `Bearer ${token}`,
+          }
+          : undefined,
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        console.error('Error fetching profile:', {
+          status: response.status,
+          body,
+        });
         return;
       }
 
-      if (data) {
-        setProfile(data as AppUser);
+      const payload = (await response.json()) as { profile?: AppUser };
+      if (payload.profile) {
+        setProfile(payload.profile);
       }
     } catch (error) {
       console.error('Error in fetchProfile:', error);
@@ -76,24 +96,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    const applySession = async (session: Session | null) => {
+      try {
+        if (session?.user) {
+          setUser(session.user);
+          await fetchProfile(session.user.id, session.access_token);
+        } else {
+          setUser(null);
+          setProfile(null);
+        }
+      } catch (error) {
+        console.error('Error applying session:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     // Check for existing session
     const checkSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           console.error('Session error:', error);
           setIsLoading(false);
           return;
         }
 
-        if (session?.user) {
-          setUser(session.user);
-          await fetchProfile(session.user.id);
-        }
+        await applySession(session);
       } catch (error) {
         console.error('Error checking session:', error);
-      } finally {
         setIsLoading(false);
       }
     };
@@ -101,18 +133,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkSession();
 
     // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          setUser(session.user);
-          await fetchProfile(session.user.id);
-        } else {
-          setUser(null);
-          setProfile(null);
-        }
-        setIsLoading(false);
-      }
-    );
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Supabase auth callbacks should not block on async operations.
+      setTimeout(() => {
+        void applySession(session);
+      }, 0);
+    });
 
     return () => {
       subscription.unsubscribe();
@@ -127,12 +153,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (user && profile?.must_reset_password && !pathname?.startsWith('/set-password')) {
+      if (user && profile?.must_reset_password === true && !pathname?.startsWith('/set-password')) {
         router.push('/set-password');
         return;
       }
 
-      if (user && !profile?.must_reset_password && pathname?.startsWith('/set-password')) {
+      if (user && profile && profile.must_reset_password === false && pathname?.startsWith('/set-password')) {
         router.push(getLandingPathForRole(profile?.role));
       }
     }
