@@ -668,6 +668,15 @@ grid-electric-app/
 - **Status Update:** 2026-02-14
 - **Agent:** GPT-5 Codex
 - **Notes:** Extended contractor upsert CLI with `--reset-password` to rotate credentials for existing auth users while preserving metadata/profile/contractor sync behavior (`scripts/upsert-single-contractor.ts`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Soft-removed the visible floating sync panel by unmounting `SyncStatus` from root layout while preserving `SyncProvider`, offline queue infrastructure, background sync plumbing, and `OfflineBanner` behavior (`src/app/layout.tsx`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Added Entergy-specific OCR-derived ticket intake support: extracted incident batch data to `output/pdf/entergy_incident_tickets_batch1_extracted.json`, documented the canonical Entergy format (`grid-electric-docs/ENTERGY_TICKET_FORMAT.md`), enforced Entergy-only intake schema in ticket creation when utility is Entergy (`src/components/features/tickets/TicketForm.tsx`), and wired storm-page utility selection to preselect/lock utility format in ticket entry (`src/app/(admin)/storms/page.tsx`, `src/app/tickets/create/page.tsx`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Removed noisy runtime error overlay from storm operations loading by replacing `console.error` with structured recoverable handling: auth/RLS failures are silently tolerated, and non-auth failures now show user toast + warning context (`src/app/(admin)/storms/page.tsx`).
 
 ---
 

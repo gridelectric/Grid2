@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { OfflineBanner } from "@/components/common/feedback/OfflineBanner";
-import { SyncStatus } from "@/components/common/feedback/SyncStatus";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ServiceWorkerProvider } from "@/components/providers/ServiceWorkerProvider";
 import { SyncProvider } from "@/components/providers/SyncProvider";
@@ -24,7 +23,6 @@ export default function RootLayout({
           <ServiceWorkerProvider>
             <SyncProvider>
               <OfflineBanner />
-              <SyncStatus />
               {children}
               <Toaster />
             </SyncProvider>

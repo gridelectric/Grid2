@@ -1,14 +1,25 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { CloudRain, Edit, Plus } from 'lucide-react';
 import { PageHeader } from '@/components/common/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { canPerformManagementAction } from '@/lib/auth/authorization';
+import { UTILITY_CLIENTS } from '@/lib/constants/utilityClients';
 import { ticketService } from '@/lib/services/ticketService';
+import { getErrorLogContext, getErrorMessage, isAuthOrPermissionError } from '@/lib/utils/errorHandling';
 import type { Ticket } from '@/types';
+import { toast } from 'sonner';
 
 interface StormOperationsRow {
   id: string;
@@ -46,6 +57,7 @@ export default function StormsPage() {
   const { profile } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedUtilityClient, setSelectedUtilityClient] = useState('Entergy');
   const canManageStormProjects = canPerformManagementAction(profile?.role, 'storm_project_write');
 
   useEffect(() => {
@@ -59,7 +71,10 @@ export default function StormsPage() {
           setTickets(data);
         }
       } catch (error) {
-        console.error('Failed to load storm operations:', error);
+        if (!isAuthOrPermissionError(error)) {
+          console.warn('Failed to load storm operations:', getErrorLogContext(error));
+          toast.error(getErrorMessage(error, 'Failed to load storm operations'));
+        }
         if (active) {
           setTickets([]);
         }
@@ -101,19 +116,47 @@ export default function StormsPage() {
       .sort((left, right) => right.activeTickets - left.activeTickets);
   }, [tickets]);
 
+  const utilityOptions = useMemo(() => {
+    const discoveredUtilities = stormOperations.map((storm) => storm.name.replace(/\s+Operations$/, ''));
+    return Array.from(new Set([...UTILITY_CLIENTS, ...discoveredUtilities]));
+  }, [stormOperations]);
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Storm Projects"
         description="Operational grouping derived from live ticket activity."
       >
-        <Button
-          disabled={!canManageStormProjects}
-          title={canManageStormProjects ? 'Create storm project' : 'Only Super Admin can create storm projects'}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Create Storm Project
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+          <Select value={selectedUtilityClient} onValueChange={setSelectedUtilityClient}>
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="Select Utility" />
+            </SelectTrigger>
+            <SelectContent>
+              {utilityOptions.map((utilityClient) => (
+                <SelectItem key={utilityClient} value={utilityClient}>
+                  {utilityClient}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {canManageStormProjects ? (
+            <Button asChild title="Open ticket entry for selected utility format">
+              <Link href={`/tickets/create?utility_client=${encodeURIComponent(selectedUtilityClient)}`}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Ticket Entry
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              disabled
+              title="Only Super Admin can create storm projects"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Ticket Entry
+            </Button>
+          )}
+        </div>
       </PageHeader>
 
       {!canManageStormProjects && (

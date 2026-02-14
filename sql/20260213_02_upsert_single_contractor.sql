@@ -7,11 +7,11 @@
 
 DO $$
 DECLARE
-  v_first_name TEXT := 'David';
-  v_last_name TEXT := 'McCarty';
-  v_email TEXT := 'dmccarty@gridelectriccorp.com';
+  v_first_name TEXT := 'Jeanie';
+  v_last_name TEXT := 'Campbell';
+  v_email TEXT := 'jcampbell@gridelectriccorp.com';
   v_role TEXT := 'SUPER_ADMIN';
-  v_contractor_id TEXT := 'DM01';
+  v_contractor_id TEXT := 'JC01';
   v_username TEXT := split_part(lower(v_email), '@', 1);
   v_hash TEXT := md5('contractor:' || upper(v_contractor_id));
   v_contractor_uuid UUID := (
