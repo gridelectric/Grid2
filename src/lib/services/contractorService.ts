@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase/client';
+import { isAuthOrPermissionError, isMissingDatabaseObjectError } from '@/lib/utils/errorHandling';
 
-interface RemoteSubcontractorRow {
+interface RemoteContractorRow {
   id: string;
   profile_id: string;
   business_name: string;
@@ -35,12 +36,18 @@ interface RemoteTicketRow {
 }
 
 interface RemoteInvoiceRow {
+  contractor_id: string;
+  total_amount: number | null;
+  status: string | null;
+}
+
+interface LegacyRemoteInvoiceRow {
   subcontractor_id: string;
   total_amount: number | null;
   status: string | null;
 }
 
-export interface SubcontractorListItem {
+export interface ContractorListItem {
   id: string;
   profileId: string;
   fullName: string;
@@ -58,18 +65,18 @@ export interface SubcontractorListItem {
   alerts: string[];
 }
 
-export interface SubcontractorListFilters {
+export interface ContractorListFilters {
   search?: string;
   onboardingStatus?: string;
   eligibleOnly?: boolean;
 }
 
-export interface AssignableSubcontractor {
+export interface AssignableContractor {
   id: string;
   displayName: string;
 }
 
-export interface SubcontractorDetail {
+export interface ContractorDetail {
   id: string;
   profileId: string;
   fullName: string;
@@ -130,18 +137,27 @@ function isActiveTicketStatus(status: string): boolean {
   return normalized !== 'CLOSED' && normalized !== 'ARCHIVED' && normalized !== 'EXPIRED';
 }
 
-function buildAlerts(subcontractor: RemoteSubcontractorRow): string[] {
+function buildAlerts(contractor: RemoteContractorRow): string[] {
   const alerts: string[] = [];
 
-  if (subcontractor.onboarding_status.toUpperCase() !== 'APPROVED') {
+  if (contractor.onboarding_status.toUpperCase() !== 'APPROVED') {
     alerts.push('Onboarding pending');
   }
 
-  if (!subcontractor.is_eligible_for_assignment) {
-    alerts.push(subcontractor.eligibility_reason ?? 'Not eligible for assignment');
+  if (!contractor.is_eligible_for_assignment) {
+    alerts.push(contractor.eligibility_reason ?? 'Not eligible for assignment');
   }
 
   return alerts;
+}
+
+async function hasActiveSession(): Promise<boolean> {
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session) {
+    return false;
+  }
+
+  return true;
 }
 
 async function fetchProfilesByIds(profileIds: string[]): Promise<Map<string, RemoteProfileRow>> {
@@ -155,6 +171,9 @@ async function fetchProfilesByIds(profileIds: string[]): Promise<Map<string, Rem
     .in('id', profileIds);
 
   if (error) {
+    if (isAuthOrPermissionError(error)) {
+      return new Map();
+    }
     throw error;
   }
 
@@ -162,45 +181,96 @@ async function fetchProfilesByIds(profileIds: string[]): Promise<Map<string, Rem
   return new Map(rows.map((row) => [row.id, row]));
 }
 
-async function fetchTicketRows(subcontractorIds: string[]): Promise<RemoteTicketRow[]> {
-  if (subcontractorIds.length === 0) {
+async function fetchTicketRows(contractorIds: string[]): Promise<RemoteTicketRow[]> {
+  if (contractorIds.length === 0) {
     return [];
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from('tickets') as any)
     .select('id, ticket_number, status, priority, utility_client, updated_at, assigned_to')
-    .in('assigned_to', subcontractorIds);
+    .in('assigned_to', contractorIds);
 
   if (error) {
+    if (isAuthOrPermissionError(error)) {
+      return [];
+    }
     throw error;
   }
 
   return (data ?? []) as RemoteTicketRow[];
 }
 
-async function fetchYtdInvoiceRows(subcontractorIds: string[]): Promise<RemoteInvoiceRow[]> {
-  if (subcontractorIds.length === 0) {
+async function fetchYtdInvoiceRows(contractorIds: string[]): Promise<RemoteInvoiceRow[]> {
+  if (contractorIds.length === 0) {
     return [];
   }
 
   const { start, end } = getCurrentYearDateRange();
 
+  // Prefer new schema first.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from('subcontractor_invoices') as any)
-    .select('subcontractor_id, total_amount, status')
-    .in('subcontractor_id', subcontractorIds)
+  const { data, error } = await (supabase.from('contractor_invoices') as any)
+    .select('contractor_id, total_amount, status')
+    .in('contractor_id', contractorIds)
     .gte('billing_period_start', start)
     .lte('billing_period_end', end);
 
-  if (error) {
-    throw error;
+  if (!error) {
+    return (data ?? []) as RemoteInvoiceRow[];
   }
 
-  return (data ?? []) as RemoteInvoiceRow[];
+  if (isAuthOrPermissionError(error)) {
+    return [];
+  }
+
+  if (isMissingDatabaseObjectError(error)) {
+    // Fallback for partially migrated schema: same table with legacy column name.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: partialData, error: partialError } = await (supabase.from('contractor_invoices') as any)
+      .select('subcontractor_id, total_amount, status')
+      .in('subcontractor_id', contractorIds)
+      .gte('billing_period_start', start)
+      .lte('billing_period_end', end);
+
+    if (!partialError) {
+      return ((partialData ?? []) as LegacyRemoteInvoiceRow[]).map((row) => ({
+        contractor_id: row.subcontractor_id,
+        total_amount: row.total_amount,
+        status: row.status,
+      }));
+    }
+
+    if (isAuthOrPermissionError(partialError)) {
+      return [];
+    }
+
+    // Fallback for pre-migration schema.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: legacyData, error: legacyError } = await (supabase.from('subcontractor_invoices') as any)
+      .select('subcontractor_id, total_amount, status')
+      .in('subcontractor_id', contractorIds)
+      .gte('billing_period_start', start)
+      .lte('billing_period_end', end);
+
+    if (legacyError) {
+      if (isAuthOrPermissionError(legacyError)) {
+        return [];
+      }
+      throw legacyError;
+    }
+
+    return ((legacyData ?? []) as LegacyRemoteInvoiceRow[]).map((row) => ({
+      contractor_id: row.subcontractor_id,
+      total_amount: row.total_amount,
+      status: row.status,
+    }));
+  }
+
+  throw error;
 }
 
-function buildActiveTicketCountBySubcontractor(ticketRows: RemoteTicketRow[]): Map<string, number> {
+function buildActiveTicketCountByContractor(ticketRows: RemoteTicketRow[]): Map<string, number> {
   const counts = new Map<string, number>();
 
   for (const row of ticketRows) {
@@ -214,7 +284,7 @@ function buildActiveTicketCountBySubcontractor(ticketRows: RemoteTicketRow[]): M
   return counts;
 }
 
-function buildTotalTicketCountBySubcontractor(ticketRows: RemoteTicketRow[]): Map<string, number> {
+function buildTotalTicketCountByContractor(ticketRows: RemoteTicketRow[]): Map<string, number> {
   const counts = new Map<string, number>();
 
   for (const row of ticketRows) {
@@ -228,11 +298,11 @@ function buildTotalTicketCountBySubcontractor(ticketRows: RemoteTicketRow[]): Ma
   return counts;
 }
 
-function buildYtdEarningsBySubcontractor(invoiceRows: RemoteInvoiceRow[]): Map<string, number> {
+function buildYtdEarningsByContractor(invoiceRows: RemoteInvoiceRow[]): Map<string, number> {
   const totals = new Map<string, number>();
 
   for (const row of invoiceRows) {
-    if (!row.subcontractor_id) {
+    if (!row.contractor_id) {
       continue;
     }
 
@@ -240,14 +310,14 @@ function buildYtdEarningsBySubcontractor(invoiceRows: RemoteInvoiceRow[]): Map<s
       continue;
     }
 
-    const current = totals.get(row.subcontractor_id) ?? 0;
-    totals.set(row.subcontractor_id, toCurrencyNumber(current + toCurrencyNumber(row.total_amount)));
+    const current = totals.get(row.contractor_id) ?? 0;
+    totals.set(row.contractor_id, toCurrencyNumber(current + toCurrencyNumber(row.total_amount)));
   }
 
   return totals;
 }
 
-function applySearchFilter(items: SubcontractorListItem[], search?: string): SubcontractorListItem[] {
+function applySearchFilter(items: ContractorListItem[], search?: string): ContractorListItem[] {
   const normalizedSearch = search?.trim().toLowerCase();
   if (!normalizedSearch) {
     return items;
@@ -268,7 +338,7 @@ function applySearchFilter(items: SubcontractorListItem[], search?: string): Sub
   });
 }
 
-function applyStatusFilter(items: SubcontractorListItem[], onboardingStatus?: string): SubcontractorListItem[] {
+function applyStatusFilter(items: ContractorListItem[], onboardingStatus?: string): ContractorListItem[] {
   if (!onboardingStatus || onboardingStatus === 'ALL') {
     return items;
   }
@@ -277,53 +347,78 @@ function applyStatusFilter(items: SubcontractorListItem[], onboardingStatus?: st
   return items.filter((item) => item.onboardingStatus.toUpperCase() === normalizedStatus);
 }
 
-function sortByName(items: SubcontractorListItem[]): SubcontractorListItem[] {
+function sortByName(items: ContractorListItem[]): ContractorListItem[] {
   return items.sort((left, right) => left.fullName.localeCompare(right.fullName));
 }
 
-export const subcontractorService = {
-  async listSubcontractors(filters: SubcontractorListFilters = {}): Promise<SubcontractorListItem[]> {
+export const contractorService = {
+  async listContractors(filters: ContractorListFilters = {}): Promise<ContractorListItem[]> {
+    if (!(await hasActiveSession())) {
+      return [];
+    }
+
+    const contractorColumns = [
+      'id',
+      'profile_id',
+      'business_name',
+      'business_type',
+      'city',
+      'state',
+      'onboarding_status',
+      'is_eligible_for_assignment',
+      'eligibility_reason',
+      'business_email',
+      'business_phone',
+      'created_at',
+      'updated_at',
+    ].join(',');
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query = (supabase.from('subcontractors') as any).select(
-      [
-        'id',
-        'profile_id',
-        'business_name',
-        'business_type',
-        'city',
-        'state',
-        'onboarding_status',
-        'is_eligible_for_assignment',
-        'eligibility_reason',
-        'business_email',
-        'business_phone',
-        'created_at',
-        'updated_at',
-      ].join(','),
+    let query = (supabase.from('contractors') as any).select(
+      contractorColumns,
     );
 
     if (filters.eligibleOnly) {
       query = query.eq('is_eligible_for_assignment', true);
     }
 
-    const { data, error } = await query;
+    let { data, error } = await query;
+
+    if (error && isMissingDatabaseObjectError(error)) {
+      // Fallback for legacy pre-migration schema.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let legacyQuery = (supabase.from('subcontractors') as any).select(
+        contractorColumns,
+      );
+
+      if (filters.eligibleOnly) {
+        legacyQuery = legacyQuery.eq('is_eligible_for_assignment', true);
+      }
+
+      const legacyResult = await legacyQuery;
+      data = legacyResult.data;
+      error = legacyResult.error;
+    }
 
     if (error) {
+      if (isAuthOrPermissionError(error)) {
+        return [];
+      }
       throw error;
     }
 
-    const rows = (data ?? []) as RemoteSubcontractorRow[];
+    const rows = (data ?? []) as RemoteContractorRow[];
     const profileIds = rows.map((row) => row.profile_id);
-    const subcontractorIds = rows.map((row) => row.id);
+    const contractorIds = rows.map((row) => row.id);
 
     const [profilesById, ticketRows, invoiceRows] = await Promise.all([
       fetchProfilesByIds(profileIds),
-      fetchTicketRows(subcontractorIds),
-      fetchYtdInvoiceRows(subcontractorIds),
+      fetchTicketRows(contractorIds),
+      fetchYtdInvoiceRows(contractorIds),
     ]);
 
-    const activeTicketCountBySubcontractor = buildActiveTicketCountBySubcontractor(ticketRows);
-    const ytdEarningsBySubcontractor = buildYtdEarningsBySubcontractor(invoiceRows);
+    const activeTicketCountByContractor = buildActiveTicketCountByContractor(ticketRows);
+    const ytdEarningsByContractor = buildYtdEarningsByContractor(invoiceRows);
 
     const mappedItems = rows.map((row) => {
       const profile = profilesById.get(row.profile_id);
@@ -343,10 +438,10 @@ export const subcontractorService = {
         eligibilityReason: row.eligibility_reason,
         email,
         phone: profile?.phone ?? row.business_phone,
-        activeTicketCount: activeTicketCountBySubcontractor.get(row.id) ?? 0,
-        ytdEarnings: ytdEarningsBySubcontractor.get(row.id) ?? 0,
+        activeTicketCount: activeTicketCountByContractor.get(row.id) ?? 0,
+        ytdEarnings: ytdEarningsByContractor.get(row.id) ?? 0,
         alerts: buildAlerts(row),
-      } satisfies SubcontractorListItem;
+      } satisfies ContractorListItem;
     });
 
     return sortByName(
@@ -357,56 +452,74 @@ export const subcontractorService = {
     );
   },
 
-  async listAssignableSubcontractors(): Promise<AssignableSubcontractor[]> {
-    const subcontractors = await this.listSubcontractors({
+  async listAssignableContractors(): Promise<AssignableContractor[]> {
+    const contractors = await this.listContractors({
       onboardingStatus: 'APPROVED',
       eligibleOnly: true,
     });
 
-    return subcontractors
-      .map((subcontractor) => ({
-        id: subcontractor.id,
-        displayName: `${subcontractor.fullName} (${subcontractor.businessName})`,
+    return contractors
+      .map((contractor) => ({
+        id: contractor.id,
+        displayName: `${contractor.fullName} (${contractor.businessName})`,
       }))
       .sort((left, right) => left.displayName.localeCompare(right.displayName));
   },
 
-  async getSubcontractorById(subcontractorId: string): Promise<SubcontractorDetail | null> {
-    if (!subcontractorId) {
+  async getContractorById(contractorId: string): Promise<ContractorDetail | null> {
+    if (!contractorId) {
       return null;
     }
+
+    if (!(await hasActiveSession())) {
+      return null;
+    }
+
+    const contractorColumns = [
+      'id',
+      'profile_id',
+      'business_name',
+      'business_type',
+      'city',
+      'state',
+      'onboarding_status',
+      'is_eligible_for_assignment',
+      'eligibility_reason',
+      'business_email',
+      'business_phone',
+      'created_at',
+      'updated_at',
+    ].join(',');
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.from('subcontractors') as any)
-      .select(
-        [
-          'id',
-          'profile_id',
-          'business_name',
-          'business_type',
-          'city',
-          'state',
-          'onboarding_status',
-          'is_eligible_for_assignment',
-          'eligibility_reason',
-          'business_email',
-          'business_phone',
-          'created_at',
-          'updated_at',
-        ].join(','),
-      )
-      .eq('id', subcontractorId)
+    let result = await (supabase.from('contractors') as any)
+      .select(contractorColumns)
+      .eq('id', contractorId)
       .maybeSingle();
 
-    if (error) {
-      throw error;
+    if (result.error && isMissingDatabaseObjectError(result.error)) {
+      // Fallback for legacy pre-migration schema.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      result = await (supabase.from('subcontractors') as any)
+        .select(contractorColumns)
+        .eq('id', contractorId)
+        .maybeSingle();
     }
 
-    if (!data) {
+    const { data: contractorData, error: contractorError } = result;
+
+    if (contractorError) {
+      if (isAuthOrPermissionError(contractorError)) {
+        return null;
+      }
+      throw contractorError;
+    }
+
+    if (!contractorData) {
       return null;
     }
 
-    const row = data as RemoteSubcontractorRow;
+    const row = contractorData as RemoteContractorRow;
     const [profilesById, ticketRows, invoiceRows] = await Promise.all([
       fetchProfilesByIds([row.profile_id]),
       fetchTicketRows([row.id]),
@@ -414,9 +527,9 @@ export const subcontractorService = {
     ]);
 
     const profile = profilesById.get(row.profile_id);
-    const activeTicketCountBySubcontractor = buildActiveTicketCountBySubcontractor(ticketRows);
-    const totalTicketCountBySubcontractor = buildTotalTicketCountBySubcontractor(ticketRows);
-    const ytdEarningsBySubcontractor = buildYtdEarningsBySubcontractor(invoiceRows);
+    const activeTicketCountByContractor = buildActiveTicketCountByContractor(ticketRows);
+    const totalTicketCountByContractor = buildTotalTicketCountByContractor(ticketRows);
+    const ytdEarningsByContractor = buildYtdEarningsByContractor(invoiceRows);
 
     const recentTickets = ticketRows
       .sort((left, right) => Date.parse(right.updated_at) - Date.parse(left.updated_at))
@@ -445,9 +558,9 @@ export const subcontractorService = {
       onboardingStatus: row.onboarding_status,
       eligibleForAssignment: row.is_eligible_for_assignment,
       eligibilityReason: row.eligibility_reason,
-      activeTicketCount: activeTicketCountBySubcontractor.get(row.id) ?? 0,
-      totalTicketCount: totalTicketCountBySubcontractor.get(row.id) ?? 0,
-      ytdEarnings: ytdEarningsBySubcontractor.get(row.id) ?? 0,
+      activeTicketCount: activeTicketCountByContractor.get(row.id) ?? 0,
+      totalTicketCount: totalTicketCountByContractor.get(row.id) ?? 0,
+      ytdEarnings: ytdEarningsByContractor.get(row.id) ?? 0,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       recentTickets,

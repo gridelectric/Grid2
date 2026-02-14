@@ -5,7 +5,7 @@ import { validateGPSWorkflow } from '@/lib/utils/gpsWorkflow';
 import { Ticket, TicketStatus, UserRole } from '@/types';
 import { Database } from '@/types/database';
 import { isValidTransition } from '@/lib/utils/statusTransitions';
-import { isAuthOrPermissionError } from '@/lib/utils/errorHandling';
+import { isAuthOrPermissionError, isMissingDatabaseObjectError } from '@/lib/utils/errorHandling';
 
 type ProfileRole = Pick<Database['public']['Tables']['profiles']['Row'], 'role'>;
 
@@ -17,7 +17,7 @@ interface ProfilesRoleTableClient {
     };
 }
 
-interface SubcontractorIdRow {
+interface ContractorIdRow {
     id: string;
 }
 
@@ -64,17 +64,28 @@ async function assertManagementActionAllowed(action: ManagementAction): Promise<
     }
 }
 
-async function resolveSubcontractorId(assigneeId: string): Promise<string | null> {
+async function resolveContractorId(assigneeId: string): Promise<string | null> {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !sessionData.session) {
         return null;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.from('subcontractors') as any)
+    let { data, error } = await (supabase.from('contractors') as any)
         .select('id, profile_id')
         .or(`id.eq.${assigneeId},profile_id.eq.${assigneeId}`)
         .limit(1);
+
+    if (error && isMissingDatabaseObjectError(error)) {
+        // Fallback for pre-migration schema.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const legacyResult = await (supabase.from('subcontractors') as any)
+            .select('id, profile_id')
+            .or(`id.eq.${assigneeId},profile_id.eq.${assigneeId}`)
+            .limit(1);
+        data = legacyResult.data;
+        error = legacyResult.error;
+    }
 
     if (error) {
         throw error;
@@ -84,7 +95,7 @@ async function resolveSubcontractorId(assigneeId: string): Promise<string | null
         return null;
     }
 
-    const row = data[0] as SubcontractorIdRow;
+    const row = data[0] as ContractorIdRow;
     return row.id ?? null;
 }
 
@@ -182,9 +193,9 @@ export const ticketService = {
             return directData as Ticket[];
         }
 
-        let subcontractorId: string | null = null;
+        let contractorId: string | null = null;
         try {
-            subcontractorId = await resolveSubcontractorId(assigneeId);
+            contractorId = await resolveContractorId(assigneeId);
         } catch (error) {
             if (!isAuthOrPermissionError(error)) {
                 throw error;
@@ -193,14 +204,14 @@ export const ticketService = {
             return Array.isArray(directData) ? (directData as Ticket[]) : [];
         }
 
-        if (!subcontractorId || subcontractorId === assigneeId) {
+        if (!contractorId || contractorId === assigneeId) {
             return Array.isArray(directData) ? (directData as Ticket[]) : [];
         }
 
         const { data, error } = await supabase
             .from('tickets')
             .select('*')
-            .eq('assigned_to', subcontractorId)
+            .eq('assigned_to', contractorId)
             .order('created_at', { ascending: false });
 
         if (error && !isAuthOrPermissionError(error)) {

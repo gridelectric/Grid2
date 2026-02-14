@@ -647,6 +647,27 @@ grid-electric-app/
 - **Status Update:** 2026-02-14
 - **Agent:** GPT-5 Codex
 - **Notes:** Stabilized Next.js artifact generation to prevent runtime ENOENT reads of `next-font-manifest.json`/`routes-manifest.json` by removing runtime dependency on Google-hosted `next/font` in root layout and fixing Next 15 async `params` typing in legacy redirect page (`src/app/layout.tsx`, `src/app/(admin)/admin/subcontractors/[id]/page.tsx`); full `npm run build` now completes successfully.
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Hardened contractor directory loading against transient auth/RLS read failures and replaced noisy subcontractor page error logging with structured recoverable handling; wired `Invite Contractor` CTA to a new `/admin/contractors/invite` provisioning screen with CSV template download and preserved legacy `/admin/subcontractors/invite` redirect (`src/lib/services/subcontractorService.ts`, `src/app/(admin)/subcontractors/page.tsx`, `src/app/(admin)/subcontractors/[id]/page.tsx`, `src/app/(admin)/admin/contractors/invite/page.tsx`, `src/app/(admin)/admin/subcontractors/invite/page.tsx`, `public/templates/contractor-invite-template.csv`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Completed full contractor terminology refactor across app code, SQL schema definitions, RLS/policy references, data model/types, and provisioning scripts by replacing `subcontractor*` entities with `contractor*`, renaming core service/hook modules (`useContractorId`, `contractorService`), and adding live-database migration `sql/20260214_03_rename_subcontractor_to_contractor.sql` to upgrade existing Supabase environments safely.
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Resolved contractor navigation build regression by removing legacy self-redeclaration aliases for `CONTRACTOR_SIDEBAR_NAV_ITEMS` and `CONTRACTOR_BOTTOM_NAV_ITEMS` in `src/components/common/layout/navigationConfig.ts`; verified with successful `npm run build`.
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Added backward-compatible contractor data fallbacks to support both pre-migration and post-migration schemas (`contractors` vs `subcontractors`, `contractor_invoices` vs `subcontractor_invoices`) and removed noisy contractor-list console logging so admin roster loads as empty-state instead of throwing runtime console errors during staged DB migration rollout (`src/lib/services/contractorService.ts`, `src/hooks/useContractorId.ts`, `src/lib/services/ticketService.ts`, `src/lib/utils/errorHandling.ts`, `src/app/(admin)/subcontractors/page.tsx`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Addressed intermittent Next.js dev runtime chunk/manifest failures (`Cannot find module './1331.js'`, `./5611.js`, missing `.next/routes-manifest.json`) by adding cache reset scripts for clean server startup (`npm run clean:next`, `npm run dev:fresh`) and re-validating with a successful production build (`package.json`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Updated `scripts/upsert-single-contractor.ts` to auto-fallback from `public.contractors` to legacy `public.subcontractors` when rename migration is not yet applied, allowing contractor provisioning/upsert to run in both schema states during transition.
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Extended contractor upsert CLI with `--reset-password` to rotate credentials for existing auth users while preserving metadata/profile/contractor sync behavior (`scripts/upsert-single-contractor.ts`).
 
 ---
 

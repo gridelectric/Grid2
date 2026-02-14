@@ -7,8 +7,8 @@ type ProfileSummary = Pick<
   Database['public']['Tables']['profiles']['Row'],
   'id' | 'first_name' | 'last_name' | 'email' | 'phone'
 >;
-type SubcontractorPendingRow = Pick<
-  Database['public']['Tables']['subcontractors']['Row'],
+type ContractorPendingRow = Pick<
+  Database['public']['Tables']['contractors']['Row'],
   | 'id'
   | 'profile_id'
   | 'onboarding_status'
@@ -17,17 +17,17 @@ type SubcontractorPendingRow = Pick<
   | 'created_at'
 >;
 interface MediaDocumentRow {
-  subcontractor_id: string | null;
+  contractor_id: string | null;
   original_name: string | null;
   storage_path: string;
   created_at: string;
 }
-type SubcontractorVerificationRow = Pick<
-  Database['public']['Tables']['subcontractors']['Row'],
+type ContractorVerificationRow = Pick<
+  Database['public']['Tables']['contractors']['Row'],
   'id' | 'onboarding_status'
 >;
-type SubcontractorVerificationUpdate = Pick<
-  Database['public']['Tables']['subcontractors']['Update'],
+type ContractorVerificationUpdate = Pick<
+  Database['public']['Tables']['contractors']['Update'],
   | 'onboarding_status'
   | 'is_eligible_for_assignment'
   | 'eligibility_reason'
@@ -50,7 +50,7 @@ export interface RequiredOnboardingDocument {
 }
 
 export interface OnboardingReviewPackage {
-  subcontractorId: string;
+  contractorId: string;
   onboardingStatus: string;
   submittedAt: string;
   profile: {
@@ -69,13 +69,13 @@ export interface OnboardingReviewPackage {
 }
 
 export interface OnboardingVerificationDecisionInput {
-  subcontractorId: string;
+  contractorId: string;
   decision: 'verified' | 'not_verified';
   reason?: string;
 }
 
 export interface OnboardingVerificationDecisionResult {
-  subcontractorId: string;
+  contractorId: string;
   onboardingStatus: OnboardingStatus;
   isEligibleForAssignment: boolean;
 }
@@ -93,17 +93,17 @@ interface ProfilesTableClient {
   };
 }
 
-interface SubcontractorsTableClient {
+interface ContractorsTableClient {
   select: (columns: string) => {
     in: (
       column: string,
       values: string[]
-    ) => Promise<{ data: SubcontractorPendingRow[] | null; error: unknown }>;
+    ) => Promise<{ data: ContractorPendingRow[] | null; error: unknown }>;
     eq: (column: string, value: string) => {
-      single: () => Promise<{ data: SubcontractorVerificationRow | null; error: unknown }>;
+      single: () => Promise<{ data: ContractorVerificationRow | null; error: unknown }>;
     };
   };
-  update: (values: SubcontractorVerificationUpdate) => {
+  update: (values: ContractorVerificationUpdate) => {
     eq: (column: string, value: string) => Promise<{ error: unknown }>;
   };
 }
@@ -122,7 +122,7 @@ interface MediaAssetsTableClient {
 interface OnboardingReviewSupabaseClient {
   auth: AuthClient;
   from(table: 'profiles'): ProfilesTableClient;
-  from(table: 'subcontractors'): SubcontractorsTableClient;
+  from(table: 'contractors'): ContractorsTableClient;
   from(table: 'media_assets'): MediaAssetsTableClient;
 }
 
@@ -186,7 +186,7 @@ export async function getPendingOnboardingPackages(
   await requireSuperAdmin(activeClient);
 
   const { data: pendingRows, error: pendingError } = await activeClient
-    .from('subcontractors')
+    .from('contractors')
     .select('id, profile_id, onboarding_status, emergency_contact_name, emergency_contact_phone, created_at')
     .in('onboarding_status', ['PENDING', 'IN_PROGRESS', 'COMPLETE', 'SUSPENDED']);
 
@@ -199,7 +199,7 @@ export async function getPendingOnboardingPackages(
   }
 
   const profileIds = pendingRows.map((row) => row.profile_id);
-  const subcontractorIds = pendingRows.map((row) => row.id);
+  const contractorIds = pendingRows.map((row) => row.id);
 
   const { data: profiles, error: profilesError } = await activeClient
     .from('profiles')
@@ -212,29 +212,29 @@ export async function getPendingOnboardingPackages(
 
   const { data: mediaRows, error: mediaError } = await activeClient
     .from('media_assets')
-    .select('subcontractor_id, original_name, storage_path, created_at')
-    .eq('entity_type', 'subcontractor_onboarding')
-    .in('subcontractor_id', subcontractorIds);
+    .select('contractor_id, original_name, storage_path, created_at')
+    .eq('entity_type', 'contractor_onboarding')
+    .in('contractor_id', contractorIds);
 
   if (mediaError) {
     throw mediaError;
   }
 
   const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
-  const docStatusBySubcontractor = new Map<
+  const docStatusByContractor = new Map<
     string,
     { w9: RequiredOnboardingDocument; insurance: RequiredOnboardingDocument }
   >();
 
-  for (const subcontractorId of subcontractorIds) {
-    docStatusBySubcontractor.set(subcontractorId, {
+  for (const contractorId of contractorIds) {
+    docStatusByContractor.set(contractorId, {
       w9: buildMissingDocument(),
       insurance: buildMissingDocument(),
     });
   }
 
   for (const row of mediaRows ?? []) {
-    if (!row.subcontractor_id) {
+    if (!row.contractor_id) {
       continue;
     }
 
@@ -243,7 +243,7 @@ export async function getPendingOnboardingPackages(
       continue;
     }
 
-    const current = docStatusBySubcontractor.get(row.subcontractor_id) ?? {
+    const current = docStatusByContractor.get(row.contractor_id) ?? {
       w9: buildMissingDocument(),
       insurance: buildMissingDocument(),
     };
@@ -258,18 +258,18 @@ export async function getPendingOnboardingPackages(
       fileName: row.original_name ?? undefined,
       uploadedAt: row.created_at,
     };
-    docStatusBySubcontractor.set(row.subcontractor_id, current);
+    docStatusByContractor.set(row.contractor_id, current);
   }
 
   return pendingRows.map((row) => {
     const profile = profileById.get(row.profile_id);
-    const docs = docStatusBySubcontractor.get(row.id) ?? {
+    const docs = docStatusByContractor.get(row.id) ?? {
       w9: buildMissingDocument(),
       insurance: buildMissingDocument(),
     };
 
     return {
-      subcontractorId: row.id,
+      contractorId: row.id,
       onboardingStatus: row.onboarding_status,
       submittedAt: row.created_at,
       profile: {
@@ -294,9 +294,9 @@ export async function setOnboardingVerificationDecision(
   const { userId } = await requireSuperAdmin(activeClient);
 
   const { data: targetRow, error: targetError } = await activeClient
-    .from('subcontractors')
+    .from('contractors')
     .select('id, onboarding_status')
-    .eq('id', input.subcontractorId)
+    .eq('id', input.contractorId)
     .single();
 
   if (targetError) {
@@ -307,7 +307,7 @@ export async function setOnboardingVerificationDecision(
     throw new Error(ONBOARDING_REVIEW_NOT_FOUND_ERROR);
   }
 
-  const updatePayload: SubcontractorVerificationUpdate =
+  const updatePayload: ContractorVerificationUpdate =
     input.decision === 'verified'
       ? {
         onboarding_status: 'APPROVED',
@@ -329,7 +329,7 @@ export async function setOnboardingVerificationDecision(
   if (input.decision === 'verified') {
     await finalizeOnboardingComplianceArtifacts(
       {
-        subcontractorId: input.subcontractorId,
+        contractorId: input.contractorId,
         actorUserId: userId,
       },
       activeClient as never
@@ -337,16 +337,16 @@ export async function setOnboardingVerificationDecision(
   }
 
   const { error: updateError } = await activeClient
-    .from('subcontractors')
+    .from('contractors')
     .update(updatePayload)
-    .eq('id', input.subcontractorId);
+    .eq('id', input.contractorId);
 
   if (updateError) {
     throw updateError;
   }
 
   return {
-    subcontractorId: input.subcontractorId,
+    contractorId: input.contractorId,
     onboardingStatus: updatePayload.onboarding_status as OnboardingStatus,
     isEligibleForAssignment: updatePayload.is_eligible_for_assignment ?? false,
   };

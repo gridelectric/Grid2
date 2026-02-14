@@ -1,4 +1,4 @@
-const STORM_FEATURE_PREFIXES = ['/tickets', '/contractor', '/subcontractor'] as const;
+const STORM_FEATURE_PREFIXES = ['/tickets', '/contractor', '/contractor'] as const;
 
 export function isStormFeaturePath(pathname: string): boolean {
   return STORM_FEATURE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));

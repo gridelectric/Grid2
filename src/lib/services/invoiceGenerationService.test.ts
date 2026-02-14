@@ -8,8 +8,8 @@ import {
 
 function buildCandidate(overrides: Partial<InvoiceGenerationCandidate> = {}): InvoiceGenerationCandidate {
   return {
-    subcontractor_id: 'sub-1',
-    subcontractor_name: 'Alex Carter',
+    contractor_id: 'sub-1',
+    contractor_name: 'Alex Carter',
     time_entries: [
       {
         id: 'time-1',
@@ -45,7 +45,7 @@ function buildCandidate(overrides: Partial<InvoiceGenerationCandidate> = {}): In
 
 function buildTracking(overrides: Partial<Tax1099TrackingSummary> = {}): Tax1099TrackingSummary {
   return {
-    subcontractor_id: 'sub-1',
+    contractor_id: 'sub-1',
     tax_year: 2026,
     total_payments: 500,
     total_invoices: 2,
@@ -80,7 +80,7 @@ describe('createInvoiceGenerationService', () => {
       service.generateInvoices({
         billingPeriodStart: '2026-02-01',
         billingPeriodEnd: '2026-02-28',
-        subcontractorIds: ['sub-1'],
+        contractorIds: ['sub-1'],
       }),
     ).rejects.toThrow('internet connection');
   });
@@ -91,7 +91,7 @@ describe('createInvoiceGenerationService', () => {
     const insertInvoice = vi.fn().mockResolvedValue({
       id: 'inv-1',
       invoice_number: 'INV-2026-0008',
-      subcontractor_id: 'sub-1',
+      contractor_id: 'sub-1',
       billing_period_start: '2026-02-01',
       billing_period_end: '2026-02-28',
       subtotal_time: 200,
@@ -129,7 +129,7 @@ describe('createInvoiceGenerationService', () => {
     const result = await service.generateInvoices({
       billingPeriodStart: '2026-02-01',
       billingPeriodEnd: '2026-02-28',
-      subcontractorIds: ['sub-1'],
+      contractorIds: ['sub-1'],
       generatedBy: 'admin-1',
     });
 
@@ -138,7 +138,7 @@ describe('createInvoiceGenerationService', () => {
     expect(insertInvoice).toHaveBeenCalledWith(
       expect.objectContaining({
         invoiceNumber: 'INV-2026-0008',
-        subcontractorId: 'sub-1',
+        contractorId: 'sub-1',
         totalAmount: 275,
       }),
     );

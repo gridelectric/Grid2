@@ -8,7 +8,7 @@ import {
 
 interface MockOptions {
   mediaRows?: Array<{
-    subcontractor_id: string | null;
+    contractor_id: string | null;
     original_name: string | null;
     storage_path: string;
     created_at: string;
@@ -19,25 +19,25 @@ interface MockOptions {
 function createMockClient(options: MockOptions = {}) {
   const mediaRows = options.mediaRows ?? [
     {
-      subcontractor_id: 'sub-1',
+      contractor_id: 'sub-1',
       original_name: 'w9.pdf',
       storage_path: 'profile-1/w9/w9.pdf',
       created_at: '2026-02-12T10:00:00.000Z',
     },
     {
-      subcontractor_id: 'sub-1',
+      contractor_id: 'sub-1',
       original_name: 'insurance.pdf',
       storage_path: 'profile-1/insurance/insurance.pdf',
       created_at: '2026-02-12T10:01:00.000Z',
     },
   ];
 
-  const subcontractorSingle = vi.fn().mockResolvedValue({
+  const contractorSingle = vi.fn().mockResolvedValue({
     data: { id: 'sub-1', profile_id: 'profile-1', onboarding_status: 'COMPLETE' },
     error: null,
   });
-  const subcontractorEq = vi.fn(() => ({ single: subcontractorSingle }));
-  const subcontractorSelect = vi.fn(() => ({ eq: subcontractorEq }));
+  const contractorEq = vi.fn(() => ({ single: contractorSingle }));
+  const contractorSelect = vi.fn(() => ({ eq: contractorEq }));
 
   const profileSingle = vi.fn().mockResolvedValue({
     data: {
@@ -73,9 +73,9 @@ function createMockClient(options: MockOptions = {}) {
       from: storageFrom,
     },
     from: vi.fn((table: string) => {
-      if (table === 'subcontractors') {
+      if (table === 'contractors') {
         return {
-          select: subcontractorSelect,
+          select: contractorSelect,
         };
       }
 
@@ -115,7 +115,7 @@ describe('finalizeOnboardingComplianceArtifacts', () => {
     const { client } = createMockClient({
       mediaRows: [
         {
-          subcontractor_id: 'sub-1',
+          contractor_id: 'sub-1',
           original_name: 'w9.pdf',
           storage_path: 'profile-1/w9/w9.pdf',
           created_at: '2026-02-12T10:00:00.000Z',
@@ -125,7 +125,7 @@ describe('finalizeOnboardingComplianceArtifacts', () => {
 
     await expect(
       finalizeOnboardingComplianceArtifacts(
-        { subcontractorId: 'sub-1', actorUserId: 'super-admin-1' },
+        { contractorId: 'sub-1', actorUserId: 'super-admin-1' },
         client as never
       )
     ).rejects.toThrow(ONBOARDING_ARTIFACTS_INCOMPLETE_ERROR);
@@ -135,7 +135,7 @@ describe('finalizeOnboardingComplianceArtifacts', () => {
     const { client, spies } = createMockClient();
 
     const artifacts = await finalizeOnboardingComplianceArtifacts(
-      { subcontractorId: 'sub-1', actorUserId: 'super-admin-1' },
+      { contractorId: 'sub-1', actorUserId: 'super-admin-1' },
       client as never
     );
 
@@ -144,8 +144,8 @@ describe('finalizeOnboardingComplianceArtifacts', () => {
     expect(spies.mediaInsert).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
-          subcontractor_id: 'sub-1',
-          entity_type: 'subcontractor_compliance_artifact',
+          contractor_id: 'sub-1',
+          entity_type: 'contractor_compliance_artifact',
           entity_id: 'sub-1',
           mime_type: 'application/pdf',
           file_type: 'DOCUMENT',
@@ -161,7 +161,7 @@ describe('finalizeOnboardingComplianceArtifacts', () => {
 
     await expect(
       finalizeOnboardingComplianceArtifacts(
-        { subcontractorId: 'sub-1', actorUserId: 'super-admin-1' },
+        { contractorId: 'sub-1', actorUserId: 'super-admin-1' },
         client as never
       )
     ).rejects.toThrow(ONBOARDING_ARTIFACTS_GENERATION_ERROR);

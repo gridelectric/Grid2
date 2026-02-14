@@ -83,7 +83,7 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
         });
     }, [tickets, filters]);
 
-    const handleAssignTicket = async (subcontractorId: string) => {
+    const handleAssignTicket = async (contractorId: string) => {
         if (!assignRequest) return;
         if (!canAssignContractor) {
             toast.error('Only Super Admin can assign contractors.');
@@ -92,7 +92,7 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
 
         try {
             await ticketService.updateTicket(assignRequest.ticketId, {
-                assigned_to: subcontractorId,
+                assigned_to: contractorId,
                 status: 'ASSIGNED', // Automatically update status to ASSIGNED? Or keep existing? Usually logic implies assignment = assigned status.
                 // But check existing status... if it was DRAFT, now ASSIGNED.
             });

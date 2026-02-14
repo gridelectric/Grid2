@@ -19,7 +19,7 @@ const SAFETY_OBSERVATIONS: SafetyObservations = {
 function buildCreateInput(overrides: Partial<CreateAssessmentInput> = {}): CreateAssessmentInput {
   return {
     ticketId: 'ticket-1',
-    subcontractorId: 'sub-1',
+    contractorId: 'sub-1',
     safetyObservations: SAFETY_OBSERVATIONS,
     damageClassification: {
       damageCause: 'WEATHER',
@@ -43,7 +43,7 @@ function buildAssessment(overrides: Partial<DamageAssessment> = {}): DamageAsses
   return {
     id: 'assessment-1',
     ticket_id: 'ticket-1',
-    subcontractor_id: 'sub-1',
+    contractor_id: 'sub-1',
     safety_observations: SAFETY_OBSERVATIONS,
     sync_status: 'SYNCED',
     created_at: '2026-02-12T10:00:00.000Z',

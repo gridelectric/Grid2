@@ -222,7 +222,7 @@ function createProvisioningAdapter(
 
     upsertContractor: async ({ profileId, firstName, lastName, email }) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const contractorsTable = client.from('subcontractors') as any;
+      const contractorsTable = client.from('contractors') as any;
       const businessName = `${firstName} ${lastName}`.trim();
 
       const { data: existingContractor, error: existingError } = await contractorsTable

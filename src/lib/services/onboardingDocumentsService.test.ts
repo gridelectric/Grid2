@@ -17,14 +17,14 @@ function createFile(name: string, type: string, size = 1024): File {
 interface MockOptions {
   userId?: string | null;
   role?: 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
-  subcontractorId?: string | null;
+  contractorId?: string | null;
   failInsuranceUpload?: boolean;
 }
 
 function createMockClient(options: MockOptions = {}) {
   const userId = options.userId === undefined ? 'contractor-1' : options.userId;
   const role = options.role ?? 'CONTRACTOR';
-  const subcontractorId = options.subcontractorId === undefined ? 'sub-1' : options.subcontractorId;
+  const contractorId = options.contractorId === undefined ? 'sub-1' : options.contractorId;
   const failInsuranceUpload = options.failInsuranceUpload ?? false;
 
   const profileSelectSingle = vi.fn().mockResolvedValue({
@@ -34,12 +34,12 @@ function createMockClient(options: MockOptions = {}) {
   const profileSelectEq = vi.fn(() => ({ single: profileSelectSingle }));
   const profileSelect = vi.fn(() => ({ eq: profileSelectEq }));
 
-  const subcontractorSelectMaybeSingle = vi.fn().mockResolvedValue({
-    data: subcontractorId ? { id: subcontractorId } : null,
+  const contractorSelectMaybeSingle = vi.fn().mockResolvedValue({
+    data: contractorId ? { id: contractorId } : null,
     error: null,
   });
-  const subcontractorSelectEq = vi.fn(() => ({ maybeSingle: subcontractorSelectMaybeSingle }));
-  const subcontractorSelect = vi.fn(() => ({ eq: subcontractorSelectEq }));
+  const contractorSelectEq = vi.fn(() => ({ maybeSingle: contractorSelectMaybeSingle }));
+  const contractorSelect = vi.fn(() => ({ eq: contractorSelectEq }));
 
   const mediaInsert = vi.fn().mockResolvedValue({ error: null });
 
@@ -69,8 +69,8 @@ function createMockClient(options: MockOptions = {}) {
         return { select: profileSelect };
       }
 
-      if (table === 'subcontractors') {
-        return { select: subcontractorSelect };
+      if (table === 'contractors') {
+        return { select: contractorSelect };
       }
 
       if (table === 'media_assets') {
@@ -142,7 +142,7 @@ describe('uploadOnboardingComplianceDocuments', () => {
   });
 
   it('rejects uploads when onboarding record is missing', async () => {
-    const { client } = createMockClient({ subcontractorId: null });
+    const { client } = createMockClient({ contractorId: null });
 
     await expect(
       uploadOnboardingComplianceDocuments(input, client as never)
@@ -161,8 +161,8 @@ describe('uploadOnboardingComplianceDocuments', () => {
     expect(spies.mediaInsert).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
-          subcontractor_id: 'sub-1',
-          entity_type: 'subcontractor_onboarding',
+          contractor_id: 'sub-1',
+          entity_type: 'contractor_onboarding',
           entity_id: 'sub-1',
           file_type: 'DOCUMENT',
           upload_status: 'COMPLETED',

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
-export default function LegacySubcontractorAssessmentCreateRedirect() {
+export default function LegacyContractorAssessmentCreateRedirect() {
   redirect('/contractor/assessments/create');
 }

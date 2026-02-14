@@ -3,11 +3,11 @@
 import { PageHeader } from '@/components/common/layout/PageHeader';
 import { TimeClock, TimeEntryList } from '@/components/features/time-tracking';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { useSubcontractorId } from '@/hooks/useSubcontractorId';
+import { useContractorId } from '@/hooks/useContractorId';
 
-export default function SubcontractorTimePage() {
+export default function ContractorTimePage() {
   const { profile } = useAuth();
-  const { subcontractorId } = useSubcontractorId(profile?.id);
+  const { contractorId } = useContractorId(profile?.id);
 
   return (
     <div className="space-y-6">
@@ -17,8 +17,8 @@ export default function SubcontractorTimePage() {
       />
       <TimeClock />
       <TimeEntryList
-        mode="subcontractor"
-        subcontractorId={subcontractorId}
+        mode="contractor"
+        contractorId={contractorId}
       />
     </div>
   );

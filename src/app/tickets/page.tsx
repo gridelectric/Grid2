@@ -4,11 +4,11 @@
 import { TicketList } from '@/components/features/tickets/TicketList';
 import { PageHeader } from '@/components/common/layout/PageHeader';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { useSubcontractorId } from '@/hooks/useSubcontractorId';
+import { useContractorId } from '@/hooks/useContractorId';
 
 export default function TicketsPage() {
     const { profile, isLoading } = useAuth();
-    const { subcontractorId } = useSubcontractorId(profile?.id);
+    const { contractorId } = useContractorId(profile?.id);
 
     // Map UserRole to TicketList role format
     const userRole: 'admin' | 'contractor' =
@@ -30,7 +30,7 @@ export default function TicketsPage() {
                 <TicketList
                     userRole={userRole}
                     profileRole={profile.role}
-                    userId={userRole === 'contractor' ? subcontractorId : undefined}
+                    userId={userRole === 'contractor' ? contractorId : undefined}
                 />
             ) : (
                 <div>Please log in to view tickets.</div>

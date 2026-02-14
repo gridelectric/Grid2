@@ -16,7 +16,7 @@ export const ONBOARDING_DOCUMENT_PERMISSION_ERROR = 'Only contractors can upload
 export const ONBOARDING_DOCUMENT_CONTEXT_ERROR = 'Onboarding record not found. Complete your core profile first.';
 
 type ProfileRole = Pick<Database['public']['Tables']['profiles']['Row'], 'role'>;
-type SubcontractorContext = Pick<Database['public']['Tables']['subcontractors']['Row'], 'id'>;
+type ContractorContext = Pick<Database['public']['Tables']['contractors']['Row'], 'id'>;
 
 type ComplianceDocumentType = 'w9' | 'insurance';
 type DocumentUploadStatus = 'uploaded' | 'failed';
@@ -49,10 +49,10 @@ interface ProfilesTableClient {
   };
 }
 
-interface SubcontractorsTableClient {
+interface ContractorsTableClient {
   select: (columns: string) => {
     eq: (column: string, value: string) => {
-      maybeSingle: () => Promise<{ data: SubcontractorContext | null; error: unknown }>;
+      maybeSingle: () => Promise<{ data: ContractorContext | null; error: unknown }>;
     };
   };
 }
@@ -61,7 +61,7 @@ interface MediaAssetsTableClient {
   insert: (
     values: Array<{
       uploaded_by: string;
-      subcontractor_id: string;
+      contractor_id: string;
       file_name: string;
       original_name: string;
       file_type: 'DOCUMENT';
@@ -69,7 +69,7 @@ interface MediaAssetsTableClient {
       file_size_bytes: number;
       storage_bucket: string;
       storage_path: string;
-      entity_type: 'subcontractor_onboarding';
+      entity_type: 'contractor_onboarding';
       entity_id: string;
       upload_status: 'COMPLETED';
     }>
@@ -88,13 +88,13 @@ interface OnboardingDocumentsSupabaseClient {
   auth: AuthClient;
   storage: StorageClient;
   from(table: 'profiles'): ProfilesTableClient;
-  from(table: 'subcontractors'): SubcontractorsTableClient;
+  from(table: 'contractors'): ContractorsTableClient;
   from(table: 'media_assets'): MediaAssetsTableClient;
 }
 
 interface ContractorUploadContext {
   userId: string;
-  subcontractorId: string;
+  contractorId: string;
 }
 
 const DOCUMENT_LABELS: Record<ComplianceDocumentType, string> = {
@@ -147,19 +147,19 @@ async function getContractorUploadContext(client: OnboardingDocumentsSupabaseCli
     throw new Error(ONBOARDING_DOCUMENT_PERMISSION_ERROR);
   }
 
-  const { data: subcontractor, error: subcontractorError } = await client
-    .from('subcontractors')
+  const { data: contractor, error: contractorError } = await client
+    .from('contractors')
     .select('id')
     .eq('profile_id', user.id)
     .maybeSingle();
 
-  if (subcontractorError || !subcontractor) {
+  if (contractorError || !contractor) {
     throw new Error(ONBOARDING_DOCUMENT_CONTEXT_ERROR);
   }
 
   return {
     userId: user.id,
-    subcontractorId: subcontractor.id,
+    contractorId: contractor.id,
   };
 }
 
@@ -198,7 +198,7 @@ async function uploadSingleDocument(
     .insert([
       {
         uploaded_by: context.userId,
-        subcontractor_id: context.subcontractorId,
+        contractor_id: context.contractorId,
         file_name: safeFileName,
         original_name: file.name,
         file_type: 'DOCUMENT',
@@ -206,8 +206,8 @@ async function uploadSingleDocument(
         file_size_bytes: file.size,
         storage_bucket: COMPLIANCE_STORAGE_BUCKET,
         storage_path: storagePath,
-        entity_type: 'subcontractor_onboarding',
-        entity_id: context.subcontractorId,
+        entity_type: 'contractor_onboarding',
+        entity_id: context.contractorId,
         upload_status: 'COMPLETED',
       },
     ]);

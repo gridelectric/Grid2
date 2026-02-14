@@ -1,10 +1,10 @@
 import { APP_CONFIG } from '../config/appConfig';
 import { resolveBillableMinutesForEntry, calculateBillableAmount } from '../utils/timeTracking';
-import type { InvoiceStatus, SubcontractorInvoice } from '../../types';
+import type { InvoiceStatus, ContractorInvoice } from '../../types';
 
 interface RemoteTimeEntryRow {
   id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   ticket_id: string | null;
   clock_in_at: string;
   clock_out_at: string | null;
@@ -19,7 +19,7 @@ interface RemoteTimeEntryRow {
 
 interface RemoteExpenseReportRow {
   id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   report_period_start: string;
   report_period_end: string;
   total_amount: number | null;
@@ -30,7 +30,7 @@ interface RemoteExpenseReportRow {
 interface RemoteInvoiceRow {
   id: string;
   invoice_number: string;
-  subcontractor_id: string;
+  contractor_id: string;
   billing_period_start: string;
   billing_period_end: string;
   subtotal_time: number | null;
@@ -65,7 +65,7 @@ interface RemoteInvoiceLineItemRow {
 
 interface RemoteTaxTrackingRow {
   id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   tax_year: number;
   total_payments: number | null;
   total_invoices: number | null;
@@ -79,7 +79,7 @@ interface RemoteTaxTrackingRow {
   updated_at: string;
 }
 
-interface RemoteSubcontractorRow {
+interface RemoteContractorRow {
   id: string;
   profile_id?: string;
 }
@@ -123,8 +123,8 @@ export interface InvoiceGenerationExpenseReport {
 }
 
 export interface InvoiceGenerationCandidate {
-  subcontractor_id: string;
-  subcontractor_name?: string;
+  contractor_id: string;
+  contractor_name?: string;
   time_entries: InvoiceGenerationTimeEntry[];
   expense_reports: InvoiceGenerationExpenseReport[];
   time_entry_count: number;
@@ -150,19 +150,19 @@ export interface InvoiceLineItem {
 }
 
 export interface InvoiceDetails {
-  invoice: SubcontractorInvoice;
-  subcontractor_name?: string;
+  invoice: ContractorInvoice;
+  contractor_name?: string;
   line_items: InvoiceLineItem[];
   tax_1099_tracking?: Tax1099TrackingSummary;
 }
 
-export interface InvoiceListItem extends SubcontractorInvoice {
-  subcontractor_name?: string;
+export interface InvoiceListItem extends ContractorInvoice {
+  contractor_name?: string;
   line_item_count: number;
 }
 
 export interface Tax1099TrackingSummary {
-  subcontractor_id: string;
+  contractor_id: string;
   tax_year: number;
   total_payments: number;
   total_invoices: number;
@@ -176,7 +176,7 @@ export interface Tax1099TrackingSummary {
 }
 
 export interface GenerateInvoicesInput extends InvoiceGenerationPeriod {
-  subcontractorIds: string[];
+  contractorIds: string[];
   generatedBy?: string;
   initialStatus?: InvoiceGenerationStatus;
 }
@@ -184,7 +184,7 @@ export interface GenerateInvoicesInput extends InvoiceGenerationPeriod {
 export interface GeneratedInvoiceResult {
   invoice_id: string;
   invoice_number: string;
-  subcontractor_id: string;
+  contractor_id: string;
   subtotal_time: number;
   subtotal_expenses: number;
   total_amount: number;
@@ -203,7 +203,7 @@ export interface GenerateInvoicesResult {
 }
 
 export interface InvoiceListFilters {
-  subcontractorId?: string;
+  contractorId?: string;
   status?: InvoiceStatus | 'ALL';
   from?: string;
   to?: string;
@@ -214,11 +214,11 @@ interface InvoiceGenerationDependencies {
   now: () => Date;
   fetchGenerationCandidates: (period: InvoiceGenerationPeriod) => Promise<InvoiceGenerationCandidate[]>;
   fetchExistingInvoiceCount: () => Promise<number>;
-  insertInvoice: (input: InsertInvoiceInput) => Promise<SubcontractorInvoice>;
+  insertInvoice: (input: InsertInvoiceInput) => Promise<ContractorInvoice>;
   insertInvoiceLineItems: (invoiceId: string, lineItems: CreateInvoiceLineItemInput[]) => Promise<void>;
   linkTimeEntriesToInvoice: (timeEntryIds: string[], invoiceId: string) => Promise<void>;
   linkExpenseReportsToInvoice: (expenseReportIds: string[], invoiceId: string) => Promise<void>;
-  fetchTax1099Tracking: (subcontractorId: string, taxYear: number) => Promise<Tax1099TrackingSummary | null>;
+  fetchTax1099Tracking: (contractorId: string, taxYear: number) => Promise<Tax1099TrackingSummary | null>;
   upsertTax1099Tracking: (input: UpsertTax1099Input) => Promise<Tax1099TrackingSummary>;
   fetchInvoices: (filters: InvoiceListFilters) => Promise<InvoiceListItem[]>;
   fetchInvoiceDetails: (invoiceId: string) => Promise<InvoiceDetails | null>;
@@ -229,12 +229,12 @@ export interface InvoiceGenerationService {
   generateInvoices: (input: GenerateInvoicesInput) => Promise<GenerateInvoicesResult>;
   listInvoices: (filters?: InvoiceListFilters) => Promise<InvoiceListItem[]>;
   getInvoiceDetails: (invoiceId: string) => Promise<InvoiceDetails | null>;
-  getTax1099Tracking: (subcontractorId: string, taxYear?: number) => Promise<Tax1099TrackingSummary | null>;
+  getTax1099Tracking: (contractorId: string, taxYear?: number) => Promise<Tax1099TrackingSummary | null>;
 }
 
 interface InsertInvoiceInput {
   invoiceNumber: string;
-  subcontractorId: string;
+  contractorId: string;
   billingPeriodStart: string;
   billingPeriodEnd: string;
   subtotalTime: number;
@@ -258,7 +258,7 @@ interface CreateInvoiceLineItemInput {
 }
 
 interface UpsertTax1099Input {
-  subcontractorId: string;
+  contractorId: string;
   taxYear: number;
   totalPayments: number;
   totalInvoices: number;
@@ -277,7 +277,7 @@ function toInvoiceStatus(value?: string | null): InvoiceStatus {
   return 'DRAFT';
 }
 
-function toPaymentMethod(value?: string | null): SubcontractorInvoice['payment_method'] {
+function toPaymentMethod(value?: string | null): ContractorInvoice['payment_method'] {
   const normalized = value?.toUpperCase();
   if (normalized === 'ACH') return 'ACH';
   if (normalized === 'CHECK') return 'CHECK';
@@ -320,11 +320,11 @@ function toDateOnly(value: string): string {
   return value.slice(0, 10);
 }
 
-function mapRemoteInvoice(row: RemoteInvoiceRow): SubcontractorInvoice {
+function mapRemoteInvoice(row: RemoteInvoiceRow): ContractorInvoice {
   return {
     id: row.id,
     invoice_number: row.invoice_number,
-    subcontractor_id: row.subcontractor_id,
+    contractor_id: row.contractor_id,
     billing_period_start: row.billing_period_start,
     billing_period_end: row.billing_period_end,
     subtotal_time: normalizeNumber(row.subtotal_time),
@@ -362,7 +362,7 @@ function mapRemoteLineItem(row: RemoteInvoiceLineItemRow): InvoiceLineItem {
 
 function mapRemoteTaxTracking(row: RemoteTaxTrackingRow): Tax1099TrackingSummary {
   return {
-    subcontractor_id: row.subcontractor_id,
+    contractor_id: row.contractor_id,
     tax_year: row.tax_year,
     total_payments: normalizeNumber(row.total_payments),
     total_invoices: normalizeNumber(row.total_invoices),
@@ -443,29 +443,29 @@ function buildExpenseReportLineItems(candidate: InvoiceGenerationCandidate): Cre
   }));
 }
 
-async function fetchSubcontractorNames(
+async function fetchContractorNames(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
-  subcontractorIds: string[],
+  contractorIds: string[],
 ): Promise<Map<string, string>> {
-  if (subcontractorIds.length === 0) {
+  if (contractorIds.length === 0) {
     return new Map();
   }
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: subcontractors } = await (supabase.from('subcontractors') as any)
+    const { data: contractors } = await (supabase.from('contractors') as any)
       .select('id, profile_id')
-      .in('id', subcontractorIds);
+      .in('id', contractorIds);
 
-    const subcontractorRows = (subcontractors ?? []) as RemoteSubcontractorRow[];
-    if (subcontractorRows.length === 0) {
+    const contractorRows = (contractors ?? []) as RemoteContractorRow[];
+    if (contractorRows.length === 0) {
       return new Map();
     }
 
     const profileIds = Array.from(
       new Set(
-        subcontractorRows
+        contractorRows
           .map((row) => row.profile_id)
           .filter((value): value is string => Boolean(value)),
       ),
@@ -486,7 +486,7 @@ async function fetchSubcontractorNames(
     );
 
     return new Map(
-      subcontractorRows.map((row) => [
+      contractorRows.map((row) => [
         row.id,
         (row.profile_id ? profileNameById.get(row.profile_id) : undefined) ?? row.id,
       ]),
@@ -521,10 +521,10 @@ async function fetchTicketNumbers(
 async function fetchTaxTrackingRowsForYear(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
-  subcontractorIds: string[],
+  contractorIds: string[],
   taxYear: number,
 ): Promise<Map<string, Tax1099TrackingSummary>> {
-  if (subcontractorIds.length === 0) {
+  if (contractorIds.length === 0) {
     return new Map();
   }
 
@@ -533,10 +533,10 @@ async function fetchTaxTrackingRowsForYear(
     const { data } = await (supabase.from('tax_1099_tracking') as any)
       .select('*')
       .eq('tax_year', taxYear)
-      .in('subcontractor_id', subcontractorIds);
+      .in('contractor_id', contractorIds);
 
     const rows = (data ?? []) as RemoteTaxTrackingRow[];
-    return new Map(rows.map((row) => [row.subcontractor_id, mapRemoteTaxTracking(row)]));
+    return new Map(rows.map((row) => [row.contractor_id, mapRemoteTaxTracking(row)]));
   } catch {
     return new Map();
   }
@@ -553,7 +553,7 @@ async function fetchGenerationCandidates(period: InvoiceGenerationPeriod): Promi
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: timeData, error: timeError } = await (supabase.from('time_entries') as any)
-    .select('id, subcontractor_id, ticket_id, clock_in_at, clock_out_at, break_minutes, billable_minutes, billable_amount, work_type, work_type_rate, status, invoice_id')
+    .select('id, contractor_id, ticket_id, clock_in_at, clock_out_at, break_minutes, billable_minutes, billable_amount, work_type, work_type_rate, status, invoice_id')
     .eq('status', 'APPROVED')
     .is('invoice_id', null)
     .gte('clock_in_at', periodStartIso)
@@ -566,7 +566,7 @@ async function fetchGenerationCandidates(period: InvoiceGenerationPeriod): Promi
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: expenseData, error: expenseError } = await (supabase.from('expense_reports') as any)
-    .select('id, subcontractor_id, report_period_start, report_period_end, total_amount, status, invoice_id')
+    .select('id, contractor_id, report_period_start, report_period_end, total_amount, status, invoice_id')
     .eq('status', 'APPROVED')
     .is('invoice_id', null)
     .lte('report_period_start', periodEnd)
@@ -580,8 +580,8 @@ async function fetchGenerationCandidates(period: InvoiceGenerationPeriod): Promi
   const timeRows = (timeData ?? []) as RemoteTimeEntryRow[];
   const expenseRows = (expenseData ?? []) as RemoteExpenseReportRow[];
 
-  const subcontractorIds = Array.from(
-    new Set([...timeRows.map((row) => row.subcontractor_id), ...expenseRows.map((row) => row.subcontractor_id)]),
+  const contractorIds = Array.from(
+    new Set([...timeRows.map((row) => row.contractor_id), ...expenseRows.map((row) => row.contractor_id)]),
   );
   const ticketIds = Array.from(
     new Set(timeRows.map((row) => row.ticket_id).filter((value): value is string => Boolean(value))),
@@ -589,21 +589,21 @@ async function fetchGenerationCandidates(period: InvoiceGenerationPeriod): Promi
 
   const taxYear = getTaxYearForPeriodEnd(period.billingPeriodEnd);
 
-  const [subcontractorNameById, ticketNumberById, taxTrackingBySubcontractorId] = await Promise.all([
-    fetchSubcontractorNames(supabase, subcontractorIds),
+  const [contractorNameById, ticketNumberById, taxTrackingByContractorId] = await Promise.all([
+    fetchContractorNames(supabase, contractorIds),
     fetchTicketNumbers(supabase, ticketIds),
-    fetchTaxTrackingRowsForYear(supabase, subcontractorIds, taxYear),
+    fetchTaxTrackingRowsForYear(supabase, contractorIds, taxYear),
   ]);
 
-  const candidatesBySubcontractorId = new Map<string, InvoiceGenerationCandidate>();
+  const candidatesByContractorId = new Map<string, InvoiceGenerationCandidate>();
 
   for (const row of timeRows) {
-    const existing = candidatesBySubcontractorId.get(row.subcontractor_id);
+    const existing = candidatesByContractorId.get(row.contractor_id);
     const candidate =
       existing ??
       {
-        subcontractor_id: row.subcontractor_id,
-        subcontractor_name: subcontractorNameById.get(row.subcontractor_id),
+        contractor_id: row.contractor_id,
+        contractor_name: contractorNameById.get(row.contractor_id),
         time_entries: [],
         expense_reports: [],
         time_entry_count: 0,
@@ -634,16 +634,16 @@ async function fetchGenerationCandidates(period: InvoiceGenerationPeriod): Promi
       candidate.subtotal_time + calculateTimeEntryAmount(mappedEntry),
     );
 
-    candidatesBySubcontractorId.set(row.subcontractor_id, candidate);
+    candidatesByContractorId.set(row.contractor_id, candidate);
   }
 
   for (const row of expenseRows) {
-    const existing = candidatesBySubcontractorId.get(row.subcontractor_id);
+    const existing = candidatesByContractorId.get(row.contractor_id);
     const candidate =
       existing ??
       {
-        subcontractor_id: row.subcontractor_id,
-        subcontractor_name: subcontractorNameById.get(row.subcontractor_id),
+        contractor_id: row.contractor_id,
+        contractor_name: contractorNameById.get(row.contractor_id),
         time_entries: [],
         expense_reports: [],
         time_entry_count: 0,
@@ -666,13 +666,13 @@ async function fetchGenerationCandidates(period: InvoiceGenerationPeriod): Promi
     candidate.expense_report_count += 1;
     candidate.subtotal_expenses = roundToCurrency(candidate.subtotal_expenses + reportAmount);
 
-    candidatesBySubcontractorId.set(row.subcontractor_id, candidate);
+    candidatesByContractorId.set(row.contractor_id, candidate);
   }
 
-  const candidates = Array.from(candidatesBySubcontractorId.values()).map((candidate) => {
+  const candidates = Array.from(candidatesByContractorId.values()).map((candidate) => {
     candidate.total_amount = roundToCurrency(candidate.subtotal_time + candidate.subtotal_expenses);
 
-    const tracking = taxTrackingBySubcontractorId.get(candidate.subcontractor_id);
+    const tracking = taxTrackingByContractorId.get(candidate.contractor_id);
     const ytdBase = tracking?.total_payments ?? 0;
     candidate.projected_ytd_payments = roundToCurrency(ytdBase + candidate.total_amount);
     candidate.threshold_warning = candidate.projected_ytd_payments >= APP_CONFIG.T1099_THRESHOLD;
@@ -681,8 +681,8 @@ async function fetchGenerationCandidates(period: InvoiceGenerationPeriod): Promi
   });
 
   return candidates.sort((left, right) => {
-    const leftName = left.subcontractor_name ?? left.subcontractor_id;
-    const rightName = right.subcontractor_name ?? right.subcontractor_id;
+    const leftName = left.contractor_name ?? left.contractor_id;
+    const rightName = right.contractor_name ?? right.contractor_id;
     return leftName.localeCompare(rightName);
   });
 }
@@ -691,7 +691,7 @@ async function fetchExistingInvoiceCount(): Promise<number> {
   const { supabase } = await import('../supabase/client');
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { count, error } = await (supabase.from('subcontractor_invoices') as any).select('id', {
+  const { count, error } = await (supabase.from('contractor_invoices') as any).select('id', {
     head: true,
     count: 'exact',
   });
@@ -703,15 +703,15 @@ async function fetchExistingInvoiceCount(): Promise<number> {
   return count ?? 0;
 }
 
-async function insertInvoice(input: InsertInvoiceInput): Promise<SubcontractorInvoice> {
+async function insertInvoice(input: InsertInvoiceInput): Promise<ContractorInvoice> {
   const { supabase } = await import('../supabase/client');
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from('subcontractor_invoices') as any)
+  const { data, error } = await (supabase.from('contractor_invoices') as any)
     .insert([
       {
         invoice_number: input.invoiceNumber,
-        subcontractor_id: input.subcontractorId,
+        contractor_id: input.contractorId,
         billing_period_start: input.billingPeriodStart,
         billing_period_end: input.billingPeriodEnd,
         subtotal_time: input.subtotalTime,
@@ -799,7 +799,7 @@ async function linkExpenseReportsToInvoice(expenseReportIds: string[], invoiceId
 }
 
 async function fetchTax1099Tracking(
-  subcontractorId: string,
+  contractorId: string,
   taxYear: number,
 ): Promise<Tax1099TrackingSummary | null> {
   const { supabase } = await import('../supabase/client');
@@ -807,7 +807,7 @@ async function fetchTax1099Tracking(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from('tax_1099_tracking') as any)
     .select('*')
-    .eq('subcontractor_id', subcontractorId)
+    .eq('contractor_id', contractorId)
     .eq('tax_year', taxYear)
     .maybeSingle();
 
@@ -829,7 +829,7 @@ async function upsertTax1099Tracking(input: UpsertTax1099Input): Promise<Tax1099
   const { data, error } = await (supabase.from('tax_1099_tracking') as any)
     .upsert(
       {
-        subcontractor_id: input.subcontractorId,
+        contractor_id: input.contractorId,
         tax_year: input.taxYear,
         total_payments: input.totalPayments,
         total_invoices: input.totalInvoices,
@@ -837,7 +837,7 @@ async function upsertTax1099Tracking(input: UpsertTax1099Input): Promise<Tax1099
         threshold_reached_at: input.thresholdReachedAt ?? null,
         updated_at: input.timestampIso,
       },
-      { onConflict: 'subcontractor_id,tax_year' },
+      { onConflict: 'contractor_id,tax_year' },
     )
     .select('*')
     .single();
@@ -880,12 +880,12 @@ async function fetchInvoices(filters: InvoiceListFilters): Promise<InvoiceListIt
   const { supabase } = await import('../supabase/client');
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let query = (supabase.from('subcontractor_invoices') as any)
+  let query = (supabase.from('contractor_invoices') as any)
     .select('*')
     .order('created_at', { ascending: false });
 
-  if (filters.subcontractorId) {
-    query = query.eq('subcontractor_id', filters.subcontractorId);
+  if (filters.contractorId) {
+    query = query.eq('contractor_id', filters.contractorId);
   }
 
   if (filters.status && filters.status !== 'ALL') {
@@ -907,16 +907,16 @@ async function fetchInvoices(filters: InvoiceListFilters): Promise<InvoiceListIt
 
   const invoiceRows = (data ?? []) as RemoteInvoiceRow[];
   const invoiceIds = invoiceRows.map((row) => row.id);
-  const subcontractorIds = Array.from(new Set(invoiceRows.map((row) => row.subcontractor_id)));
+  const contractorIds = Array.from(new Set(invoiceRows.map((row) => row.contractor_id)));
 
-  const [lineItemCountByInvoiceId, subcontractorNameById] = await Promise.all([
+  const [lineItemCountByInvoiceId, contractorNameById] = await Promise.all([
     fetchLineItemCountByInvoiceId(supabase, invoiceIds),
-    fetchSubcontractorNames(supabase, subcontractorIds),
+    fetchContractorNames(supabase, contractorIds),
   ]);
 
   return invoiceRows.map((row) => ({
     ...mapRemoteInvoice(row),
-    subcontractor_name: subcontractorNameById.get(row.subcontractor_id),
+    contractor_name: contractorNameById.get(row.contractor_id),
     line_item_count: lineItemCountByInvoiceId.get(row.id) ?? 0,
   }));
 }
@@ -925,7 +925,7 @@ async function fetchInvoiceDetails(invoiceId: string): Promise<InvoiceDetails | 
   const { supabase } = await import('../supabase/client');
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: invoiceData, error: invoiceError } = await (supabase.from('subcontractor_invoices') as any)
+  const { data: invoiceData, error: invoiceError } = await (supabase.from('contractor_invoices') as any)
     .select('*')
     .eq('id', invoiceId)
     .maybeSingle();
@@ -953,14 +953,14 @@ async function fetchInvoiceDetails(invoiceId: string): Promise<InvoiceDetails | 
   const lineItems = ((lineItemData ?? []) as RemoteInvoiceLineItemRow[]).map(mapRemoteLineItem);
 
   const taxYear = getTaxYearForPeriodEnd(invoice.billing_period_end);
-  const [subcontractorNameById, tracking] = await Promise.all([
-    fetchSubcontractorNames(supabase, [invoice.subcontractor_id]),
-    fetchTax1099Tracking(invoice.subcontractor_id, taxYear),
+  const [contractorNameById, tracking] = await Promise.all([
+    fetchContractorNames(supabase, [invoice.contractor_id]),
+    fetchTax1099Tracking(invoice.contractor_id, taxYear),
   ]);
 
   return {
     invoice,
-    subcontractor_name: subcontractorNameById.get(invoice.subcontractor_id),
+    contractor_name: contractorNameById.get(invoice.contractor_id),
     line_items: lineItems,
     tax_1099_tracking: tracking ?? undefined,
   };
@@ -1002,9 +1002,9 @@ export function createInvoiceGenerationService(
         throw new Error('Invoice generation requires an internet connection.');
       }
 
-      const selectedIds = Array.from(new Set(input.subcontractorIds.filter(Boolean)));
+      const selectedIds = Array.from(new Set(input.contractorIds.filter(Boolean)));
       if (selectedIds.length === 0) {
-        throw new Error('Select at least one subcontractor before generating invoices.');
+        throw new Error('Select at least one contractor before generating invoices.');
       }
 
       const allCandidates = await dependencies.fetchGenerationCandidates({
@@ -1013,12 +1013,12 @@ export function createInvoiceGenerationService(
       });
 
       const selectedCandidates = selectedIds
-        .map((id) => allCandidates.find((candidate) => candidate.subcontractor_id === id))
+        .map((id) => allCandidates.find((candidate) => candidate.contractor_id === id))
         .filter((candidate): candidate is InvoiceGenerationCandidate => Boolean(candidate))
         .filter((candidate) => candidate.total_amount > 0);
 
       if (selectedCandidates.length === 0) {
-        throw new Error('No approved billable entries found for selected subcontractors in the billing period.');
+        throw new Error('No approved billable entries found for selected contractors in the billing period.');
       }
 
       const now = dependencies.now();
@@ -1035,7 +1035,7 @@ export function createInvoiceGenerationService(
         const invoiceNumber = createInvoiceNumber(taxYear, nextSequence);
         nextSequence += 1;
 
-        const existingTracking = await dependencies.fetchTax1099Tracking(candidate.subcontractor_id, taxYear);
+        const existingTracking = await dependencies.fetchTax1099Tracking(candidate.contractor_id, taxYear);
         const previousPayments = existingTracking?.total_payments ?? 0;
         const previousInvoices = existingTracking?.total_invoices ?? 0;
 
@@ -1045,7 +1045,7 @@ export function createInvoiceGenerationService(
 
         const createdInvoice = await dependencies.insertInvoice({
           invoiceNumber,
-          subcontractorId: candidate.subcontractor_id,
+          contractorId: candidate.contractor_id,
           billingPeriodStart: input.billingPeriodStart,
           billingPeriodEnd: input.billingPeriodEnd,
           subtotalTime: candidate.subtotal_time,
@@ -1071,7 +1071,7 @@ export function createInvoiceGenerationService(
         ]);
 
         const tracking = await dependencies.upsertTax1099Tracking({
-          subcontractorId: candidate.subcontractor_id,
+          contractorId: candidate.contractor_id,
           taxYear,
           totalPayments: nextYtdPayments,
           totalInvoices: previousInvoices + 1,
@@ -1083,7 +1083,7 @@ export function createInvoiceGenerationService(
         generatedInvoices.push({
           invoice_id: createdInvoice.id,
           invoice_number: createdInvoice.invoice_number,
-          subcontractor_id: candidate.subcontractor_id,
+          contractor_id: candidate.contractor_id,
           subtotal_time: candidate.subtotal_time,
           subtotal_expenses: candidate.subtotal_expenses,
           total_amount: candidate.total_amount,
@@ -1124,10 +1124,10 @@ export function createInvoiceGenerationService(
     },
 
     async getTax1099Tracking(
-      subcontractorId: string,
+      contractorId: string,
       taxYear: number = new Date().getUTCFullYear(),
     ): Promise<Tax1099TrackingSummary | null> {
-      if (!subcontractorId) {
+      if (!contractorId) {
         return null;
       }
 
@@ -1135,7 +1135,7 @@ export function createInvoiceGenerationService(
         return null;
       }
 
-      return dependencies.fetchTax1099Tracking(subcontractorId, taxYear);
+      return dependencies.fetchTax1099Tracking(contractorId, taxYear);
     },
   };
 }

@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation';
 
-interface LegacyAdminSubcontractorDetailRedirectProps {
+interface LegacyAdminContractorDetailRedirectProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function LegacyAdminSubcontractorDetailRedirect({
+export default async function LegacyAdminContractorDetailRedirect({
   params,
-}: LegacyAdminSubcontractorDetailRedirectProps) {
+}: LegacyAdminContractorDetailRedirectProps) {
   const { id } = await params;
   redirect(`/admin/contractors/${id}`);
 }

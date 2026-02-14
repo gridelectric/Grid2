@@ -27,7 +27,7 @@ interface MockOptions {
     phone: string | null;
   }>;
   mediaRows?: Array<{
-    subcontractor_id: string;
+    contractor_id: string;
     original_name: string | null;
     storage_path: string;
     created_at: string;
@@ -59,13 +59,13 @@ function createMockClient(options: MockOptions = {}) {
   ];
   const mediaRows = options.mediaRows ?? [
     {
-      subcontractor_id: 'sub-1',
+      contractor_id: 'sub-1',
       original_name: 'w9.pdf',
       storage_path: 'profile-1/w9/1-w9.pdf',
       created_at: '2026-02-12T12:10:00.000Z',
     },
     {
-      subcontractor_id: 'sub-1',
+      contractor_id: 'sub-1',
       original_name: 'insurance.pdf',
       storage_path: 'profile-1/insurance/1-insurance.pdf',
       created_at: '2026-02-12T12:15:00.000Z',
@@ -93,18 +93,18 @@ function createMockClient(options: MockOptions = {}) {
     return { in: profilesIn, eq: profileDetailEq };
   });
 
-  const subcontractorPendingIn = vi.fn().mockResolvedValue({
+  const contractorPendingIn = vi.fn().mockResolvedValue({
     data: pendingRows,
     error: null,
   });
-  const subcontractorTargetSingle = vi.fn().mockResolvedValue({
+  const contractorTargetSingle = vi.fn().mockResolvedValue({
     data: options.missingTarget ? null : pendingRows[0] ?? null,
     error: null,
   });
-  const subcontractorTargetEq = vi.fn(() => ({ single: subcontractorTargetSingle }));
+  const contractorTargetEq = vi.fn(() => ({ single: contractorTargetSingle }));
 
-  const subcontractorUpdateEq = vi.fn().mockResolvedValue({ error: null });
-  const subcontractorUpdate = vi.fn(() => ({ eq: subcontractorUpdateEq }));
+  const contractorUpdateEq = vi.fn().mockResolvedValue({ error: null });
+  const contractorUpdate = vi.fn(() => ({ eq: contractorUpdateEq }));
 
   const mediaIn = vi.fn().mockResolvedValue({
     data: mediaRows,
@@ -130,15 +130,15 @@ function createMockClient(options: MockOptions = {}) {
       if (table === 'profiles') {
         return { select: profilesSelect };
       }
-      if (table === 'subcontractors') {
+      if (table === 'contractors') {
         return {
           select: vi.fn((columns: string) => {
             if (columns.includes('profile_id') && columns.includes('onboarding_status')) {
-              return { in: subcontractorPendingIn, eq: subcontractorTargetEq };
+              return { in: contractorPendingIn, eq: contractorTargetEq };
             }
-            return { in: subcontractorPendingIn, eq: subcontractorTargetEq };
+            return { in: contractorPendingIn, eq: contractorTargetEq };
           }),
-          update: subcontractorUpdate,
+          update: contractorUpdate,
         };
       }
       if (table === 'media_assets') {
@@ -151,8 +151,8 @@ function createMockClient(options: MockOptions = {}) {
   return {
     client,
     spies: {
-      subcontractorUpdate,
-      subcontractorUpdateEq,
+      contractorUpdate,
+      contractorUpdateEq,
       profilesSelect,
       mediaSelect,
       mediaInsert,
@@ -183,7 +183,7 @@ describe('getPendingOnboardingPackages', () => {
 
     expect(packages).toHaveLength(1);
     expect(packages[0]).toMatchObject({
-      subcontractorId: 'sub-1',
+      contractorId: 'sub-1',
       profile: {
         firstName: 'Casey',
         lastName: 'Stone',
@@ -202,7 +202,7 @@ describe('setOnboardingVerificationDecision', () => {
     const { client } = createMockClient({ userId: null });
     await expect(
       setOnboardingVerificationDecision(
-        { subcontractorId: 'sub-1', decision: 'verified' },
+        { contractorId: 'sub-1', decision: 'verified' },
         client as never
       )
     ).rejects.toThrow(ONBOARDING_REVIEW_AUTH_REQUIRED_ERROR);
@@ -212,7 +212,7 @@ describe('setOnboardingVerificationDecision', () => {
     const { client } = createMockClient({ role: 'ADMIN' });
     await expect(
       setOnboardingVerificationDecision(
-        { subcontractorId: 'sub-1', decision: 'verified' },
+        { contractorId: 'sub-1', decision: 'verified' },
         client as never
       )
     ).rejects.toThrow(ONBOARDING_REVIEW_PERMISSION_ERROR);
@@ -222,7 +222,7 @@ describe('setOnboardingVerificationDecision', () => {
     const { client } = createMockClient({ missingTarget: true });
     await expect(
       setOnboardingVerificationDecision(
-        { subcontractorId: 'sub-1', decision: 'verified' },
+        { contractorId: 'sub-1', decision: 'verified' },
         client as never
       )
     ).rejects.toThrow(ONBOARDING_REVIEW_NOT_FOUND_ERROR);
@@ -231,16 +231,16 @@ describe('setOnboardingVerificationDecision', () => {
   it('marks contractor verified with eligibility enabled', async () => {
     const { client, spies } = createMockClient();
     const result = await setOnboardingVerificationDecision(
-      { subcontractorId: 'sub-1', decision: 'verified' },
+      { contractorId: 'sub-1', decision: 'verified' },
       client as never
     );
 
     expect(result).toEqual({
-      subcontractorId: 'sub-1',
+      contractorId: 'sub-1',
       onboardingStatus: 'APPROVED',
       isEligibleForAssignment: true,
     });
-    expect(spies.subcontractorUpdate).toHaveBeenCalledWith(
+    expect(spies.contractorUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         onboarding_status: 'APPROVED',
         is_eligible_for_assignment: true,
@@ -253,7 +253,7 @@ describe('setOnboardingVerificationDecision', () => {
     const { client } = createMockClient({
       mediaRows: [
         {
-          subcontractor_id: 'sub-1',
+          contractor_id: 'sub-1',
           original_name: 'w9.pdf',
           storage_path: 'profile-1/w9/w9.pdf',
           created_at: '2026-02-12T12:10:00.000Z',
@@ -263,7 +263,7 @@ describe('setOnboardingVerificationDecision', () => {
 
     await expect(
       setOnboardingVerificationDecision(
-        { subcontractorId: 'sub-1', decision: 'verified' },
+        { contractorId: 'sub-1', decision: 'verified' },
         client as never
       )
     ).rejects.toThrow('Required onboarding documents and acknowledgments must be completed before finalization.');
@@ -272,16 +272,16 @@ describe('setOnboardingVerificationDecision', () => {
   it('marks contractor not verified with eligibility disabled', async () => {
     const { client, spies } = createMockClient();
     const result = await setOnboardingVerificationDecision(
-      { subcontractorId: 'sub-1', decision: 'not_verified', reason: 'Missing insurance proof' },
+      { contractorId: 'sub-1', decision: 'not_verified', reason: 'Missing insurance proof' },
       client as never
     );
 
     expect(result).toEqual({
-      subcontractorId: 'sub-1',
+      contractorId: 'sub-1',
       onboardingStatus: 'SUSPENDED',
       isEligibleForAssignment: false,
     });
-    expect(spies.subcontractorUpdate).toHaveBeenCalledWith(
+    expect(spies.contractorUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         onboarding_status: 'SUSPENDED',
         is_eligible_for_assignment: false,

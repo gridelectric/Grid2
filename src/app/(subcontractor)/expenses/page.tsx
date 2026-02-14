@@ -3,11 +3,11 @@
 import { PageHeader } from '@/components/common/layout/PageHeader';
 import { ExpenseList } from '@/components/features/expenses';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { useSubcontractorId } from '@/hooks/useSubcontractorId';
+import { useContractorId } from '@/hooks/useContractorId';
 
-export default function SubcontractorExpensesPage() {
+export default function ContractorExpensesPage() {
   const { profile } = useAuth();
-  const { subcontractorId } = useSubcontractorId(profile?.id);
+  const { contractorId } = useContractorId(profile?.id);
 
   return (
     <div className="space-y-6">
@@ -16,7 +16,7 @@ export default function SubcontractorExpensesPage() {
         description="Track and submit reimbursable expenses with receipt attachments."
       />
 
-      <ExpenseList subcontractorId={subcontractorId} />
+      <ExpenseList contractorId={contractorId} />
     </div>
   );
 }

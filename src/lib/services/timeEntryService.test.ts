@@ -7,7 +7,7 @@ import type { TimeEntry } from '../../types';
 function buildTimeEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
   return {
     id: 'time-1',
-    subcontractor_id: 'sub-1',
+    contractor_id: 'sub-1',
     ticket_id: undefined,
     clock_in_at: '2026-02-12T12:00:00.000Z',
     work_type: 'STANDARD_ASSESSMENT',
@@ -24,7 +24,7 @@ function buildTimeEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
 function buildLocalTimeEntry(overrides: Partial<LocalTimeEntry> = {}): LocalTimeEntry {
   return {
     id: 'time-local-1',
-    subcontractor_id: 'sub-1',
+    contractor_id: 'sub-1',
     clock_in_at: '2026-02-12T12:00:00.000Z',
     work_type: 'STANDARD_ASSESSMENT',
     work_type_rate: 100,
@@ -51,7 +51,7 @@ describe('createTimeEntryService', () => {
     });
 
     const entry = await service.clockIn({
-      subcontractorId: 'sub-1',
+      contractorId: 'sub-1',
       workType: 'STANDARD_ASSESSMENT',
       workTypeRate: 100,
       breakMinutes: 15,
@@ -81,7 +81,7 @@ describe('createTimeEntryService', () => {
     });
 
     const entry = await service.clockIn({
-      subcontractorId: 'sub-1',
+      contractorId: 'sub-1',
       workType: 'STANDARD_ASSESSMENT',
       workTypeRate: 100,
       breakMinutes: 0,

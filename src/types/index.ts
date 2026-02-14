@@ -21,8 +21,8 @@ export type UserRole =
   | 'ADMIN'
   | 'CONTRACTOR';
 
-// Subcontractor Types
-export interface Subcontractor {
+// Contractor Types
+export interface Contractor {
   id: string;
   profile_id: string;
   business_name: string;
@@ -54,9 +54,9 @@ export type OnboardingStatus =
   | 'APPROVED'
   | 'SUSPENDED';
 
-export interface SubcontractorCredential {
+export interface ContractorCredential {
   id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   credential_type: string;
   credential_name: string;
   issuer?: string;
@@ -142,7 +142,7 @@ export interface TicketStatusHistory {
 // Time Entry Types
 export interface TimeEntry {
   id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   ticket_id?: string;
   clock_in_at: string;
   clock_in_latitude?: number;
@@ -183,7 +183,7 @@ export type TimeEntryStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 // Expense Types
 export interface ExpenseReport {
   id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   report_period_start: string;
   report_period_end: string;
   total_amount: number;
@@ -254,7 +254,7 @@ export type PolicyFlag =
 export interface DamageAssessment {
   id: string;
   ticket_id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   safety_observations: SafetyObservations;
   damage_cause?: string;
   weather_conditions?: string;
@@ -330,10 +330,10 @@ export interface CapturedAssessmentPhoto {
 }
 
 // Invoice Types
-export interface SubcontractorInvoice {
+export interface ContractorInvoice {
   id: string;
   invoice_number: string;
-  subcontractor_id: string;
+  contractor_id: string;
   billing_period_start: string;
   billing_period_end: string;
   subtotal_time: number;
@@ -367,7 +367,7 @@ export type PaymentMethod = 'ACH' | 'CHECK' | 'WIRE' | 'OTHER';
 export interface MediaAsset {
   id: string;
   uploaded_by?: string;
-  subcontractor_id?: string;
+  contractor_id?: string;
   file_name: string;
   original_name?: string;
   file_type: MediaType;

@@ -10,7 +10,7 @@ function buildExpenseItem(overrides: Partial<ExpenseListItem> = {}): ExpenseList
   return {
     id: 'expense-item-1',
     expense_report_id: 'report-1',
-    subcontractor_id: 'sub-1',
+    contractor_id: 'sub-1',
     category: 'FUEL',
     description: 'Fuel purchase',
     amount: 58.5,
@@ -31,7 +31,7 @@ function buildExpenseItem(overrides: Partial<ExpenseListItem> = {}): ExpenseList
 
 function buildCreateInput(overrides: Partial<CreateExpenseItemInput> = {}): CreateExpenseItemInput {
   return {
-    subcontractorId: 'sub-1',
+    contractorId: 'sub-1',
     category: 'FUEL',
     description: 'Fuel purchase',
     amount: 58.5,
@@ -51,9 +51,9 @@ describe('createExpenseSubmissionService', () => {
       createLocal: vi.fn(),
     });
 
-    const items = await service.listExpenses({ subcontractorId: 'sub-1' });
+    const items = await service.listExpenses({ contractorId: 'sub-1' });
 
-    expect(listLocal).toHaveBeenCalledWith({ subcontractorId: 'sub-1' });
+    expect(listLocal).toHaveBeenCalledWith({ contractorId: 'sub-1' });
     expect(items[0]?.id).toBe('local-1');
   });
 
@@ -67,13 +67,13 @@ describe('createExpenseSubmissionService', () => {
       createLocal: vi.fn(),
     });
 
-    const items = await service.listExpenses({ subcontractorId: 'sub-1', status: 'ALL' });
+    const items = await service.listExpenses({ contractorId: 'sub-1', status: 'ALL' });
 
-    expect(listRemote).toHaveBeenCalledWith({ subcontractorId: 'sub-1', status: 'ALL' });
+    expect(listRemote).toHaveBeenCalledWith({ contractorId: 'sub-1', status: 'ALL' });
     expect(items[0]?.id).toBe('remote-1');
   });
 
-  it('falls back to local list when remote load fails for subcontractor views', async () => {
+  it('falls back to local list when remote load fails for contractor views', async () => {
     const listLocal = vi.fn().mockResolvedValue([buildExpenseItem({ id: 'fallback-1' })]);
     const service = createExpenseSubmissionService({
       isOnline: () => true,
@@ -83,9 +83,9 @@ describe('createExpenseSubmissionService', () => {
       createLocal: vi.fn(),
     });
 
-    const items = await service.listExpenses({ subcontractorId: 'sub-1' });
+    const items = await service.listExpenses({ contractorId: 'sub-1' });
 
-    expect(listLocal).toHaveBeenCalledWith({ subcontractorId: 'sub-1' });
+    expect(listLocal).toHaveBeenCalledWith({ contractorId: 'sub-1' });
     expect(items[0]?.id).toBe('fallback-1');
   });
 

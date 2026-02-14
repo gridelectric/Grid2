@@ -152,8 +152,8 @@ export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
 
     return expenses.filter((expense) => {
       const searchable = [
-        expense.subcontractor_name,
-        expense.subcontractor_id,
+        expense.contractor_name,
+        expense.contractor_id,
         expense.description,
         expense.category,
         expense.ticket_number,
@@ -342,9 +342,9 @@ export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
           ) : null,
       },
       {
-        key: 'subcontractor',
-        header: 'Subcontractor',
-        cell: (expense) => expense.subcontractor_name ?? expense.subcontractor_id,
+        key: 'contractor',
+        header: 'Contractor',
+        cell: (expense) => expense.contractor_name ?? expense.contractor_id,
       },
       {
         key: 'date',
@@ -441,7 +441,7 @@ export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
         <CardContent className="space-y-4 pt-6">
           <div className="grid gap-3 lg:grid-cols-4">
             <Input
-              placeholder="Search subcontractor, ticket, description"
+              placeholder="Search contractor, ticket, description"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
             />
@@ -576,7 +576,7 @@ export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
               <CardContent className="space-y-3 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold">{expense.subcontractor_name ?? expense.subcontractor_id}</p>
+                    <p className="text-sm font-semibold">{expense.contractor_name ?? expense.contractor_id}</p>
                     <p className="text-xs text-slate-500">{formatDate(expense.expense_date)}</p>
                   </div>
                   <StatusBadge

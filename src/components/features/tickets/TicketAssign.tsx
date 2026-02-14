@@ -21,14 +21,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  subcontractorService,
-  type AssignableSubcontractor,
-} from '@/lib/services/subcontractorService';
+  contractorService,
+  type AssignableContractor,
+} from '@/lib/services/contractorService';
 
 interface TicketAssignProps {
   isOpen: boolean;
   onClose: () => void;
-  onAssign: (subcontractorId: string) => Promise<void>;
+  onAssign: (contractorId: string) => Promise<void>;
   currentAssigneeId?: string;
   ticketNumber: string;
 }
@@ -42,7 +42,7 @@ export function TicketAssign({
 }: TicketAssignProps) {
   const [assigneeId, setAssigneeId] = useState<string>(currentAssigneeId ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [subcontractors, setSubcontractors] = useState<AssignableSubcontractor[]>([]);
+  const [contractors, setContractors] = useState<AssignableContractor[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -53,19 +53,19 @@ export function TicketAssign({
     setAssigneeId(currentAssigneeId ?? '');
     setIsLoading(true);
 
-    const loadAssignableSubcontractors = async () => {
+    const loadAssignableContractors = async () => {
       try {
-        const options = await subcontractorService.listAssignableSubcontractors();
-        setSubcontractors(options);
+        const options = await contractorService.listAssignableContractors();
+        setContractors(options);
       } catch (error) {
-        console.error('Failed to load assignable subcontractors:', error);
-        toast.error('Unable to load assignable subcontractors.');
+        console.error('Failed to load assignable contractors:', error);
+        toast.error('Unable to load assignable contractors.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    void loadAssignableSubcontractors();
+    void loadAssignableContractors();
   }, [currentAssigneeId, isOpen]);
 
   const handleSubmit = async () => {
@@ -91,22 +91,22 @@ export function TicketAssign({
         <DialogHeader>
           <DialogTitle>Assign Ticket {ticketNumber}</DialogTitle>
           <DialogDescription>
-            Select an eligible subcontractor for this ticket.
+            Select an eligible contractor for this ticket.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="subcontractor" className="text-right">
+            <Label htmlFor="contractor" className="text-right">
               Assign To
             </Label>
             <Select value={assigneeId} onValueChange={setAssigneeId} disabled={isLoading}>
-              <SelectTrigger className="col-span-3" id="subcontractor">
-                <SelectValue placeholder={isLoading ? 'Loading...' : 'Select subcontractor'} />
+              <SelectTrigger className="col-span-3" id="contractor">
+                <SelectValue placeholder={isLoading ? 'Loading...' : 'Select contractor'} />
               </SelectTrigger>
               <SelectContent>
-                {subcontractors.map((subcontractor) => (
-                  <SelectItem key={subcontractor.id} value={subcontractor.id}>
-                    {subcontractor.displayName}
+                {contractors.map((contractor) => (
+                  <SelectItem key={contractor.id} value={contractor.id}>
+                    {contractor.displayName}
                   </SelectItem>
                 ))}
               </SelectContent>

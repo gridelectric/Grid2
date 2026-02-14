@@ -28,7 +28,7 @@ function createMockClient() {
       })),
     },
     from: vi.fn((table: string) => {
-      if (table === 'subcontractors') {
+      if (table === 'contractors') {
         return {
           select: vi.fn(() => ({
             eq: vi.fn(() => ({

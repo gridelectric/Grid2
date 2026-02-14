@@ -129,3 +129,17 @@ export function isAuthOrPermissionError(error: unknown): boolean {
     message.includes('session')
   );
 }
+
+export function isMissingDatabaseObjectError(error: unknown): boolean {
+  const code = (getErrorCode(error) ?? '').toUpperCase();
+  if (code === '42P01' || code === '42703') {
+    return true;
+  }
+
+  const message = getErrorMessage(error, '').toLowerCase();
+  return (
+    (message.includes('relation') && message.includes('does not exist')) ||
+    (message.includes('column') && message.includes('does not exist')) ||
+    message.includes('undefined column')
+  );
+}

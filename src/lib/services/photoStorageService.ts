@@ -18,7 +18,7 @@ interface StorageClient {
   from: (bucket: string) => StorageBucketClient;
 }
 
-interface SubcontractorsTableClient {
+interface ContractorsTableClient {
   select: (columns: string) => {
     eq: (column: string, value: string) => {
       maybeSingle: () => Promise<{ data: { id: string } | null; error: unknown }>;
@@ -32,7 +32,7 @@ interface MediaAssetsTableClient {
   insert: (
     values: Array<{
       uploaded_by: string;
-      subcontractor_id?: string | null;
+      contractor_id?: string | null;
       file_name: string;
       original_name: string;
       file_type: 'PHOTO';
@@ -57,13 +57,13 @@ interface MediaAssetsTableClient {
 interface PhotoStorageSupabaseClient {
   auth: AuthClient;
   storage: StorageClient;
-  from(table: 'subcontractors'): SubcontractorsTableClient;
+  from(table: 'contractors'): ContractorsTableClient;
   from(table: 'media_assets'): MediaAssetsTableClient;
 }
 
 interface UploadContext {
   userId: string;
-  subcontractorId: string | null;
+  contractorId: string | null;
 }
 
 export interface PhotoUploadPipelineInput {
@@ -121,15 +121,15 @@ async function resolveUploadContext(client: PhotoStorageSupabaseClient): Promise
     throw new Error(PHOTO_STORAGE_AUTH_ERROR);
   }
 
-  const { data: subcontractor } = await client
-    .from('subcontractors')
+  const { data: contractor } = await client
+    .from('contractors')
     .select('id')
     .eq('profile_id', user.id)
     .maybeSingle();
 
   return {
     userId: user.id,
-    subcontractorId: subcontractor?.id ?? null,
+    contractorId: contractor?.id ?? null,
   };
 }
 
@@ -193,7 +193,7 @@ export async function uploadPhotoPipeline(
     .insert([
       {
         uploaded_by: context.userId,
-        subcontractor_id: context.subcontractorId,
+        contractor_id: context.contractorId,
         file_name: originalFile.name,
         original_name: originalFile.name,
         file_type: 'PHOTO',

@@ -10,7 +10,7 @@ import type { ExpenseCategory, ExpenseStatus, PolicyFlag } from '../../types';
 
 interface RemoteExpenseReportRow {
   id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   report_period_start: string;
   report_period_end: string;
   total_amount: number | null;
@@ -57,7 +57,7 @@ interface RemoteTicketRow {
   ticket_number: string;
 }
 
-interface RemoteSubcontractorRow {
+interface RemoteContractorRow {
   id: string;
   profile_id?: string;
 }
@@ -72,7 +72,7 @@ type ExpenseSyncStatus = 'SYNCED' | 'PENDING' | 'FAILED';
 type ExpenseStatusFilter = ExpenseStatus | 'ALL';
 
 export interface ExpenseListFilters {
-  subcontractorId?: string;
+  contractorId?: string;
   status?: ExpenseStatusFilter;
   from?: string;
   to?: string;
@@ -81,8 +81,8 @@ export interface ExpenseListFilters {
 export interface ExpenseListItem {
   id: string;
   expense_report_id: string;
-  subcontractor_id: string;
-  subcontractor_name?: string;
+  contractor_id: string;
+  contractor_name?: string;
   category: ExpenseCategory;
   description: string;
   amount: number;
@@ -111,7 +111,7 @@ export interface ExpenseListItem {
 }
 
 export interface CreateExpenseItemInput {
-  subcontractorId: string;
+  contractorId: string;
   category: ExpenseCategory;
   description: string;
   amount: number;
@@ -254,8 +254,8 @@ function matchesDateRange(expenseDate: string, filters: ExpenseListFilters): boo
 }
 
 function validateCreateInput(input: CreateExpenseItemInput): void {
-  if (!input.subcontractorId.trim()) {
-    throw new Error('Subcontractor is required.');
+  if (!input.contractorId.trim()) {
+    throw new Error('Contractor is required.');
   }
 
   if (!input.description.trim()) {
@@ -283,13 +283,13 @@ function mapRemoteItemToListItem(
   report: RemoteExpenseReportRow,
   item: RemoteExpenseItemRow,
   ticketNumberById: Map<string, string>,
-  subcontractorNameById: Map<string, string>,
+  contractorNameById: Map<string, string>,
 ): ExpenseListItem {
   return {
     id: item.id,
     expense_report_id: item.expense_report_id,
-    subcontractor_id: report.subcontractor_id,
-    subcontractor_name: subcontractorNameById.get(report.subcontractor_id),
+    contractor_id: report.contractor_id,
+    contractor_name: contractorNameById.get(report.contractor_id),
     category: toExpenseCategory(item.category),
     description: item.description,
     amount: Number(item.amount ?? 0),
@@ -325,7 +325,7 @@ function mapLocalItemToListItem(report: LocalExpenseReport, item: LocalExpenseIt
   return {
     id: item.id,
     expense_report_id: item.expense_report_id,
-    subcontractor_id: report.subcontractor_id,
+    contractor_id: report.contractor_id,
     category: toExpenseCategory(item.category),
     description: item.description,
     amount: Number(item.amount ?? 0),
@@ -361,16 +361,16 @@ function defaultIsOnline(): boolean {
   return navigator.onLine;
 }
 
-async function resolveSubcontractorId(subcontractorOrProfileId: string): Promise<string> {
+async function resolveContractorId(contractorOrProfileId: string): Promise<string> {
   const { supabase } = await import('../supabase/client');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data } = await (supabase.from('subcontractors') as any)
+  const { data } = await (supabase.from('contractors') as any)
     .select('id')
-    .or(`id.eq.${subcontractorOrProfileId},profile_id.eq.${subcontractorOrProfileId}`)
+    .or(`id.eq.${contractorOrProfileId},profile_id.eq.${contractorOrProfileId}`)
     .limit(1);
 
-  const rows = (data ?? []) as RemoteSubcontractorRow[];
-  return rows[0]?.id ?? subcontractorOrProfileId;
+  const rows = (data ?? []) as RemoteContractorRow[];
+  return rows[0]?.id ?? contractorOrProfileId;
 }
 
 async function fetchTicketNumbers(
@@ -395,32 +395,32 @@ async function fetchTicketNumbers(
   }
 }
 
-async function fetchSubcontractorNames(
+async function fetchContractorNames(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
-  subcontractorIds: string[],
+  contractorIds: string[],
 ): Promise<Map<string, string>> {
-  if (subcontractorIds.length === 0) {
+  if (contractorIds.length === 0) {
     return new Map();
   }
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: subcontractors } = await (supabase.from('subcontractors') as any)
+    const { data: contractors } = await (supabase.from('contractors') as any)
       .select('id, profile_id')
-      .in('id', subcontractorIds);
+      .in('id', contractorIds);
 
-    const subcontractorRows = (subcontractors ?? []) as RemoteSubcontractorRow[];
-    if (subcontractorRows.length === 0) {
+    const contractorRows = (contractors ?? []) as RemoteContractorRow[];
+    if (contractorRows.length === 0) {
       return new Map();
     }
 
     const profileIds = Array.from(
-      new Set(subcontractorRows.map((row) => row.profile_id).filter((value): value is string => Boolean(value))),
+      new Set(contractorRows.map((row) => row.profile_id).filter((value): value is string => Boolean(value))),
     );
 
     if (profileIds.length === 0) {
-      return new Map(subcontractorRows.map((row) => [row.id, row.id]));
+      return new Map(contractorRows.map((row) => [row.id, row.id]));
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -434,7 +434,7 @@ async function fetchSubcontractorNames(
     );
 
     return new Map(
-      subcontractorRows.map((row) => [row.id, row.profile_id ? profileNameById.get(row.profile_id) ?? row.id : row.id]),
+      contractorRows.map((row) => [row.id, row.profile_id ? profileNameById.get(row.profile_id) ?? row.id : row.id]),
     );
   } catch {
     return new Map();
@@ -444,9 +444,9 @@ async function fetchSubcontractorNames(
 async function listRemote(filters: ExpenseListFilters): Promise<ExpenseListItem[]> {
   const { supabase } = await import('../supabase/client');
 
-  let resolvedSubcontractorId: string | undefined;
-  if (filters.subcontractorId) {
-    resolvedSubcontractorId = await resolveSubcontractorId(filters.subcontractorId);
+  let resolvedContractorId: string | undefined;
+  if (filters.contractorId) {
+    resolvedContractorId = await resolveContractorId(filters.contractorId);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -454,7 +454,7 @@ async function listRemote(filters: ExpenseListFilters): Promise<ExpenseListItem[
     .select(
       [
         'id',
-        'subcontractor_id',
+        'contractor_id',
         'report_period_start',
         'report_period_end',
         'total_amount',
@@ -473,8 +473,8 @@ async function listRemote(filters: ExpenseListFilters): Promise<ExpenseListItem[
     )
     .order('created_at', { ascending: false });
 
-  if (resolvedSubcontractorId) {
-    query = query.eq('subcontractor_id', resolvedSubcontractorId);
+  if (resolvedContractorId) {
+    query = query.eq('contractor_id', resolvedContractorId);
   }
 
   if (filters.status && filters.status !== 'ALL') {
@@ -496,16 +496,16 @@ async function listRemote(filters: ExpenseListFilters): Promise<ExpenseListItem[
         .filter((value): value is string => Boolean(value)),
     ),
   );
-  const subcontractorIds = Array.from(new Set(reports.map((report) => report.subcontractor_id)));
+  const contractorIds = Array.from(new Set(reports.map((report) => report.contractor_id)));
 
-  const [ticketNumberById, subcontractorNameById] = await Promise.all([
+  const [ticketNumberById, contractorNameById] = await Promise.all([
     fetchTicketNumbers(supabase, ticketIds),
-    fetchSubcontractorNames(supabase, subcontractorIds),
+    fetchContractorNames(supabase, contractorIds),
   ]);
 
   const items = reports.flatMap((report) =>
     (report.expense_items ?? []).map((item) =>
-      mapRemoteItemToListItem(report, item, ticketNumberById, subcontractorNameById),
+      mapRemoteItemToListItem(report, item, ticketNumberById, contractorNameById),
     ),
   );
 
@@ -515,13 +515,13 @@ async function listRemote(filters: ExpenseListFilters): Promise<ExpenseListItem[
 }
 
 async function listLocal(filters: ExpenseListFilters): Promise<ExpenseListItem[]> {
-  if (!filters.subcontractorId) {
+  if (!filters.contractorId) {
     return [];
   }
 
   const reports = await db.expenseReports
-    .where('subcontractor_id')
-    .equals(filters.subcontractorId)
+    .where('contractor_id')
+    .equals(filters.contractorId)
     .toArray();
 
   const filteredReports = reports.filter((report) =>
@@ -553,7 +553,7 @@ async function listLocal(filters: ExpenseListFilters): Promise<ExpenseListItem[]
 }
 
 async function getOrCreateDraftReport(
-  subcontractorId: string,
+  contractorId: string,
   expenseDate: string,
 ): Promise<RemoteExpenseReportRow> {
   const { supabase } = await import('../supabase/client');
@@ -562,7 +562,7 @@ async function getOrCreateDraftReport(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: existing, error: existingError } = await (supabase.from('expense_reports') as any)
     .select('*')
-    .eq('subcontractor_id', subcontractorId)
+    .eq('contractor_id', contractorId)
     .eq('status', 'DRAFT')
     .eq('report_period_start', start)
     .eq('report_period_end', end)
@@ -582,7 +582,7 @@ async function getOrCreateDraftReport(
   const { data: created, error: createError } = await (supabase.from('expense_reports') as any)
     .insert([
       {
-        subcontractor_id: subcontractorId,
+        contractor_id: contractorId,
         report_period_start: start,
         report_period_end: end,
         status: 'DRAFT',
@@ -599,13 +599,13 @@ async function getOrCreateDraftReport(
 }
 
 async function uploadReceipt(
-  subcontractorId: string,
+  contractorId: string,
   expenseItemId: string,
   receiptFile: File,
 ): Promise<string> {
   const { supabase } = await import('../supabase/client');
   const safeName = sanitizeFileName(receiptFile.name || 'receipt.jpg');
-  const path = `${subcontractorId}/${expenseItemId}_${Date.now()}_${safeName}`;
+  const path = `${contractorId}/${expenseItemId}_${Date.now()}_${safeName}`;
 
   const { data, error } = await supabase.storage
     .from('receipts')
@@ -723,9 +723,9 @@ async function processCreateInput(
 
 async function createRemote(input: CreateExpenseItemInput): Promise<ExpenseListItem> {
   const { supabase } = await import('../supabase/client');
-  const resolvedSubcontractorId = await resolveSubcontractorId(input.subcontractorId);
+  const resolvedContractorId = await resolveContractorId(input.contractorId);
   const normalizedDate = normalizeExpenseDate(input.expenseDate);
-  const report = await getOrCreateDraftReport(resolvedSubcontractorId, normalizedDate);
+  const report = await getOrCreateDraftReport(resolvedContractorId, normalizedDate);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: existingItemsData } = await (supabase.from('expense_items') as any)
@@ -797,7 +797,7 @@ async function createRemote(input: CreateExpenseItemInput): Promise<ExpenseListI
 
   if (input.receiptFile) {
     try {
-      const receiptPath = await uploadReceipt(resolvedSubcontractorId, expenseItem.id, input.receiptFile);
+      const receiptPath = await uploadReceipt(resolvedContractorId, expenseItem.id, input.receiptFile);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: updatedItemData } = await (supabase.from('expense_items') as any)
         .update({
@@ -820,9 +820,9 @@ async function createRemote(input: CreateExpenseItemInput): Promise<ExpenseListI
     supabase,
     expenseItem.ticket_id ? [expenseItem.ticket_id] : [],
   );
-  const subcontractorNameById = await fetchSubcontractorNames(supabase, [report.subcontractor_id]);
+  const contractorNameById = await fetchContractorNames(supabase, [report.contractor_id]);
 
-  return mapRemoteItemToListItem(report, expenseItem, ticketNumberById, subcontractorNameById);
+  return mapRemoteItemToListItem(report, expenseItem, ticketNumberById, contractorNameById);
 }
 
 async function createLocal(input: CreateExpenseItemInput): Promise<ExpenseListItem> {
@@ -831,8 +831,8 @@ async function createLocal(input: CreateExpenseItemInput): Promise<ExpenseListIt
   const { start, end } = getExpenseMonthPeriod(normalizedDate);
 
   const localReports = await db.expenseReports
-    .where('subcontractor_id')
-    .equals(input.subcontractorId)
+    .where('contractor_id')
+    .equals(input.contractorId)
     .toArray();
 
   let report = localReports.find(
@@ -845,7 +845,7 @@ async function createLocal(input: CreateExpenseItemInput): Promise<ExpenseListIt
   if (!report) {
     report = {
       id: createId(),
-      subcontractor_id: input.subcontractorId,
+      contractor_id: input.contractorId,
       report_period_start: start,
       report_period_end: end,
       total_amount: 0,
@@ -943,7 +943,7 @@ export function createExpenseSubmissionService(
       try {
         return await dependencies.listRemote(filters);
       } catch (error) {
-        if (!filters.subcontractorId) {
+        if (!filters.contractorId) {
           throw error;
         }
 

@@ -7,7 +7,7 @@ import type { TimeEntry } from '../../types';
 function buildLocalTimeEntry(overrides: Partial<LocalTimeEntry> = {}): LocalTimeEntry {
   return {
     id: 'local-1',
-    subcontractor_id: 'sub-1',
+    contractor_id: 'sub-1',
     clock_in_at: '2026-02-12T08:00:00.000Z',
     clock_out_at: '2026-02-12T09:00:00.000Z',
     work_type: 'STANDARD_ASSESSMENT',
@@ -23,7 +23,7 @@ function buildLocalTimeEntry(overrides: Partial<LocalTimeEntry> = {}): LocalTime
 function buildTimeEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
   return {
     id: 'time-1',
-    subcontractor_id: 'sub-1',
+    contractor_id: 'sub-1',
     clock_in_at: '2026-02-12T08:00:00.000Z',
     clock_out_at: '2026-02-12T09:00:00.000Z',
     work_type: 'STANDARD_ASSESSMENT',
@@ -38,7 +38,7 @@ function buildTimeEntry(overrides: Partial<TimeEntry> = {}): TimeEntry {
 }
 
 describe('createTimeEntryManagementService', () => {
-  it('loads subcontractor entries from local cache while offline', async () => {
+  it('loads contractor entries from local cache while offline', async () => {
     const service = createTimeEntryManagementService({
       isOnline: () => false,
       fetchRemoteEntries: vi.fn(),
@@ -52,7 +52,7 @@ describe('createTimeEntryManagementService', () => {
     });
 
     const entries = await service.listEntries({
-      subcontractorId: 'sub-1',
+      contractorId: 'sub-1',
       status: 'PENDING',
     });
 
@@ -66,7 +66,7 @@ describe('createTimeEntryManagementService', () => {
       {
         ...buildTimeEntry({ id: 'remote-1' }),
         ticket_number: 'GES-260245',
-        subcontractor_name: 'John Smith',
+        contractor_name: 'John Smith',
       },
     ];
     const fetchRemoteEntries = vi.fn().mockResolvedValue(remoteEntries);
@@ -85,7 +85,7 @@ describe('createTimeEntryManagementService', () => {
     expect(entries[0]?.ticket_number).toBe('GES-260245');
   });
 
-  it('falls back to local entries when remote list fails for subcontractor view', async () => {
+  it('falls back to local entries when remote list fails for contractor view', async () => {
     const getLocalEntries = vi.fn().mockResolvedValue([
       buildLocalTimeEntry({ id: 'local-fallback', status: 'PENDING' }),
     ]);
@@ -97,7 +97,7 @@ describe('createTimeEntryManagementService', () => {
       getLocalEntries,
     });
 
-    const entries = await service.listEntries({ subcontractorId: 'sub-1' });
+    const entries = await service.listEntries({ contractorId: 'sub-1' });
 
     expect(getLocalEntries).toHaveBeenCalledWith('sub-1');
     expect(entries[0]?.id).toBe('local-fallback');

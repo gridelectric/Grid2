@@ -11,7 +11,7 @@ export default function AdminInvoiceGenerationPage() {
     <div className="space-y-6">
       <PageHeader
         title="Invoice Generation"
-        description="Generate subcontractor invoices from approved time entries and expense reports."
+        description="Generate contractor invoices from approved time entries and expense reports."
       />
 
       <InvoiceGenerator generatedBy={profile?.id} />

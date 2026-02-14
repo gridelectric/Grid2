@@ -36,7 +36,7 @@ function buildLocalTicket(overrides: Partial<LocalTicket> = {}): LocalTicket {
 function buildLocalTimeEntry(overrides: Partial<LocalTimeEntry> = {}): LocalTimeEntry {
   return {
     id: 'time-1',
-    subcontractor_id: 'sub-1',
+    contractor_id: 'sub-1',
     ticket_id: 'ticket-1',
     clock_in_at: '2026-02-12T08:00:00.000Z',
     work_type: 'STANDARD_ASSESSMENT',

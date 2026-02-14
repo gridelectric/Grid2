@@ -3,16 +3,16 @@ import type { Database } from '../../types/database';
 import { coreOnboardingProfileSchema, type CoreOnboardingProfileInput } from '../schemas/onboarding';
 
 type ProfileRole = Pick<Database['public']['Tables']['profiles']['Row'], 'role'>;
-type ExistingSubcontractor = Pick<
-  Database['public']['Tables']['subcontractors']['Row'],
+type ExistingContractor = Pick<
+  Database['public']['Tables']['contractors']['Row'],
   'id' | 'business_name' | 'onboarding_status'
 >;
 type ProfileUpdatePayload = Pick<
   Database['public']['Tables']['profiles']['Update'],
   'first_name' | 'last_name' | 'email' | 'phone' | 'updated_at'
 >;
-type SubcontractorWritePayload = Pick<
-  Database['public']['Tables']['subcontractors']['Insert'],
+type ContractorWritePayload = Pick<
+  Database['public']['Tables']['contractors']['Insert'],
   | 'profile_id'
   | 'business_name'
   | 'business_email'
@@ -21,8 +21,8 @@ type SubcontractorWritePayload = Pick<
   | 'emergency_contact_phone'
   | 'onboarding_status'
 >;
-type SubcontractorWriteResult = Pick<
-  Database['public']['Tables']['subcontractors']['Row'],
+type ContractorWriteResult = Pick<
+  Database['public']['Tables']['contractors']['Row'],
   'id' | 'onboarding_status'
 >;
 
@@ -41,21 +41,21 @@ interface ProfilesTableClient {
   };
 }
 
-interface SubcontractorsTableClient {
+interface ContractorsTableClient {
   select: (columns: string) => {
     eq: (column: string, value: string) => {
-      maybeSingle: () => Promise<{ data: ExistingSubcontractor | null; error: unknown }>;
+      maybeSingle: () => Promise<{ data: ExistingContractor | null; error: unknown }>;
     };
   };
-  insert: (values: SubcontractorWritePayload[]) => {
+  insert: (values: ContractorWritePayload[]) => {
     select: (columns: string) => {
-      single: () => Promise<{ data: SubcontractorWriteResult | null; error: unknown }>;
+      single: () => Promise<{ data: ContractorWriteResult | null; error: unknown }>;
     };
   };
-  update: (values: SubcontractorWritePayload) => {
+  update: (values: ContractorWritePayload) => {
     eq: (column: string, value: string) => {
       select: (columns: string) => {
-        single: () => Promise<{ data: SubcontractorWriteResult | null; error: unknown }>;
+        single: () => Promise<{ data: ContractorWriteResult | null; error: unknown }>;
       };
     };
   };
@@ -64,11 +64,11 @@ interface SubcontractorsTableClient {
 interface OnboardingSupabaseClient {
   auth: AuthClient;
   from(table: 'profiles'): ProfilesTableClient;
-  from(table: 'subcontractors'): SubcontractorsTableClient;
+  from(table: 'contractors'): ContractorsTableClient;
 }
 
 interface CoreOnboardingSubmissionResult {
-  subcontractorId: string;
+  contractorId: string;
   onboardingStatus: OnboardingStatus;
 }
 
@@ -84,13 +84,13 @@ async function getDefaultClient(): Promise<OnboardingSupabaseClient> {
 function getPendingPayload(
   userId: string,
   input: CoreOnboardingProfileInput,
-  existingSubcontractor: ExistingSubcontractor | null
-): SubcontractorWritePayload {
+  existingContractor: ExistingContractor | null
+): ContractorWritePayload {
   const fallbackBusinessName = `${input.firstName} ${input.lastName}`.trim();
 
   return {
     profile_id: userId,
-    business_name: existingSubcontractor?.business_name?.trim() || fallbackBusinessName,
+    business_name: existingContractor?.business_name?.trim() || fallbackBusinessName,
     business_email: input.email,
     business_phone: input.phone,
     emergency_contact_name: input.emergencyContactName,
@@ -135,18 +135,18 @@ export async function submitCoreOnboardingProfile(
   const userId = await getCurrentContractorUserId(activeClient);
 
   const profilesTable = activeClient.from('profiles');
-  const subcontractorsTable = activeClient.from('subcontractors');
+  const contractorsTable = activeClient.from('contractors');
 
-  const { data: existingSubcontractor, error: existingSubcontractorError } = await subcontractorsTable
+  const { data: existingContractor, error: existingContractorError } = await contractorsTable
     .select('id, business_name, onboarding_status')
     .eq('profile_id', userId)
     .maybeSingle();
 
-  if (existingSubcontractorError) {
-    throw existingSubcontractorError;
+  if (existingContractorError) {
+    throw existingContractorError;
   }
 
-  if (existingSubcontractor?.onboarding_status === 'APPROVED') {
+  if (existingContractor?.onboarding_status === 'APPROVED') {
     throw new Error(ONBOARDING_ALREADY_VERIFIED_ERROR);
   }
 
@@ -164,36 +164,36 @@ export async function submitCoreOnboardingProfile(
     throw profileUpdateError;
   }
 
-  const pendingPayload = getPendingPayload(userId, parsedInput, existingSubcontractor);
+  const pendingPayload = getPendingPayload(userId, parsedInput, existingContractor);
 
-  if (existingSubcontractor) {
-    const { data: updatedSubcontractor, error: subcontractorUpdateError } = await subcontractorsTable
+  if (existingContractor) {
+    const { data: updatedContractor, error: contractorUpdateError } = await contractorsTable
       .update(pendingPayload)
       .eq('profile_id', userId)
       .select('id, onboarding_status')
       .single();
 
-    if (subcontractorUpdateError || !updatedSubcontractor) {
-      throw subcontractorUpdateError || new Error('Failed to update onboarding profile.');
+    if (contractorUpdateError || !updatedContractor) {
+      throw contractorUpdateError || new Error('Failed to update onboarding profile.');
     }
 
     return {
-      subcontractorId: updatedSubcontractor.id,
-      onboardingStatus: updatedSubcontractor.onboarding_status as OnboardingStatus,
+      contractorId: updatedContractor.id,
+      onboardingStatus: updatedContractor.onboarding_status as OnboardingStatus,
     };
   }
 
-  const { data: insertedSubcontractor, error: subcontractorInsertError } = await subcontractorsTable
+  const { data: insertedContractor, error: contractorInsertError } = await contractorsTable
     .insert([pendingPayload])
     .select('id, onboarding_status')
     .single();
 
-  if (subcontractorInsertError || !insertedSubcontractor) {
-    throw subcontractorInsertError || new Error('Failed to create onboarding profile.');
+  if (contractorInsertError || !insertedContractor) {
+    throw contractorInsertError || new Error('Failed to create onboarding profile.');
   }
 
   return {
-    subcontractorId: insertedSubcontractor.id,
-    onboardingStatus: insertedSubcontractor.onboarding_status as OnboardingStatus,
+    contractorId: insertedContractor.id,
+    onboardingStatus: insertedContractor.onboarding_status as OnboardingStatus,
   };
 }

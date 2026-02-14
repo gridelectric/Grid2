@@ -10,7 +10,7 @@ function buildExpenseItem(overrides: Partial<ExpenseListItem> = {}): ExpenseList
   return {
     id: 'expense-item-1',
     expense_report_id: 'report-1',
-    subcontractor_id: 'sub-1',
+    contractor_id: 'sub-1',
     category: 'FUEL',
     description: 'Fuel purchase',
     amount: 58.5,

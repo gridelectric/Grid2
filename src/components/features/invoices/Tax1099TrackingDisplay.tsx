@@ -13,8 +13,8 @@ import {
 import { formatCurrency, formatDate } from '@/lib/utils/formatters';
 
 interface Tax1099TrackingDisplayProps {
-  subcontractorId?: string;
-  subcontractorName?: string;
+  contractorId?: string;
+  contractorName?: string;
   taxYear?: number;
 }
 
@@ -26,9 +26,9 @@ function parseError(error: unknown): string {
   return 'Unable to load 1099 tracking.';
 }
 
-function createEmptyTracking(subcontractorId: string, taxYear: number): Tax1099TrackingSummary {
+function createEmptyTracking(contractorId: string, taxYear: number): Tax1099TrackingSummary {
   return {
-    subcontractor_id: subcontractorId,
+    contractor_id: contractorId,
     tax_year: taxYear,
     total_payments: 0,
     total_invoices: 0,
@@ -40,8 +40,8 @@ function createEmptyTracking(subcontractorId: string, taxYear: number): Tax1099T
 }
 
 export function Tax1099TrackingDisplay({
-  subcontractorId,
-  subcontractorName,
+  contractorId,
+  contractorName,
   taxYear = new Date().getUTCFullYear(),
 }: Tax1099TrackingDisplayProps) {
   const [tracking, setTracking] = useState<Tax1099TrackingSummary | null>(null);
@@ -49,7 +49,7 @@ export function Tax1099TrackingDisplay({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!subcontractorId) {
+    if (!contractorId) {
       setTracking(null);
       setError(null);
       return;
@@ -61,12 +61,12 @@ export function Tax1099TrackingDisplay({
 
     const loadTracking = async () => {
       try {
-        const loaded = await invoiceGenerationService.getTax1099Tracking(subcontractorId, taxYear);
+        const loaded = await invoiceGenerationService.getTax1099Tracking(contractorId, taxYear);
         if (!active) {
           return;
         }
 
-        setTracking(loaded ?? createEmptyTracking(subcontractorId, taxYear));
+        setTracking(loaded ?? createEmptyTracking(contractorId, taxYear));
       } catch (loadError) {
         if (!active) {
           return;
@@ -86,13 +86,13 @@ export function Tax1099TrackingDisplay({
     return () => {
       active = false;
     };
-  }, [subcontractorId, taxYear]);
+  }, [contractorId, taxYear]);
 
-  if (!subcontractorId) {
+  if (!contractorId) {
     return (
       <Card>
         <CardContent className="px-4 py-6 text-sm text-slate-500">
-          Select a subcontractor to view 1099 tracking.
+          Select a contractor to view 1099 tracking.
         </CardContent>
       </Card>
     );
@@ -131,7 +131,7 @@ export function Tax1099TrackingDisplay({
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">
-          1099 Tracking {subcontractorName ? `- ${subcontractorName}` : ''} ({tracking.tax_year})
+          1099 Tracking {contractorName ? `- ${contractorName}` : ''} ({tracking.tax_year})
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

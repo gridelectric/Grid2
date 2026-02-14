@@ -10,11 +10,25 @@ interface CliOptions {
   email: string;
   contractorId: string;
   role: string;
+  resetPassword: boolean;
 }
 
 interface AuthUser {
   id: string;
   email: string | null;
+}
+
+function isMissingTableError(error: { message?: string; code?: string } | null | undefined): boolean {
+  if (!error) {
+    return false;
+  }
+
+  if (error.code === '42P01') {
+    return true;
+  }
+
+  const message = String(error.message ?? '').toLowerCase();
+  return message.includes('could not find the table') || message.includes('relation') && message.includes('does not exist');
 }
 
 function parseCliOptions(args: string[]): CliOptions {
@@ -31,10 +45,11 @@ function parseCliOptions(args: string[]): CliOptions {
   const email = get('--email');
   const contractorId = get('--contractor-id');
   const role = get('--role');
+  const resetPassword = args.includes('--reset-password');
 
   if (!firstName || !lastName || !email || !contractorId || !role) {
     throw new Error(
-      'Missing required args. Use: --first-name <value> --last-name <value> --email <value> --contractor-id <value> --role <value>',
+      'Missing required args. Use: --first-name <value> --last-name <value> --email <value> --contractor-id <value> --role <value> [--reset-password]',
     );
   }
 
@@ -49,6 +64,7 @@ function parseCliOptions(args: string[]): CliOptions {
     email: email.trim().toLowerCase(),
     contractorId: normalizedContractorId,
     role: role.trim().toUpperCase(),
+    resetPassword,
   };
 }
 
@@ -140,9 +156,14 @@ async function run(): Promise<void> {
       email: data.user.email ?? options.email,
     };
   } else {
+    if (options.resetPassword) {
+      generatedTempPassword = buildTempPassword();
+    }
+
     const { error } = await client.auth.admin.updateUserById(authUser.id, {
       email: options.email,
       email_confirm: true,
+      ...(generatedTempPassword ? { password: generatedTempPassword } : {}),
       user_metadata: {
         username,
         first_name: options.firstName,
@@ -202,7 +223,7 @@ async function run(): Promise<void> {
       requestedRole,
       String(existingProfile?.role ?? '').trim(),
       'CONTRACTOR',
-      'SUBCONTRACTOR',
+      'CONTRACTOR',
       'TEAM_LEAD',
       'READ_ONLY',
     ].filter(Boolean)),
@@ -239,23 +260,35 @@ async function run(): Promise<void> {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const subcontractorsTable = client.from('subcontractors') as any;
-  const { data: existingSubcontractor, error: existingError } = await subcontractorsTable
+  let contractorsTable = client.from('contractors') as any;
+  let { data: existingContractor, error: existingError } = await contractorsTable
     .select('id')
     .eq('profile_id', authUser.id)
     .maybeSingle();
 
-  if (existingError) {
-    throw new Error(`Unable to query subcontractor record: ${existingError.message}`);
+  if (isMissingTableError(existingError)) {
+    // Fallback for environments where the rename migration has not been applied yet.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    contractorsTable = client.from('subcontractors') as any;
+    const legacyResult = await contractorsTable
+      .select('id')
+      .eq('profile_id', authUser.id)
+      .maybeSingle();
+    existingContractor = legacyResult.data;
+    existingError = legacyResult.error;
   }
 
-  if (existingSubcontractor?.id && existingSubcontractor.id !== contractorUuid) {
+  if (existingError) {
+    throw new Error(`Unable to query contractor record: ${existingError.message}`);
+  }
+
+  if (existingContractor?.id && existingContractor.id !== contractorUuid) {
     throw new Error(
-      `Profile already has contractor UUID ${existingSubcontractor.id}. Refusing to remap to ${contractorUuid}.`,
+      `Profile already has contractor UUID ${existingContractor.id}. Refusing to remap to ${contractorUuid}.`,
     );
   }
 
-  const { error: subcontractorError } = await subcontractorsTable.upsert(
+  const { error: contractorError } = await contractorsTable.upsert(
     {
       id: contractorUuid,
       profile_id: authUser.id,
@@ -269,8 +302,8 @@ async function run(): Promise<void> {
     { onConflict: 'profile_id' },
   );
 
-  if (subcontractorError) {
-    throw new Error(`Unable to upsert contractor record: ${subcontractorError.message}`);
+  if (contractorError) {
+    throw new Error(`Unable to upsert contractor record: ${contractorError.message}`);
   }
 
   console.log('Contractor upsert complete.');

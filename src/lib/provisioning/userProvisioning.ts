@@ -17,7 +17,6 @@ const ROLE_ALIASES: Record<string, ProvisioningRole | null> = {
   SUPERADMIN: 'SUPER_ADMIN',
   ADMIN: 'ADMIN',
   CONTRACTOR: 'CONTRACTOR',
-  SUBCONTRACTOR: 'CONTRACTOR',
   TEAM_LEAD: 'ADMIN',
   TEAMLEAD: 'ADMIN',
   READ_ONLY: 'ADMIN',
@@ -181,8 +180,7 @@ function isRoleAliasWarning(rawRole: string): boolean {
   return token === 'TEAM_LEAD'
     || token === 'TEAMLEAD'
     || token === 'READ_ONLY'
-    || token === 'READONLY'
-    || token === 'SUBCONTRACTOR';
+    || token === 'READONLY';
 }
 
 export function parseProvisioningCsv(csvText: string): ParseProvisioningCsvResult {

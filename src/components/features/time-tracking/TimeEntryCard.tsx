@@ -53,7 +53,7 @@ export function TimeEntryCard({
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
             <CardTitle className="text-base">
-              {entry.subcontractor_name ?? 'Subcontractor'}
+              {entry.contractor_name ?? 'Contractor'}
             </CardTitle>
             <p className="text-xs text-slate-500">
               {entry.ticket_number ? `Ticket ${entry.ticket_number}` : entry.ticket_id ?? 'No ticket linked'}

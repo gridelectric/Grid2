@@ -28,7 +28,7 @@ import type { ExpenseStatus } from '@/types';
 type ExpenseStatusFilter = ExpenseStatus | 'ALL';
 
 interface ExpenseListProps {
-  subcontractorId?: string;
+  contractorId?: string;
 }
 
 function parseError(error: unknown): string {
@@ -63,7 +63,7 @@ function toStatusVariant(status: ExpenseStatus): 'pending' | 'approved' | 'rejec
   return 'pending';
 }
 
-export function ExpenseList({ subcontractorId }: ExpenseListProps) {
+export function ExpenseList({ contractorId }: ExpenseListProps) {
   const [expenses, setExpenses] = useState<ExpenseListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +72,7 @@ export function ExpenseList({ subcontractorId }: ExpenseListProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const loadExpenses = useCallback(async () => {
-    if (!subcontractorId) {
+    if (!contractorId) {
       setExpenses([]);
       setIsLoading(false);
       return;
@@ -83,7 +83,7 @@ export function ExpenseList({ subcontractorId }: ExpenseListProps) {
 
     try {
       const data = await expenseSubmissionService.listExpenses({
-        subcontractorId,
+        contractorId,
         status: statusFilter,
       });
       setExpenses(data);
@@ -93,7 +93,7 @@ export function ExpenseList({ subcontractorId }: ExpenseListProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [statusFilter, subcontractorId]);
+  }, [statusFilter, contractorId]);
 
   useEffect(() => {
     void loadExpenses();

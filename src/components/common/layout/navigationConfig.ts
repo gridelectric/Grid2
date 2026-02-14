@@ -37,7 +37,3 @@ export const CONTRACTOR_BOTTOM_NAV_ITEMS: NavLinkItem[] = [
   { href: '/contractor/map', label: 'Map' },
   { href: '/contractor/time', label: 'Time' },
 ];
-
-// Legacy exports kept for compatibility while route migration completes.
-export const SUBCONTRACTOR_SIDEBAR_NAV_ITEMS = CONTRACTOR_SIDEBAR_NAV_ITEMS;
-export const SUBCONTRACTOR_BOTTOM_NAV_ITEMS = CONTRACTOR_BOTTOM_NAV_ITEMS;

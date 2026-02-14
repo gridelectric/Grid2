@@ -50,7 +50,7 @@ export interface Database {
           updated_at?: string;
         };
       };
-      subcontractors: {
+      contractors: {
         Row: {
           id: string;
           profile_id: string;
@@ -189,7 +189,7 @@ export interface Database {
       time_entries: {
         Row: {
           id: string;
-          subcontractor_id: string;
+          contractor_id: string;
           ticket_id: string | null;
           clock_in_at: string;
           clock_in_latitude: number | null;
@@ -214,7 +214,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          subcontractor_id: string;
+          contractor_id: string;
           ticket_id?: string | null;
           clock_in_at: string;
           clock_in_latitude?: number | null;
@@ -239,7 +239,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          subcontractor_id?: string;
+          contractor_id?: string;
           ticket_id?: string | null;
           clock_in_at?: string;
           clock_in_latitude?: number | null;

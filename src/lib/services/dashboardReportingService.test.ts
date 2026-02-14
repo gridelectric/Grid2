@@ -47,21 +47,21 @@ describe('dashboardReportingService', () => {
       invoicesForTrend: [
         {
           id: 'inv-1',
-          subcontractor_id: 'sub-1',
+          contractor_id: 'sub-1',
           status: 'APPROVED',
           total_amount: 1000,
           created_at: '2026-02-05T10:00:00.000Z',
         },
         {
           id: 'inv-2',
-          subcontractor_id: 'sub-2',
+          contractor_id: 'sub-2',
           status: 'VOID',
           total_amount: 500,
           created_at: '2026-02-10T10:00:00.000Z',
         },
         {
           id: 'inv-3',
-          subcontractor_id: 'sub-3',
+          contractor_id: 'sub-3',
           status: 'PAID',
           total_amount: 500,
           created_at: '2026-01-10T10:00:00.000Z',
@@ -83,7 +83,7 @@ describe('dashboardReportingService', () => {
     expect(metrics.invoices_generated_mtd).toBe(1);
   });
 
-  it('builds grouped report data with subcontractor totals', () => {
+  it('builds grouped report data with contractor totals', () => {
     const report = buildDashboardReport({
       now: new Date('2026-02-14T12:00:00.000Z'),
       startDate: new Date('2026-02-01T00:00:00.000Z'),
@@ -108,14 +108,14 @@ describe('dashboardReportingService', () => {
       timeEntries: [
         {
           id: 'time-1',
-          subcontractor_id: 'sub-1',
+          contractor_id: 'sub-1',
           status: 'APPROVED',
           billable_amount: 200,
           clock_in_at: '2026-02-02T08:00:00.000Z',
         },
         {
           id: 'time-2',
-          subcontractor_id: 'sub-1',
+          contractor_id: 'sub-1',
           status: 'PENDING',
           billable_amount: 120,
           clock_in_at: '2026-02-03T09:00:00.000Z',
@@ -124,7 +124,7 @@ describe('dashboardReportingService', () => {
       expenseReports: [
         {
           id: 'expense-1',
-          subcontractor_id: 'sub-2',
+          contractor_id: 'sub-2',
           status: 'APPROVED',
           total_amount: 50,
           report_period_start: '2026-02-01',
@@ -133,7 +133,7 @@ describe('dashboardReportingService', () => {
         },
         {
           id: 'expense-2',
-          subcontractor_id: 'sub-2',
+          contractor_id: 'sub-2',
           status: 'SUBMITTED',
           total_amount: 25,
           report_period_start: '2026-02-04',
@@ -144,20 +144,20 @@ describe('dashboardReportingService', () => {
       invoices: [
         {
           id: 'inv-1',
-          subcontractor_id: 'sub-1',
+          contractor_id: 'sub-1',
           status: 'APPROVED',
           total_amount: 300,
           created_at: '2026-02-06T10:00:00.000Z',
         },
         {
           id: 'inv-2',
-          subcontractor_id: 'sub-2',
+          contractor_id: 'sub-2',
           status: 'VOID',
           total_amount: 999,
           created_at: '2026-02-07T10:00:00.000Z',
         },
       ],
-      subcontractorNameById: new Map([
+      contractorNameById: new Map([
         ['sub-1', 'John Smith'],
         ['sub-2', 'Maria Johnson'],
       ]),
@@ -170,8 +170,8 @@ describe('dashboardReportingService', () => {
     expect(report.totals.pending_reviews).toBe(2);
     expect(report.series.length).toBeGreaterThan(0);
 
-    const sub1 = report.subcontractors.find((row) => row.subcontractor_id === 'sub-1');
-    const sub2 = report.subcontractors.find((row) => row.subcontractor_id === 'sub-2');
+    const sub1 = report.contractors.find((row) => row.contractor_id === 'sub-1');
+    const sub2 = report.contractors.find((row) => row.contractor_id === 'sub-2');
 
     expect(sub1).toBeDefined();
     expect(sub1?.approved_time_amount).toBe(200);
@@ -194,7 +194,7 @@ describe('dashboardReportingService', () => {
       timeEntries: [],
       expenseReports: [],
       invoices: [],
-      subcontractorNameById: new Map(),
+      contractorNameById: new Map(),
     });
 
     const csv = buildReportExportArtifact(report, 'CSV', new Date('2026-02-14T12:00:00.000Z'));

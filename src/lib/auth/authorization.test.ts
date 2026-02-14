@@ -37,7 +37,7 @@ describe('getManagementActionForPath', () => {
   });
 
   it('does not map deprecated onboarding approval path', () => {
-    expect(getManagementActionForPath('/admin/subcontractors/approval')).toBeNull();
+    expect(getManagementActionForPath('/admin/contractors/approval')).toBeNull();
   });
 
   it('maps storm project write paths', () => {

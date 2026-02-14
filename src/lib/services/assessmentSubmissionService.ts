@@ -12,7 +12,7 @@ import type {
 interface RemoteDamageAssessmentRow {
   id: string;
   ticket_id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   safety_observations: SafetyObservations | null;
   damage_cause: string | null;
   weather_conditions: string | null;
@@ -34,7 +34,7 @@ interface RemoteDamageAssessmentRow {
 
 interface RemoteDamageAssessmentInsert {
   ticket_id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   safety_observations: SafetyObservations;
   damage_cause: string | null;
   weather_conditions: string | null;
@@ -62,7 +62,7 @@ interface RemoteEquipmentAssessmentInsert {
   photo_urls: string[] | null;
 }
 
-interface RemoteSubcontractorRow {
+interface RemoteContractorRow {
   id: string;
   profile_id?: string;
 }
@@ -134,7 +134,7 @@ function mapRemoteAssessment(row: RemoteDamageAssessmentRow): DamageAssessment {
   return {
     id: row.id,
     ticket_id: row.ticket_id,
-    subcontractor_id: row.subcontractor_id,
+    contractor_id: row.contractor_id,
     safety_observations: row.safety_observations ?? {
       downed_conductors: false,
       damaged_insulators: false,
@@ -170,7 +170,7 @@ function mapLocalAssessment(row: LocalAssessment): DamageAssessment {
   return {
     id: row.id,
     ticket_id: row.ticket_id,
-    subcontractor_id: row.subcontractor_id,
+    contractor_id: row.contractor_id,
     safety_observations: row.safety_observations as SafetyObservations,
     damage_cause: row.damage_cause,
     weather_conditions: row.weather_conditions,
@@ -207,8 +207,8 @@ function assertRequiredFields(input: CreateAssessmentInput): void {
     throw new Error('Ticket is required to submit an assessment.');
   }
 
-  if (!input.subcontractorId.trim()) {
-    throw new Error('Subcontractor is required to submit an assessment.');
+  if (!input.contractorId.trim()) {
+    throw new Error('Contractor is required to submit an assessment.');
   }
 
   if (input.equipmentItems.length === 0) {
@@ -232,16 +232,16 @@ function defaultIsOnline(): boolean {
   return navigator.onLine;
 }
 
-async function resolveSubcontractorId(subcontractorOrProfileId: string): Promise<string> {
+async function resolveContractorId(contractorOrProfileId: string): Promise<string> {
   const { supabase } = await import('../supabase/client');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data } = await (supabase.from('subcontractors') as any)
+  const { data } = await (supabase.from('contractors') as any)
     .select('id')
-    .or(`id.eq.${subcontractorOrProfileId},profile_id.eq.${subcontractorOrProfileId}`)
+    .or(`id.eq.${contractorOrProfileId},profile_id.eq.${contractorOrProfileId}`)
     .limit(1);
 
-  const rows = (data ?? []) as RemoteSubcontractorRow[];
-  return rows[0]?.id ?? subcontractorOrProfileId;
+  const rows = (data ?? []) as RemoteContractorRow[];
+  return rows[0]?.id ?? contractorOrProfileId;
 }
 
 export interface AssessmentPhotoMetadataInput {
@@ -275,7 +275,7 @@ export interface AssessmentEquipmentInput {
 
 export interface CreateAssessmentInput {
   ticketId: string;
-  subcontractorId: string;
+  contractorId: string;
   assessedBy?: string;
   digitalSignature?: string;
   safetyObservations: SafetyObservations;
@@ -296,12 +296,12 @@ export interface AssessmentSubmissionService {
 
 async function createRemoteAssessment(input: CreateAssessmentInput): Promise<DamageAssessment> {
   const { supabase } = await import('../supabase/client');
-  const subcontractorId = await resolveSubcontractorId(input.subcontractorId);
+  const contractorId = await resolveContractorId(input.contractorId);
   const nowIso = new Date().toISOString();
 
   const assessmentInsert: RemoteDamageAssessmentInsert = {
     ticket_id: input.ticketId,
-    subcontractor_id: subcontractorId,
+    contractor_id: contractorId,
     safety_observations: input.safetyObservations,
     damage_cause: normalizeOptionalText(input.damageClassification.damageCause),
     weather_conditions: normalizeOptionalText(input.damageClassification.weatherConditions),
@@ -310,7 +310,7 @@ async function createRemoteAssessment(input: CreateAssessmentInput): Promise<Dam
     immediate_actions: normalizeOptionalText(input.damageClassification.immediateActions),
     repair_vs_replace: input.damageClassification.repairVsReplace ?? null,
     estimated_repair_cost: toNumberOrNull(input.damageClassification.estimatedRepairCost),
-    assessed_by: normalizeOptionalText(input.assessedBy ?? input.subcontractorId),
+    assessed_by: normalizeOptionalText(input.assessedBy ?? input.contractorId),
     assessed_at: nowIso,
     digital_signature: normalizeOptionalText(input.digitalSignature),
     sync_status: 'SYNCED',
@@ -364,7 +364,7 @@ async function createLocalAssessment(
   const localAssessment: LocalAssessment = {
     id: assessmentId,
     ticket_id: input.ticketId,
-    subcontractor_id: input.subcontractorId,
+    contractor_id: input.contractorId,
     safety_observations: input.safetyObservations,
     damage_cause: normalizeOptionalText(input.damageClassification.damageCause) ?? undefined,
     weather_conditions: normalizeOptionalText(input.damageClassification.weatherConditions) ?? undefined,
@@ -373,7 +373,7 @@ async function createLocalAssessment(
     immediate_actions: normalizeOptionalText(input.damageClassification.immediateActions) ?? undefined,
     repair_vs_replace: input.damageClassification.repairVsReplace,
     estimated_repair_cost: input.damageClassification.estimatedRepairCost,
-    assessed_by: normalizeOptionalText(input.assessedBy ?? input.subcontractorId) ?? undefined,
+    assessed_by: normalizeOptionalText(input.assessedBy ?? input.contractorId) ?? undefined,
     assessed_at: nowIso,
     digital_signature: normalizeOptionalText(input.digitalSignature) ?? undefined,
     synced: false,

@@ -15,11 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { subcontractorService, type SubcontractorListItem } from '@/lib/services/subcontractorService';
+import { contractorService, type ContractorListItem } from '@/lib/services/contractorService';
+import { getErrorMessage, isAuthOrPermissionError } from '@/lib/utils/errorHandling';
 import { formatCurrency } from '@/lib/utils/formatters';
 import { Users, UserCheck, UserPlus, UserX, AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
 
-function toDisplayStatus(item: SubcontractorListItem): string {
+function toDisplayStatus(item: ContractorListItem): string {
   if (item.onboardingStatus.toUpperCase() === 'APPROVED') {
     return item.eligibleForAssignment ? 'Active' : 'Inactive';
   }
@@ -31,8 +33,8 @@ function toDisplayStatus(item: SubcontractorListItem): string {
   return 'Onboarding';
 }
 
-export default function SubcontractorsListPage() {
-  const [subcontractors, setSubcontractors] = useState<SubcontractorListItem[]>([]);
+export default function ContractorsListPage() {
+  const [contractors, setContractors] = useState<ContractorListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -40,17 +42,19 @@ export default function SubcontractorsListPage() {
   useEffect(() => {
     let active = true;
 
-    const loadSubcontractors = async () => {
+    const loadContractors = async () => {
       setIsLoading(true);
       try {
-        const items = await subcontractorService.listSubcontractors();
+        const items = await contractorService.listContractors();
         if (active) {
-          setSubcontractors(items);
+          setContractors(items);
         }
       } catch (error) {
-        console.error('Failed to load subcontractors:', error);
+        if (!isAuthOrPermissionError(error)) {
+          toast.error(getErrorMessage(error, 'Failed to load contractors'));
+        }
         if (active) {
-          setSubcontractors([]);
+          setContractors([]);
         }
       } finally {
         if (active) {
@@ -59,69 +63,69 @@ export default function SubcontractorsListPage() {
       }
     };
 
-    void loadSubcontractors();
+    void loadContractors();
 
     return () => {
       active = false;
     };
   }, []);
 
-  const filteredData = useMemo(() => subcontractors.filter((subcontractor) => {
+  const filteredData = useMemo(() => contractors.filter((contractor) => {
     const matchesSearch = searchQuery.trim().length === 0
-      || subcontractor.fullName.toLowerCase().includes(searchQuery.toLowerCase())
-      || subcontractor.businessName.toLowerCase().includes(searchQuery.toLowerCase());
+      || contractor.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+      || contractor.businessName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all'
-      || toDisplayStatus(subcontractor).toLowerCase() === statusFilter.toLowerCase();
+      || toDisplayStatus(contractor).toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
-  }), [searchQuery, statusFilter, subcontractors]);
+  }), [searchQuery, statusFilter, contractors]);
 
-  const columns: Column<SubcontractorListItem>[] = useMemo(() => [
+  const columns: Column<ContractorListItem>[] = useMemo(() => [
     {
       key: 'fullName',
       header: 'Name',
-      cell: (subcontractor) => (
+      cell: (contractor) => (
         <div className="space-y-1">
           <Link
-            href={`/admin/contractors/${subcontractor.id}`}
+            href={`/admin/contractors/${contractor.id}`}
             className="font-medium text-blue-600 hover:text-blue-800"
           >
-            {subcontractor.fullName}
+            {contractor.fullName}
           </Link>
-          <p className="text-xs text-slate-500">{subcontractor.businessName}</p>
+          <p className="text-xs text-slate-500">{contractor.businessName}</p>
         </div>
       ),
     },
     {
       key: 'status',
       header: 'Status',
-      cell: (subcontractor) => <StatusBadge status={toDisplayStatus(subcontractor)} size="sm" />,
+      cell: (contractor) => <StatusBadge status={toDisplayStatus(contractor)} size="sm" />,
     },
     {
       key: 'eligible',
       header: 'Eligible',
-      cell: (subcontractor) => (
-        <span className={subcontractor.eligibleForAssignment ? 'text-green-600' : 'text-slate-400'}>
-          {subcontractor.eligibleForAssignment ? 'Yes' : 'No'}
+      cell: (contractor) => (
+        <span className={contractor.eligibleForAssignment ? 'text-green-600' : 'text-slate-400'}>
+          {contractor.eligibleForAssignment ? 'Yes' : 'No'}
         </span>
       ),
     },
     {
       key: 'tickets',
       header: 'Active Tickets',
-      cell: (subcontractor) => subcontractor.activeTicketCount,
+      cell: (contractor) => contractor.activeTicketCount,
     },
     {
       key: 'ytdEarnings',
       header: 'YTD Earnings',
-      cell: (subcontractor) => formatCurrency(subcontractor.ytdEarnings),
+      cell: (contractor) => formatCurrency(contractor.ytdEarnings),
     },
     {
       key: 'alerts',
       header: 'Alerts',
-      cell: (subcontractor) => subcontractor.alerts.length > 0 ? (
+      cell: (contractor) => contractor.alerts.length > 0 ? (
         <span className="flex items-center gap-1 text-yellow-600 text-sm">
           <AlertTriangle className="w-4 h-4" />
-          {subcontractor.alerts[0]}
+          {contractor.alerts[0]}
         </span>
       ) : (
         <span className="text-slate-400">-</span>
@@ -129,21 +133,23 @@ export default function SubcontractorsListPage() {
     },
   ], []);
 
-  const totalCount = subcontractors.length;
-  const activeCount = subcontractors.filter((subcontractor) => toDisplayStatus(subcontractor) === 'Active').length;
-  const onboardingCount = subcontractors.filter((subcontractor) => toDisplayStatus(subcontractor) === 'Onboarding').length;
-  const pendingCount = subcontractors.filter((subcontractor) => toDisplayStatus(subcontractor) === 'Pending').length;
-  const expiringCount = subcontractors.filter((subcontractor) => subcontractor.alerts.length > 0).length;
+  const totalCount = contractors.length;
+  const activeCount = contractors.filter((contractor) => toDisplayStatus(contractor) === 'Active').length;
+  const onboardingCount = contractors.filter((contractor) => toDisplayStatus(contractor) === 'Onboarding').length;
+  const pendingCount = contractors.filter((contractor) => toDisplayStatus(contractor) === 'Pending').length;
+  const expiringCount = contractors.filter((contractor) => contractor.alerts.length > 0).length;
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Subcontractors"
+        title="Contractors"
         description="Manage your workforce and view performance metrics"
       >
-        <Button>
-          <UserPlus className="w-4 h-4 mr-2" />
-          Invite Subcontractor
+        <Button asChild>
+          <Link href="/admin/contractors/invite">
+            <UserPlus className="w-4 h-4 mr-2" />
+            Invite Contractor
+          </Link>
         </Button>
       </PageHeader>
 
@@ -208,7 +214,7 @@ export default function SubcontractorsListPage() {
       <DataTable
         columns={columns}
         data={filteredData}
-        keyExtractor={(subcontractor) => subcontractor.id}
+        keyExtractor={(contractor) => contractor.id}
         isLoading={isLoading}
       />
     </div>

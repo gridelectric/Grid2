@@ -23,7 +23,7 @@ import {
 } from './ExpenseItemForm';
 
 interface ExpenseFormProps {
-  subcontractorId?: string;
+  contractorId?: string;
   onSaved?: (expenseItem: ExpenseListItem) => void;
 }
 
@@ -68,14 +68,14 @@ function parseOptionalNumber(value: string): number | undefined {
   return parsed;
 }
 
-export function ExpenseForm({ subcontractorId, onSaved }: ExpenseFormProps) {
+export function ExpenseForm({ contractorId, onSaved }: ExpenseFormProps) {
   const [draft, setDraft] = useState<ExpenseItemDraft>(() => createInitialDraft());
   const [ticketOptions, setTicketOptions] = useState<ExpenseTicketOption[]>([]);
   const [isLoadingTickets, setIsLoadingTickets] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!subcontractorId) {
+    if (!contractorId) {
       setTicketOptions([]);
       setIsLoadingTickets(false);
       return;
@@ -86,7 +86,7 @@ export function ExpenseForm({ subcontractorId, onSaved }: ExpenseFormProps) {
 
     const loadTickets = async () => {
       try {
-        const tickets = await ticketService.getTicketsByAssignee(subcontractorId);
+        const tickets = await ticketService.getTicketsByAssignee(contractorId);
         if (active) {
           setTicketOptions(mapTicketsToOptions(tickets));
         }
@@ -107,15 +107,15 @@ export function ExpenseForm({ subcontractorId, onSaved }: ExpenseFormProps) {
     return () => {
       active = false;
     };
-  }, [subcontractorId]);
+  }, [contractorId]);
 
   const canSubmit = useMemo(() => {
-    return Boolean(subcontractorId) && !isSubmitting;
-  }, [isSubmitting, subcontractorId]);
+    return Boolean(contractorId) && !isSubmitting;
+  }, [isSubmitting, contractorId]);
 
   const handleSaveExpense = async () => {
-    if (!subcontractorId) {
-      toast.error('Missing subcontractor profile. Please sign in again.');
+    if (!contractorId) {
+      toast.error('Missing contractor profile. Please sign in again.');
       return;
     }
 
@@ -143,7 +143,7 @@ export function ExpenseForm({ subcontractorId, onSaved }: ExpenseFormProps) {
     setIsSubmitting(true);
     try {
       const created = await expenseSubmissionService.createExpenseItem({
-        subcontractorId,
+        contractorId,
         category: draft.category,
         description: draft.description,
         amount: parsedAmount,
@@ -176,10 +176,10 @@ export function ExpenseForm({ subcontractorId, onSaved }: ExpenseFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!subcontractorId ? (
+        {!contractorId ? (
           <Alert variant="destructive">
             <AlertDescription>
-              Subcontractor context is unavailable. Re-authenticate before creating expenses.
+              Contractor context is unavailable. Re-authenticate before creating expenses.
             </AlertDescription>
           </Alert>
         ) : null}

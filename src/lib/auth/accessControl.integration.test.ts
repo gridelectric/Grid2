@@ -9,7 +9,7 @@ describe('access control integration', () => {
 
     expect(contractorPortal).toBe('contractor');
     expect(isPortalPathAllowed('/contractor/time', contractorPortal)).toBe(true);
-    expect(isPortalPathAllowed('/subcontractor/time', contractorPortal)).toBe(true);
+    expect(isPortalPathAllowed('/contractor/time', contractorPortal)).toBe(true);
     expect(isPortalPathAllowed('/admin/dashboard', contractorPortal)).toBe(false);
   });
 

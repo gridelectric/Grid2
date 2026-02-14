@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
-export default function LegacySubcontractorExpensesRedirect() {
+export default function LegacyContractorExpensesRedirect() {
   redirect('/contractor/expenses');
 }

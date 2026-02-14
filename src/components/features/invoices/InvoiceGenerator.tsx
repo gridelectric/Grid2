@@ -53,7 +53,7 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const [candidates, setCandidates] = useState<InvoiceGenerationCandidate[]>([]);
-  const [selectedSubcontractorIds, setSelectedSubcontractorIds] = useState<string[]>([]);
+  const [selectedContractorIds, setSelectedContractorIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,8 +82,8 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
   }, [loadCandidates]);
 
   useEffect(() => {
-    setSelectedSubcontractorIds((current) =>
-      current.filter((id) => candidates.some((candidate) => candidate.subcontractor_id === id)),
+    setSelectedContractorIds((current) =>
+      current.filter((id) => candidates.some((candidate) => candidate.contractor_id === id)),
     );
   }, [candidates]);
 
@@ -95,8 +95,8 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
 
     return candidates.filter((candidate) => {
       const searchable = [
-        candidate.subcontractor_id,
-        candidate.subcontractor_name,
+        candidate.contractor_id,
+        candidate.contractor_name,
         ...candidate.time_entries.map((entry) => entry.ticket_number),
       ]
         .filter(Boolean)
@@ -108,14 +108,14 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
   }, [candidates, searchTerm]);
 
   const selectedCandidates = useMemo(
-    () => candidates.filter((candidate) => selectedSubcontractorIds.includes(candidate.subcontractor_id)),
-    [candidates, selectedSubcontractorIds],
+    () => candidates.filter((candidate) => selectedContractorIds.includes(candidate.contractor_id)),
+    [candidates, selectedContractorIds],
   );
 
   const summary = useMemo(() => {
     return selectedCandidates.reduce(
       (accumulator, candidate) => ({
-        subcontractorCount: accumulator.subcontractorCount + 1,
+        contractorCount: accumulator.contractorCount + 1,
         timeEntryCount: accumulator.timeEntryCount + candidate.time_entry_count,
         expenseReportCount: accumulator.expenseReportCount + candidate.expense_report_count,
         subtotalTime: accumulator.subtotalTime + candidate.subtotal_time,
@@ -123,7 +123,7 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
         totalAmount: accumulator.totalAmount + candidate.total_amount,
       }),
       {
-        subcontractorCount: 0,
+        contractorCount: 0,
         timeEntryCount: 0,
         expenseReportCount: 0,
         subtotalTime: 0,
@@ -135,35 +135,35 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
 
   const firstSelectedCandidate = selectedCandidates[0];
 
-  const toggleSelected = useCallback((subcontractorId: string, checked: boolean) => {
-    setSelectedSubcontractorIds((current) => {
+  const toggleSelected = useCallback((contractorId: string, checked: boolean) => {
+    setSelectedContractorIds((current) => {
       if (checked) {
-        return current.includes(subcontractorId) ? current : [...current, subcontractorId];
+        return current.includes(contractorId) ? current : [...current, contractorId];
       }
 
-      return current.filter((id) => id !== subcontractorId);
+      return current.filter((id) => id !== contractorId);
     });
   }, []);
 
   const toggleSelectAllFiltered = useCallback((checked: boolean) => {
     if (!checked) {
-      setSelectedSubcontractorIds((current) =>
-        current.filter((id) => !filteredCandidates.some((candidate) => candidate.subcontractor_id === id)),
+      setSelectedContractorIds((current) =>
+        current.filter((id) => !filteredCandidates.some((candidate) => candidate.contractor_id === id)),
       );
       return;
     }
 
-    const filteredIds = filteredCandidates.map((candidate) => candidate.subcontractor_id);
-    setSelectedSubcontractorIds((current) => Array.from(new Set([...current, ...filteredIds])));
+    const filteredIds = filteredCandidates.map((candidate) => candidate.contractor_id);
+    setSelectedContractorIds((current) => Array.from(new Set([...current, ...filteredIds])));
   }, [filteredCandidates]);
 
   const allFilteredSelected =
     filteredCandidates.length > 0 &&
-    filteredCandidates.every((candidate) => selectedSubcontractorIds.includes(candidate.subcontractor_id));
+    filteredCandidates.every((candidate) => selectedContractorIds.includes(candidate.contractor_id));
 
   const handleGenerateInvoices = async () => {
-    if (selectedSubcontractorIds.length === 0) {
-      toast.error('Select at least one subcontractor before generating invoices.');
+    if (selectedContractorIds.length === 0) {
+      toast.error('Select at least one contractor before generating invoices.');
       return;
     }
 
@@ -173,12 +173,12 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
       const result = await invoiceGenerationService.generateInvoices({
         billingPeriodStart: billingStart,
         billingPeriodEnd: billingEnd,
-        subcontractorIds: selectedSubcontractorIds,
+        contractorIds: selectedContractorIds,
         generatedBy,
       });
 
       toast.success(`Generated ${result.invoice_count} invoice${result.invoice_count === 1 ? '' : 's'}.`);
-      setSelectedSubcontractorIds([]);
+      setSelectedContractorIds([]);
       await loadCandidates();
     } catch (generateError) {
       toast.error(parseError(generateError));
@@ -195,15 +195,15 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
         width: '48px',
         cell: (candidate) => (
           <Checkbox
-            checked={selectedSubcontractorIds.includes(candidate.subcontractor_id)}
-            onCheckedChange={(checked) => toggleSelected(candidate.subcontractor_id, checked === true)}
+            checked={selectedContractorIds.includes(candidate.contractor_id)}
+            onCheckedChange={(checked) => toggleSelected(candidate.contractor_id, checked === true)}
           />
         ),
       },
       {
-        key: 'subcontractor',
-        header: 'Subcontractor',
-        cell: (candidate) => candidate.subcontractor_name ?? candidate.subcontractor_id,
+        key: 'contractor',
+        header: 'Contractor',
+        cell: (candidate) => candidate.contractor_name ?? candidate.contractor_id,
       },
       {
         key: 'time',
@@ -241,7 +241,7 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
         ),
       },
     ],
-    [selectedSubcontractorIds, toggleSelected],
+    [selectedContractorIds, toggleSelected],
   );
 
   return (
@@ -252,7 +252,7 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
             <Input type="date" value={billingStart} onChange={(event) => setBillingStart(event.target.value)} />
             <Input type="date" value={billingEnd} onChange={(event) => setBillingEnd(event.target.value)} />
             <Input
-              placeholder="Search subcontractor or ticket"
+              placeholder="Search contractor or ticket"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
             />
@@ -276,7 +276,7 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
               />
               Select all filtered
             </label>
-            <Button disabled={isGenerating || selectedSubcontractorIds.length === 0} onClick={handleGenerateInvoices}>
+            <Button disabled={isGenerating || selectedContractorIds.length === 0} onClick={handleGenerateInvoices}>
               {isGenerating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -285,7 +285,7 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
               ) : (
                 <>
                   <CheckCheck className="mr-2 h-4 w-4" />
-                  Generate {selectedSubcontractorIds.length} Invoice{selectedSubcontractorIds.length === 1 ? '' : 's'}
+                  Generate {selectedContractorIds.length} Invoice{selectedContractorIds.length === 1 ? '' : 's'}
                 </>
               )}
             </Button>
@@ -295,7 +295,7 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
             <Card>
               <CardContent className="p-3">
                 <p className="text-xs text-slate-500">Selected Subs</p>
-                <p className="text-lg font-semibold">{summary.subcontractorCount}</p>
+                <p className="text-lg font-semibold">{summary.contractorCount}</p>
               </CardContent>
             </Card>
             <Card>
@@ -336,7 +336,7 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
         <DataTable
           columns={columns}
           data={filteredCandidates}
-          keyExtractor={(candidate) => candidate.subcontractor_id}
+          keyExtractor={(candidate) => candidate.contractor_id}
           isLoading={isLoading}
           emptyMessage="No approved billable entries found in this billing period."
         />
@@ -351,19 +351,19 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
           </div>
         ) : (
           filteredCandidates.map((candidate) => {
-            const selected = selectedSubcontractorIds.includes(candidate.subcontractor_id);
+            const selected = selectedContractorIds.includes(candidate.contractor_id);
 
             return (
-              <Card key={candidate.subcontractor_id}>
+              <Card key={candidate.contractor_id}>
                 <CardContent className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold">{candidate.subcontractor_name ?? candidate.subcontractor_id}</p>
+                      <p className="text-sm font-semibold">{candidate.contractor_name ?? candidate.contractor_id}</p>
                       <p className="text-xs text-slate-500">
                         {candidate.time_entry_count} time • {candidate.expense_report_count} expense reports
                       </p>
                     </div>
-                    <Checkbox checked={selected} onCheckedChange={(checked) => toggleSelected(candidate.subcontractor_id, checked === true)} />
+                    <Checkbox checked={selected} onCheckedChange={(checked) => toggleSelected(candidate.contractor_id, checked === true)} />
                   </div>
                   <div className="flex items-center justify-between border-t pt-2">
                     <p className="text-sm font-semibold">{formatCurrency(candidate.total_amount)}</p>
@@ -377,8 +377,8 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
       </div>
 
       <Tax1099TrackingDisplay
-        subcontractorId={firstSelectedCandidate?.subcontractor_id}
-        subcontractorName={firstSelectedCandidate?.subcontractor_name}
+        contractorId={firstSelectedCandidate?.contractor_id}
+        contractorName={firstSelectedCandidate?.contractor_name}
         taxYear={billingEnd ? Number(billingEnd.slice(0, 4)) : undefined}
       />
     </div>

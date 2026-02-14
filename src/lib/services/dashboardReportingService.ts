@@ -26,7 +26,7 @@ interface DashboardTicketRow {
 
 interface DashboardTimeEntryRow {
   id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   status: string;
   billable_amount: number | null;
   clock_in_at: string;
@@ -34,7 +34,7 @@ interface DashboardTimeEntryRow {
 
 interface DashboardExpenseReportRow {
   id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   status: string;
   total_amount: number | null;
   report_period_start: string;
@@ -44,7 +44,7 @@ interface DashboardExpenseReportRow {
 
 interface DashboardInvoiceRow {
   id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   status: string | null;
   total_amount: number | null;
   created_at: string;
@@ -68,7 +68,7 @@ interface DashboardReportBuildInput {
   timeEntries: DashboardTimeEntryRow[];
   expenseReports: DashboardExpenseReportRow[];
   invoices: DashboardInvoiceRow[];
-  subcontractorNameById: Map<string, string>;
+  contractorNameById: Map<string, string>;
 }
 
 export interface DashboardMetricsData {
@@ -101,9 +101,9 @@ export interface DashboardReportSeriesPoint {
   invoiced_amount: number;
 }
 
-export interface DashboardReportSubcontractorRow {
-  subcontractor_id: string;
-  subcontractor_name: string;
+export interface DashboardReportContractorRow {
+  contractor_id: string;
+  contractor_name: string;
   approved_time_amount: number;
   approved_expense_amount: number;
   invoiced_amount: number;
@@ -123,7 +123,7 @@ export interface DashboardReportData {
     pending_reviews: number;
   };
   series: DashboardReportSeriesPoint[];
-  subcontractors: DashboardReportSubcontractorRow[];
+  contractors: DashboardReportContractorRow[];
 }
 
 export interface DashboardReportInput {
@@ -261,8 +261,8 @@ function getBuckets(startDate: Date, endDate: Date, groupBy: ReportGroupBy): Dat
   return eachDayOfInterval({ start: startOfDay(startDate), end: endDate });
 }
 
-function resolveSubcontractorName(subcontractorId: string, names: Map<string, string>): string {
-  return names.get(subcontractorId) ?? `Subcontractor ${subcontractorId.slice(0, 8)}`;
+function resolveContractorName(contractorId: string, names: Map<string, string>): string {
+  return names.get(contractorId) ?? `Contractor ${contractorId.slice(0, 8)}`;
 }
 
 export function buildDashboardMetrics(input: DashboardMetricsBuildInput): DashboardMetricsData {
@@ -362,7 +362,7 @@ export function buildDashboardReport(input: DashboardReportBuildInput): Dashboar
     });
   }
 
-  const subcontractorTotals = new Map<string, DashboardReportSubcontractorRow>();
+  const contractorTotals = new Map<string, DashboardReportContractorRow>();
 
   const includeDateRange = {
     start: startOfDay(input.startDate),
@@ -375,22 +375,22 @@ export function buildDashboardReport(input: DashboardReportBuildInput): Dashboar
   let invoicedAmount = 0;
   let pendingReviews = 0;
 
-  const getSubcontractorTotals = (subcontractorId: string): DashboardReportSubcontractorRow => {
-    const existing = subcontractorTotals.get(subcontractorId);
+  const getContractorTotals = (contractorId: string): DashboardReportContractorRow => {
+    const existing = contractorTotals.get(contractorId);
     if (existing) {
       return existing;
     }
 
-    const initial: DashboardReportSubcontractorRow = {
-      subcontractor_id: subcontractorId,
-      subcontractor_name: resolveSubcontractorName(subcontractorId, input.subcontractorNameById),
+    const initial: DashboardReportContractorRow = {
+      contractor_id: contractorId,
+      contractor_name: resolveContractorName(contractorId, input.contractorNameById),
       approved_time_amount: 0,
       approved_expense_amount: 0,
       invoiced_amount: 0,
       pending_reviews: 0,
     };
 
-    subcontractorTotals.set(subcontractorId, initial);
+    contractorTotals.set(contractorId, initial);
     return initial;
   };
 
@@ -419,7 +419,7 @@ export function buildDashboardReport(input: DashboardReportBuildInput): Dashboar
 
     if (normalizedStatus === 'PENDING') {
       pendingReviews += 1;
-      getSubcontractorTotals(timeEntry.subcontractor_id).pending_reviews += 1;
+      getContractorTotals(timeEntry.contractor_id).pending_reviews += 1;
     }
 
     if (normalizedStatus !== 'APPROVED') {
@@ -435,8 +435,8 @@ export function buildDashboardReport(input: DashboardReportBuildInput): Dashboar
       bucket.approved_time_amount = roundCurrency(bucket.approved_time_amount + amount);
     }
 
-    const subcontractor = getSubcontractorTotals(timeEntry.subcontractor_id);
-    subcontractor.approved_time_amount = roundCurrency(subcontractor.approved_time_amount + amount);
+    const contractor = getContractorTotals(timeEntry.contractor_id);
+    contractor.approved_time_amount = roundCurrency(contractor.approved_time_amount + amount);
   }
 
   for (const expenseReport of input.expenseReports) {
@@ -450,7 +450,7 @@ export function buildDashboardReport(input: DashboardReportBuildInput): Dashboar
 
     if (PENDING_EXPENSE_STATUSES.has(normalizedStatus)) {
       pendingReviews += 1;
-      getSubcontractorTotals(expenseReport.subcontractor_id).pending_reviews += 1;
+      getContractorTotals(expenseReport.contractor_id).pending_reviews += 1;
     }
 
     if (normalizedStatus !== 'APPROVED') {
@@ -466,8 +466,8 @@ export function buildDashboardReport(input: DashboardReportBuildInput): Dashboar
       bucket.approved_expense_amount = roundCurrency(bucket.approved_expense_amount + amount);
     }
 
-    const subcontractor = getSubcontractorTotals(expenseReport.subcontractor_id);
-    subcontractor.approved_expense_amount = roundCurrency(subcontractor.approved_expense_amount + amount);
+    const contractor = getContractorTotals(expenseReport.contractor_id);
+    contractor.approved_expense_amount = roundCurrency(contractor.approved_expense_amount + amount);
   }
 
   for (const invoice of input.invoices) {
@@ -489,8 +489,8 @@ export function buildDashboardReport(input: DashboardReportBuildInput): Dashboar
       bucket.invoiced_amount = roundCurrency(bucket.invoiced_amount + amount);
     }
 
-    const subcontractor = getSubcontractorTotals(invoice.subcontractor_id);
-    subcontractor.invoiced_amount = roundCurrency(subcontractor.invoiced_amount + amount);
+    const contractor = getContractorTotals(invoice.contractor_id);
+    contractor.invoiced_amount = roundCurrency(contractor.invoiced_amount + amount);
   }
 
   const series = Array.from(seriesMap.values()).map((point) => ({
@@ -500,7 +500,7 @@ export function buildDashboardReport(input: DashboardReportBuildInput): Dashboar
     invoiced_amount: roundCurrency(point.invoiced_amount),
   }));
 
-  const subcontractors = Array.from(subcontractorTotals.values()).sort((a, b) => {
+  const contractors = Array.from(contractorTotals.values()).sort((a, b) => {
     if (b.invoiced_amount !== a.invoiced_amount) {
       return b.invoiced_amount - a.invoiced_amount;
     }
@@ -509,7 +509,7 @@ export function buildDashboardReport(input: DashboardReportBuildInput): Dashboar
       return b.approved_time_amount - a.approved_time_amount;
     }
 
-    return a.subcontractor_name.localeCompare(b.subcontractor_name);
+    return a.contractor_name.localeCompare(b.contractor_name);
   });
 
   return {
@@ -525,7 +525,7 @@ export function buildDashboardReport(input: DashboardReportBuildInput): Dashboar
       pending_reviews: pendingReviews,
     },
     series,
-    subcontractors,
+    contractors,
   };
 }
 
@@ -613,10 +613,10 @@ export function buildReportExportArtifact(
       row.invoiced_amount.toFixed(2),
     ]),
     [],
-    ['Subcontractor Breakdown'],
-    ['Subcontractor', 'Approved Time', 'Approved Expenses', 'Invoiced Amount', 'Pending Reviews'],
-    ...report.subcontractors.map((row) => [
-      row.subcontractor_name,
+    ['Contractor Breakdown'],
+    ['Contractor', 'Approved Time', 'Approved Expenses', 'Invoiced Amount', 'Pending Reviews'],
+    ...report.contractors.map((row) => [
+      row.contractor_name,
       row.approved_time_amount.toFixed(2),
       row.approved_expense_amount.toFixed(2),
       row.invoiced_amount.toFixed(2),
@@ -653,10 +653,10 @@ export function buildReportExportArtifact(
     `Invoiced Amount: $${report.totals.invoiced_amount.toFixed(2)}`,
     `Pending Reviews: ${report.totals.pending_reviews}`,
     '',
-    'Top Subcontractors (by invoiced amount)',
-    ...report.subcontractors.slice(0, 12).map(
+    'Top Contractors (by invoiced amount)',
+    ...report.contractors.slice(0, 12).map(
       (row) =>
-        `${row.subcontractor_name}: $${row.invoiced_amount.toFixed(2)} (Time $${row.approved_time_amount.toFixed(2)}, Expense $${row.approved_expense_amount.toFixed(2)})`,
+        `${row.contractor_name}: $${row.invoiced_amount.toFixed(2)} (Time $${row.approved_time_amount.toFixed(2)}, Expense $${row.approved_expense_amount.toFixed(2)})`,
     ),
   ];
 
@@ -745,30 +745,30 @@ async function getDefaultClient() {
   return supabase;
 }
 
-async function fetchSubcontractorNames(
-  subcontractorIds: string[],
+async function fetchContractorNames(
+  contractorIds: string[],
   client: SupabaseClient,
 ): Promise<Map<string, string>> {
-  const ids = Array.from(new Set(subcontractorIds.filter(Boolean)));
+  const ids = Array.from(new Set(contractorIds.filter(Boolean)));
   if (ids.length === 0) {
     return new Map();
   }
 
-  const subcontractorsTable = client.from('subcontractors') as unknown as SelectInClient<{
+  const contractorsTable = client.from('contractors') as unknown as SelectInClient<{
     id: string;
     profile_id: string | null;
   }>;
-  const { data: subcontractors, error: subcontractorError } = await subcontractorsTable
+  const { data: contractors, error: contractorError } = await contractorsTable
     .select('id, profile_id')
     .in('id', ids);
 
-  if (subcontractorError) {
-    throw new Error('Unable to load subcontractor report context.');
+  if (contractorError) {
+    throw new Error('Unable to load contractor report context.');
   }
 
   const profileIds = Array.from(
     new Set(
-      (subcontractors ?? [])
+      (contractors ?? [])
         .map((row: { profile_id: string | null }) => row.profile_id)
         .filter((value): value is string => Boolean(value)),
     ),
@@ -796,16 +796,16 @@ async function fetchSubcontractorNames(
     }
   }
 
-  const nameBySubcontractorId = new Map<string, string>();
-  for (const subcontractor of subcontractors ?? []) {
-    const profileId = subcontractor.profile_id as string | undefined;
+  const nameByContractorId = new Map<string, string>();
+  for (const contractor of contractors ?? []) {
+    const profileId = contractor.profile_id as string | undefined;
     const name = profileId ? profileNameById.get(profileId) : undefined;
     if (name) {
-      nameBySubcontractorId.set(subcontractor.id as string, name);
+      nameByContractorId.set(contractor.id as string, name);
     }
   }
 
-  return nameBySubcontractorId;
+  return nameByContractorId;
 }
 
 async function fetchPendingTimeEntries(client: Awaited<ReturnType<typeof getDefaultClient>>): Promise<number> {
@@ -864,9 +864,9 @@ async function fetchInvoicesByCreatedRange(
   startIso: string,
   endIso: string,
 ): Promise<DashboardInvoiceRow[]> {
-  const invoicesTable = client.from('subcontractor_invoices') as unknown as SelectDateRangeClient<DashboardInvoiceRow>;
+  const invoicesTable = client.from('contractor_invoices') as unknown as SelectDateRangeClient<DashboardInvoiceRow>;
   const { data, error } = await invoicesTable
-    .select('id, subcontractor_id, status, total_amount, created_at')
+    .select('id, contractor_id, status, total_amount, created_at')
     .gte('created_at', startIso)
     .lte('created_at', endIso);
 
@@ -903,7 +903,7 @@ async function fetchReportTimeEntries(
 ): Promise<DashboardTimeEntryRow[]> {
   const timeEntriesTable = client.from('time_entries') as unknown as SelectDateRangeClient<DashboardTimeEntryRow>;
   const { data, error } = await timeEntriesTable
-    .select('id, subcontractor_id, status, billable_amount, clock_in_at')
+    .select('id, contractor_id, status, billable_amount, clock_in_at')
     .gte('clock_in_at', startIso)
     .lte('clock_in_at', endIso);
 
@@ -921,7 +921,7 @@ async function fetchReportExpenseReports(
 ): Promise<DashboardExpenseReportRow[]> {
   const expenseReportsTable = client.from('expense_reports') as unknown as SelectOverlapDateClient<DashboardExpenseReportRow>;
   const { data, error } = await expenseReportsTable
-    .select('id, subcontractor_id, status, total_amount, report_period_start, report_period_end, reviewed_at')
+    .select('id, contractor_id, status, total_amount, report_period_start, report_period_end, reviewed_at')
     .lte('report_period_start', endDate)
     .gte('report_period_end', startDate);
 
@@ -937,9 +937,9 @@ async function fetchReportInvoices(
   startIso: string,
   endIso: string,
 ): Promise<DashboardInvoiceRow[]> {
-  const invoicesTable = client.from('subcontractor_invoices') as unknown as SelectDateRangeClient<DashboardInvoiceRow>;
+  const invoicesTable = client.from('contractor_invoices') as unknown as SelectDateRangeClient<DashboardInvoiceRow>;
   const { data, error } = await invoicesTable
-    .select('id, subcontractor_id, status, total_amount, created_at')
+    .select('id, contractor_id, status, total_amount, created_at')
     .gte('created_at', startIso)
     .lte('created_at', endIso);
 
@@ -961,7 +961,7 @@ interface DashboardReportingDependencies {
   fetchReportTimeEntries: (startIso: string, endIso: string) => Promise<DashboardTimeEntryRow[]>;
   fetchReportExpenseReports: (startDate: string, endDate: string) => Promise<DashboardExpenseReportRow[]>;
   fetchReportInvoices: (startIso: string, endIso: string) => Promise<DashboardInvoiceRow[]>;
-  fetchSubcontractorNames: (subcontractorIds: string[]) => Promise<Map<string, string>>;
+  fetchContractorNames: (contractorIds: string[]) => Promise<Map<string, string>>;
 }
 
 export function createDashboardReportingService(
@@ -1023,11 +1023,11 @@ export function createDashboardReportingService(
         const client = await getDefaultClient();
         return fetchReportInvoices(client, startIso, endIso);
       }),
-    fetchSubcontractorNames:
-      dependencies?.fetchSubcontractorNames ??
-      (async (subcontractorIds) => {
+    fetchContractorNames:
+      dependencies?.fetchContractorNames ??
+      (async (contractorIds) => {
         const client = await getDefaultClient();
-        return fetchSubcontractorNames(subcontractorIds, client);
+        return fetchContractorNames(contractorIds, client);
       }),
   };
 
@@ -1082,15 +1082,15 @@ export function createDashboardReportingService(
         resolvedDependencies.fetchReportInvoices(startIso, endIso),
       ]);
 
-      const subcontractorIds = Array.from(
+      const contractorIds = Array.from(
         new Set([
-          ...timeEntries.map((row) => row.subcontractor_id),
-          ...expenseReports.map((row) => row.subcontractor_id),
-          ...invoices.map((row) => row.subcontractor_id),
+          ...timeEntries.map((row) => row.contractor_id),
+          ...expenseReports.map((row) => row.contractor_id),
+          ...invoices.map((row) => row.contractor_id),
         ]),
       );
 
-      const subcontractorNameById = await resolvedDependencies.fetchSubcontractorNames(subcontractorIds);
+      const contractorNameById = await resolvedDependencies.fetchContractorNames(contractorIds);
 
       return buildDashboardReport({
         now,
@@ -1101,7 +1101,7 @@ export function createDashboardReportingService(
         timeEntries,
         expenseReports,
         invoices,
-        subcontractorNameById,
+        contractorNameById,
       });
     },
 

@@ -3,7 +3,7 @@
 -- - This script expects an auth.users row to already exist for the email.
 -- - Contractor ID format follows: <first initial><last initial><number...> (example: DM01).
 -- - Role is explicit and should be one of your enum values.
--- - Since subcontractors.id is UUID in this schema, we map contractor_id to a deterministic UUID.
+-- - Since contractors.id is UUID in this schema, we map contractor_id to a deterministic UUID.
 
 DO $$
 DECLARE
@@ -91,14 +91,14 @@ BEGIN
     SELECT 1
     FROM information_schema.columns
     WHERE table_schema = 'public'
-      AND table_name = 'subcontractors'
+      AND table_name = 'contractors'
       AND column_name = 'contractor_code'
   )
   INTO v_has_contractor_code_column;
 
   IF v_has_contractor_code_column THEN
     EXECUTE $sql$
-      INSERT INTO public.subcontractors (
+      INSERT INTO public.contractors (
         id,
         profile_id,
         business_name,
@@ -125,7 +125,7 @@ BEGIN
       lower(v_email),
       upper(v_contractor_id);
   ELSE
-    INSERT INTO public.subcontractors (
+    INSERT INTO public.contractors (
       id,
       profile_id,
       business_name,

@@ -27,7 +27,7 @@ import { SafetyChecklist } from './SafetyChecklist';
 
 interface AssessmentFormProps {
   ticketId?: string;
-  subcontractorId?: string;
+  contractorId?: string;
   onSaved?: (assessment: DamageAssessment) => void;
 }
 
@@ -55,7 +55,7 @@ function toHumanPhotoType(type: string): string {
 
 function validateAssessmentDraft(
   ticketId: string | undefined,
-  subcontractorId: string | undefined,
+  contractorId: string | undefined,
   equipmentCount: number,
   invalidEquipmentCount: number,
   photos: CapturedAssessmentPhoto[],
@@ -64,8 +64,8 @@ function validateAssessmentDraft(
     return 'Ticket context is required before starting an assessment.';
   }
 
-  if (!subcontractorId) {
-    return 'Subcontractor profile is required. Please sign in again.';
+  if (!contractorId) {
+    return 'Contractor profile is required. Please sign in again.';
   }
 
   if (equipmentCount === 0) {
@@ -88,7 +88,7 @@ function validateAssessmentDraft(
   return null;
 }
 
-export function AssessmentForm({ ticketId, subcontractorId, onSaved }: AssessmentFormProps) {
+export function AssessmentForm({ ticketId, contractorId, onSaved }: AssessmentFormProps) {
   const [safetyObservations, setSafetyObservations] = useState(() => createDefaultSafetyObservations());
   const [damageClassification, setDamageClassification] = useState(() => createDefaultDamageClassification());
   const [equipmentItems, setEquipmentItems] = useState(() => [createEmptyEquipmentAssessment()]);
@@ -109,7 +109,7 @@ export function AssessmentForm({ ticketId, subcontractorId, onSaved }: Assessmen
   const handleSubmit = async () => {
     const validationError = validateAssessmentDraft(
       ticketId,
-      subcontractorId,
+      contractorId,
       equipmentItems.length,
       invalidEquipmentCount,
       capturedPhotos,
@@ -126,8 +126,8 @@ export function AssessmentForm({ ticketId, subcontractorId, onSaved }: Assessmen
 
     const payload: CreateAssessmentInput = {
       ticketId: ticketId as string,
-      subcontractorId: subcontractorId as string,
-      assessedBy: subcontractorId,
+      contractorId: contractorId as string,
+      assessedBy: contractorId,
       safetyObservations,
       damageClassification: {
         damageCause: damageClassification.damageCause || undefined,
@@ -237,7 +237,7 @@ export function AssessmentForm({ ticketId, subcontractorId, onSaved }: Assessmen
       <div className="flex justify-end">
         <Button
           type="button"
-          disabled={isSubmitting || !ticketId || !subcontractorId}
+          disabled={isSubmitting || !ticketId || !contractorId}
           onClick={() => {
             void handleSubmit();
           }}

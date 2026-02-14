@@ -335,9 +335,9 @@ export function AssessmentReviewList({ reviewerId }: AssessmentReviewListProps) 
           ) : null,
       },
       {
-        key: 'subcontractor',
-        header: 'Subcontractor',
-        cell: (assessment) => assessment.subcontractor_name ?? assessment.subcontractor_id,
+        key: 'contractor',
+        header: 'Contractor',
+        cell: (assessment) => assessment.contractor_name ?? assessment.contractor_id,
       },
       {
         key: 'ticket',
@@ -433,7 +433,7 @@ export function AssessmentReviewList({ reviewerId }: AssessmentReviewListProps) 
         <CardContent className="space-y-4 pt-6">
           <div className="grid gap-3 lg:grid-cols-5">
             <Input
-              placeholder="Search ticket, subcontractor, cause"
+              placeholder="Search ticket, contractor, cause"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
             />
@@ -585,7 +585,7 @@ export function AssessmentReviewList({ reviewerId }: AssessmentReviewListProps) 
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold">
-                      {assessment.subcontractor_name ?? assessment.subcontractor_id}
+                      {assessment.contractor_name ?? assessment.contractor_id}
                     </p>
                     <p className="text-xs text-slate-500">
                       {assessment.ticket_number ?? assessment.ticket_id}

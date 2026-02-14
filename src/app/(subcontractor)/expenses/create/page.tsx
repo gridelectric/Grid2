@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/common/layout/PageHeader';
 import { ExpenseForm } from '@/components/features/expenses';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { useSubcontractorId } from '@/hooks/useSubcontractorId';
+import { useContractorId } from '@/hooks/useContractorId';
 
-export default function SubcontractorExpenseCreatePage() {
+export default function ContractorExpenseCreatePage() {
   const router = useRouter();
   const { profile } = useAuth();
-  const { subcontractorId } = useSubcontractorId(profile?.id);
+  const { contractorId } = useContractorId(profile?.id);
 
   return (
     <div className="space-y-6">
@@ -22,7 +22,7 @@ export default function SubcontractorExpenseCreatePage() {
       />
 
       <ExpenseForm
-        subcontractorId={subcontractorId}
+        contractorId={contractorId}
         onSaved={() => {
           router.push('/contractor/expenses');
         }}

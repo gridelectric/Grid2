@@ -2,7 +2,7 @@ import { COMPLIANCE_STORAGE_BUCKET } from './onboardingDocumentsService';
 
 type RequiredDocumentType = 'w9' | 'insurance';
 
-interface SubcontractorArtifactContext {
+interface ContractorArtifactContext {
   id: string;
   profile_id: string;
   onboarding_status: string;
@@ -16,16 +16,16 @@ interface ProfileArtifactContext {
 }
 
 interface OnboardingDocumentRow {
-  subcontractor_id: string | null;
+  contractor_id: string | null;
   original_name: string | null;
   storage_path: string;
   created_at: string;
 }
 
-interface AuthlessSubcontractorsTableClient {
+interface AuthlessContractorsTableClient {
   select: (columns: string) => {
     eq: (column: string, value: string) => {
-      single: () => Promise<{ data: SubcontractorArtifactContext | null; error: unknown }>;
+      single: () => Promise<{ data: ContractorArtifactContext | null; error: unknown }>;
     };
   };
 }
@@ -50,7 +50,7 @@ interface MediaAssetsTableClient {
   insert: (
     values: Array<{
       uploaded_by: string;
-      subcontractor_id: string;
+      contractor_id: string;
       file_name: string;
       original_name: string;
       file_type: 'DOCUMENT';
@@ -58,7 +58,7 @@ interface MediaAssetsTableClient {
       file_size_bytes: number;
       storage_bucket: string;
       storage_path: string;
-      entity_type: 'subcontractor_compliance_artifact';
+      entity_type: 'contractor_compliance_artifact';
       entity_id: string;
       upload_status: 'COMPLETED';
     }>
@@ -79,7 +79,7 @@ interface StorageClient {
 
 interface ComplianceArtifactSupabaseClient {
   storage: StorageClient;
-  from(table: 'subcontractors'): AuthlessSubcontractorsTableClient;
+  from(table: 'contractors'): AuthlessContractorsTableClient;
   from(table: 'profiles'): AuthlessProfilesTableClient;
   from(table: 'media_assets'): MediaAssetsTableClient;
 }
@@ -92,7 +92,7 @@ interface SourceDocumentDetails {
 }
 
 export interface FinalizeOnboardingComplianceArtifactsInput {
-  subcontractorId: string;
+  contractorId: string;
   actorUserId: string;
 }
 
@@ -126,7 +126,7 @@ function getLatestDocumentsByType(rows: OnboardingDocumentRow[]): Partial<Record
   const byType: Partial<Record<RequiredDocumentType, SourceDocumentDetails>> = {};
 
   for (const row of rows) {
-    if (!row.subcontractor_id) {
+    if (!row.contractor_id) {
       continue;
     }
 
@@ -199,20 +199,20 @@ export async function finalizeOnboardingComplianceArtifacts(
   const activeClient = client ?? await getDefaultClient();
 
   try {
-    const { data: subcontractor, error: subcontractorError } = await activeClient
-      .from('subcontractors')
+    const { data: contractor, error: contractorError } = await activeClient
+      .from('contractors')
       .select('id, profile_id, onboarding_status')
-      .eq('id', input.subcontractorId)
+      .eq('id', input.contractorId)
       .single();
 
-    if (subcontractorError || !subcontractor) {
-      throw subcontractorError ?? new Error('Missing subcontractor context');
+    if (contractorError || !contractor) {
+      throw contractorError ?? new Error('Missing contractor context');
     }
 
     const { data: profile, error: profileError } = await activeClient
       .from('profiles')
       .select('id, first_name, last_name, email')
-      .eq('id', subcontractor.profile_id)
+      .eq('id', contractor.profile_id)
       .single();
 
     if (profileError || !profile) {
@@ -221,9 +221,9 @@ export async function finalizeOnboardingComplianceArtifacts(
 
     const { data: mediaRows, error: mediaRowsError } = await activeClient
       .from('media_assets')
-      .select('subcontractor_id, original_name, storage_path, created_at')
-      .eq('entity_type', 'subcontractor_onboarding')
-      .in('subcontractor_id', [subcontractor.id]);
+      .select('contractor_id, original_name, storage_path, created_at')
+      .eq('entity_type', 'contractor_onboarding')
+      .in('contractor_id', [contractor.id]);
 
     if (mediaRowsError) {
       throw mediaRowsError;
@@ -242,13 +242,13 @@ export async function finalizeOnboardingComplianceArtifacts(
 
     for (const sourceDoc of sourceDocuments) {
       const generatedAt = new Date().toISOString();
-      const fileName = `${sourceDoc.type}-compliance-artifact-${subcontractor.id}-${Date.now()}.pdf`;
-      const storagePath = `${subcontractor.profile_id}/artifacts/${fileName}`;
+      const fileName = `${sourceDoc.type}-compliance-artifact-${contractor.id}-${Date.now()}.pdf`;
+      const storagePath = `${contractor.profile_id}/artifacts/${fileName}`;
       const pdfBytes = buildSimplePdf([
         'Grid Electric Services - Compliance Artifact',
         `Contractor: ${profile.first_name} ${profile.last_name}`,
         `Email: ${profile.email}`,
-        `Subcontractor ID: ${subcontractor.id}`,
+        `Contractor ID: ${contractor.id}`,
         `Source Document Type: ${sourceDoc.type.toUpperCase()}`,
         `Source File: ${sourceDoc.originalName}`,
         `Source Path: ${sourceDoc.storagePath}`,
@@ -270,7 +270,7 @@ export async function finalizeOnboardingComplianceArtifacts(
         .insert([
           {
             uploaded_by: input.actorUserId,
-            subcontractor_id: subcontractor.id,
+            contractor_id: contractor.id,
             file_name: fileName,
             original_name: fileName,
             file_type: 'DOCUMENT',
@@ -278,8 +278,8 @@ export async function finalizeOnboardingComplianceArtifacts(
             file_size_bytes: pdfBytes.byteLength,
             storage_bucket: COMPLIANCE_STORAGE_BUCKET,
             storage_path: storagePath,
-            entity_type: 'subcontractor_compliance_artifact',
-            entity_id: subcontractor.id,
+            entity_type: 'contractor_compliance_artifact',
+            entity_id: contractor.id,
             upload_status: 'COMPLETED',
           },
         ]);
@@ -302,7 +302,7 @@ export async function finalizeOnboardingComplianceArtifacts(
     }
 
     console.error('Compliance artifact generation failed', {
-      subcontractorId: input.subcontractorId,
+      contractorId: input.contractorId,
       error,
     });
     throw new Error(ONBOARDING_ARTIFACTS_GENERATION_ERROR);

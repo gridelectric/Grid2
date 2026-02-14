@@ -11,7 +11,7 @@ interface RemoteTicketRow {
   ticket_number: string;
 }
 
-interface RemoteSubcontractorRow {
+interface RemoteContractorRow {
   id: string;
   profile_id: string;
 }
@@ -23,7 +23,7 @@ interface RemoteProfileRow {
 }
 
 export interface TimeEntryListFilters {
-  subcontractorId?: string;
+  contractorId?: string;
   status?: TimeEntryStatus | 'ALL';
   from?: string;
   to?: string;
@@ -31,7 +31,7 @@ export interface TimeEntryListFilters {
 
 export interface TimeEntryListItem extends TimeEntry {
   ticket_number?: string;
-  subcontractor_name?: string;
+  contractor_name?: string;
 }
 
 export interface ReviewTimeEntryInput {
@@ -44,7 +44,7 @@ export interface ReviewTimeEntryInput {
 interface TimeEntryManagementDependencies {
   isOnline: () => boolean;
   fetchRemoteEntries: (filters: TimeEntryListFilters) => Promise<TimeEntryListItem[]>;
-  getLocalEntries: (subcontractorId: string) => Promise<LocalTimeEntry[]>;
+  getLocalEntries: (contractorId: string) => Promise<LocalTimeEntry[]>;
   reviewRemoteEntry: (input: ReviewTimeEntryInput) => Promise<TimeEntry>;
 }
 
@@ -69,7 +69,7 @@ function toTimeEntryStatus(status: string): TimeEntryStatus {
 function mapRemoteRowToTimeEntry(row: RemoteTimeEntryRow): TimeEntry {
   return {
     id: row.id,
-    subcontractor_id: row.subcontractor_id,
+    contractor_id: row.contractor_id,
     ticket_id: row.ticket_id ?? undefined,
     clock_in_at: row.clock_in_at,
     clock_in_latitude: row.clock_in_latitude ?? undefined,
@@ -100,7 +100,7 @@ function mapLocalEntryToListItem(entry: LocalTimeEntry): TimeEntryListItem {
 
   return {
     id: entry.id,
-    subcontractor_id: entry.subcontractor_id,
+    contractor_id: entry.contractor_id,
     ticket_id: entry.ticket_id,
     clock_in_at: entry.clock_in_at,
     clock_in_latitude: entry.clock_in_latitude,
@@ -178,28 +178,28 @@ async function fetchTicketNumbers(
   }
 }
 
-async function fetchSubcontractorNames(
+async function fetchContractorNames(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
-  subcontractorIds: string[],
+  contractorIds: string[],
 ): Promise<Map<string, string>> {
-  if (subcontractorIds.length === 0) {
+  if (contractorIds.length === 0) {
     return new Map();
   }
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: subcontractors } = await (supabase.from('subcontractors') as any)
+    const { data: contractors } = await (supabase.from('contractors') as any)
       .select('id, profile_id')
-      .in('id', subcontractorIds);
+      .in('id', contractorIds);
 
-    const subcontractorRows = (subcontractors ?? []) as RemoteSubcontractorRow[];
-    if (subcontractorRows.length === 0) {
+    const contractorRows = (contractors ?? []) as RemoteContractorRow[];
+    if (contractorRows.length === 0) {
       return new Map();
     }
 
     const profileIds = Array.from(
-      new Set(subcontractorRows.map((row) => row.profile_id).filter((value) => Boolean(value))),
+      new Set(contractorRows.map((row) => row.profile_id).filter((value) => Boolean(value))),
     );
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -213,7 +213,7 @@ async function fetchSubcontractorNames(
     );
 
     return new Map(
-      subcontractorRows.map((row) => [
+      contractorRows.map((row) => [
         row.id,
         profileNameById.get(row.profile_id) ?? row.id,
       ]),
@@ -231,8 +231,8 @@ async function fetchRemoteEntries(filters: TimeEntryListFilters): Promise<TimeEn
     .select('*')
     .order('clock_in_at', { ascending: false });
 
-  if (filters.subcontractorId) {
-    query = query.eq('subcontractor_id', filters.subcontractorId);
+  if (filters.contractorId) {
+    query = query.eq('contractor_id', filters.contractorId);
   }
 
   if (filters.status && filters.status !== 'ALL') {
@@ -258,22 +258,22 @@ async function fetchRemoteEntries(filters: TimeEntryListFilters): Promise<TimeEn
   const ticketIds = Array.from(
     new Set(entries.map((entry) => entry.ticket_id).filter((value): value is string => Boolean(value))),
   );
-  const subcontractorIds = Array.from(new Set(entries.map((entry) => entry.subcontractor_id)));
+  const contractorIds = Array.from(new Set(entries.map((entry) => entry.contractor_id)));
 
-  const [ticketNumberById, subcontractorNameById] = await Promise.all([
+  const [ticketNumberById, contractorNameById] = await Promise.all([
     fetchTicketNumbers(supabase, ticketIds),
-    fetchSubcontractorNames(supabase, subcontractorIds),
+    fetchContractorNames(supabase, contractorIds),
   ]);
 
   return entries.map((entry) => ({
     ...entry,
     ticket_number: entry.ticket_id ? ticketNumberById.get(entry.ticket_id) : undefined,
-    subcontractor_name: subcontractorNameById.get(entry.subcontractor_id),
+    contractor_name: contractorNameById.get(entry.contractor_id),
   }));
 }
 
-async function getLocalEntries(subcontractorId: string): Promise<LocalTimeEntry[]> {
-  const localEntries = await db.timeEntries.where('subcontractor_id').equals(subcontractorId).toArray();
+async function getLocalEntries(contractorId: string): Promise<LocalTimeEntry[]> {
+  const localEntries = await db.timeEntries.where('contractor_id').equals(contractorId).toArray();
 
   return localEntries.sort((left, right) => parseTimestamp(right.clock_in_at) - parseTimestamp(left.clock_in_at));
 }
@@ -320,11 +320,11 @@ export function createTimeEntryManagementService(
   return {
     async listEntries(filters: TimeEntryListFilters = {}): Promise<TimeEntryListItem[]> {
       if (!dependencies.isOnline()) {
-        if (!filters.subcontractorId) {
+        if (!filters.contractorId) {
           return [];
         }
 
-        const localEntries = await dependencies.getLocalEntries(filters.subcontractorId);
+        const localEntries = await dependencies.getLocalEntries(filters.contractorId);
         return localEntries
           .map(mapLocalEntryToListItem)
           .filter((entry) => entryMatchesFilters(entry, filters));
@@ -333,11 +333,11 @@ export function createTimeEntryManagementService(
       try {
         return await dependencies.fetchRemoteEntries(filters);
       } catch (error) {
-        if (!filters.subcontractorId) {
+        if (!filters.contractorId) {
           throw error;
         }
 
-        const localEntries = await dependencies.getLocalEntries(filters.subcontractorId);
+        const localEntries = await dependencies.getLocalEntries(filters.contractorId);
         return localEntries
           .map(mapLocalEntryToListItem)
           .filter((entry) => entryMatchesFilters(entry, filters));

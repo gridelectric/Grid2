@@ -25,18 +25,18 @@ describe('getPortalRole', () => {
 describe('isPortalPathAllowed', () => {
   it('allows admin portal paths for admin users', () => {
     expect(isPortalPathAllowed('/admin/dashboard', 'admin')).toBe(true);
-    expect(isPortalPathAllowed('/admin/subcontractors', 'admin')).toBe(true);
+    expect(isPortalPathAllowed('/admin/contractors', 'admin')).toBe(true);
   });
 
-  it('blocks subcontractor portal paths for admin users', () => {
+  it('blocks contractor portal paths for admin users', () => {
     expect(isPortalPathAllowed('/contractor/dashboard', 'admin')).toBe(false);
-    expect(isPortalPathAllowed('/subcontractor/dashboard', 'admin')).toBe(false);
+    expect(isPortalPathAllowed('/contractor/dashboard', 'admin')).toBe(false);
   });
 
   it('allows contractor portal paths for contractors', () => {
     expect(isPortalPathAllowed('/contractor/dashboard', 'contractor')).toBe(true);
     expect(isPortalPathAllowed('/contractor/map', 'contractor')).toBe(true);
-    expect(isPortalPathAllowed('/subcontractor/map', 'contractor')).toBe(true);
+    expect(isPortalPathAllowed('/contractor/map', 'contractor')).toBe(true);
   });
 
   it('blocks admin portal paths for contractors', () => {

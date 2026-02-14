@@ -27,7 +27,7 @@ export interface LocalTicket {
 
 export interface LocalTimeEntry {
   id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   ticket_id?: string;
   clock_in_at: string;
   clock_in_latitude?: number;
@@ -51,7 +51,7 @@ export interface LocalTimeEntry {
 
 export interface LocalExpenseReport {
   id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   report_period_start: string;
   report_period_end: string;
   total_amount: number;
@@ -93,7 +93,7 @@ export interface LocalExpenseItem {
 export interface LocalAssessment {
   id: string;
   ticket_id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   safety_observations: unknown;
   damage_cause?: string;
   weather_conditions?: string;
@@ -271,10 +271,10 @@ export class GridElectricDatabase extends Dexie {
 
     this.version(1).stores({
       tickets: 'id, ticket_number, status, assigned_to, synced, updated_at',
-      timeEntries: 'id, subcontractor_id, ticket_id, status, synced, sync_status',
-      expenseReports: 'id, subcontractor_id, status, synced',
+      timeEntries: 'id, contractor_id, ticket_id, status, synced, sync_status',
+      expenseReports: 'id, contractor_id, status, synced',
       expenseItems: 'id, expense_report_id, synced',
-      assessments: 'id, ticket_id, subcontractor_id, synced, sync_status',
+      assessments: 'id, ticket_id, contractor_id, synced, sync_status',
       photos: 'id, entity_type, entity_id, uploaded, upload_status',
       syncQueue: 'id, entity_type, created_at',
       conflicts: 'id, entity_type, entity_id, resolved, detected_at',
@@ -286,10 +286,10 @@ export class GridElectricDatabase extends Dexie {
         tickets:
           '&id, ticket_number, status, assigned_to, synced, sync_status, updated_at, [assigned_to+status]',
         timeEntries:
-          '&id, subcontractor_id, ticket_id, status, synced, sync_status, updated_at, [subcontractor_id+sync_status]',
-        expenseReports: '&id, subcontractor_id, status, synced',
+          '&id, contractor_id, ticket_id, status, synced, sync_status, updated_at, [contractor_id+sync_status]',
+        expenseReports: '&id, contractor_id, status, synced',
         expenseItems: '&id, expense_report_id, synced',
-        assessments: '&id, ticket_id, subcontractor_id, synced, sync_status',
+        assessments: '&id, ticket_id, contractor_id, synced, sync_status',
         photos:
           '&id, entity_type, entity_id, uploaded, upload_status, retry_count, updated_at, [entity_type+entity_id]',
         syncQueue:
@@ -335,10 +335,10 @@ export class GridElectricDatabase extends Dexie {
       tickets:
         '&id, ticket_number, status, assigned_to, synced, sync_status, updated_at, [assigned_to+status]',
       timeEntries:
-        '&id, subcontractor_id, ticket_id, status, synced, sync_status, updated_at, [subcontractor_id+sync_status]',
-      expenseReports: '&id, subcontractor_id, status, synced',
+        '&id, contractor_id, ticket_id, status, synced, sync_status, updated_at, [contractor_id+sync_status]',
+      expenseReports: '&id, contractor_id, status, synced',
       expenseItems: '&id, expense_report_id, synced',
-      assessments: '&id, ticket_id, subcontractor_id, synced, sync_status',
+      assessments: '&id, ticket_id, contractor_id, synced, sync_status',
       photos:
         '&id, entity_type, entity_id, uploaded, upload_status, retry_count, updated_at, [entity_type+entity_id]',
       syncQueue:

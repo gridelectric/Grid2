@@ -22,7 +22,7 @@ interface ClockLocation {
 }
 
 export interface ClockInRequest {
-  subcontractorId: string;
+  contractorId: string;
   workType: WorkType;
   workTypeRate: number;
   breakMinutes: number;
@@ -39,11 +39,11 @@ export interface ClockOutRequest {
 interface TimeEntryServiceDependencies {
   isOnline: () => boolean;
   now: () => Date;
-  fetchRemoteActiveEntry: (subcontractorId: string) => Promise<TimeEntry | null>;
+  fetchRemoteActiveEntry: (contractorId: string) => Promise<TimeEntry | null>;
   insertRemoteEntry: (payload: RemoteTimeEntryInsert) => Promise<TimeEntry>;
   updateRemoteEntry: (id: string, updates: RemoteTimeEntryUpdate) => Promise<TimeEntry>;
   queueLocalEntry: (entry: LocalTimeEntry, operation: SyncQueueOperation) => Promise<string>;
-  getLocalActiveEntry: (subcontractorId: string) => Promise<LocalTimeEntry | null>;
+  getLocalActiveEntry: (contractorId: string) => Promise<LocalTimeEntry | null>;
 }
 
 function toSyncStatus(value: LocalSyncStatus): SyncStatus {
@@ -73,7 +73,7 @@ function toLocalSyncStatus(value: SyncStatus): LocalSyncStatus {
 function mapRemoteRowToTimeEntry(row: RemoteTimeEntryRow): TimeEntry {
   return {
     id: row.id,
-    subcontractor_id: row.subcontractor_id,
+    contractor_id: row.contractor_id,
     ticket_id: row.ticket_id ?? undefined,
     clock_in_at: row.clock_in_at,
     clock_in_latitude: row.clock_in_latitude ?? undefined,
@@ -104,7 +104,7 @@ function mapLocalEntryToTimeEntry(entry: LocalTimeEntry): TimeEntry {
 
   return {
     id: entry.id,
-    subcontractor_id: entry.subcontractor_id,
+    contractor_id: entry.contractor_id,
     ticket_id: entry.ticket_id,
     clock_in_at: entry.clock_in_at,
     clock_in_latitude: entry.clock_in_latitude,
@@ -127,7 +127,7 @@ function mapLocalEntryToTimeEntry(entry: LocalTimeEntry): TimeEntry {
 function mapTimeEntryToLocalEntry(entry: TimeEntry): LocalTimeEntry {
   return {
     id: entry.id,
-    subcontractor_id: entry.subcontractor_id,
+    contractor_id: entry.contractor_id,
     ticket_id: entry.ticket_id,
     clock_in_at: entry.clock_in_at,
     clock_in_latitude: entry.clock_in_latitude,
@@ -159,7 +159,7 @@ function createEntryId(): string {
 function buildClockInEntry(request: ClockInRequest, nowIso: string): TimeEntry {
   return {
     id: createEntryId(),
-    subcontractor_id: request.subcontractorId,
+    contractor_id: request.contractorId,
     ticket_id: request.ticketId,
     clock_in_at: nowIso,
     clock_in_latitude: request.location.latitude,
@@ -183,12 +183,12 @@ function defaultIsOnline(): boolean {
   return navigator.onLine;
 }
 
-async function fetchRemoteActiveEntry(subcontractorId: string): Promise<TimeEntry | null> {
+async function fetchRemoteActiveEntry(contractorId: string): Promise<TimeEntry | null> {
   const { supabase } = await import('../supabase/client');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query = (supabase.from('time_entries') as any)
     .select('*')
-    .eq('subcontractor_id', subcontractorId)
+    .eq('contractor_id', contractorId)
     .is('clock_out_at', null)
     .order('clock_in_at', { ascending: false })
     .limit(1);
@@ -232,8 +232,8 @@ async function updateRemoteEntry(id: string, updates: RemoteTimeEntryUpdate): Pr
   return mapRemoteRowToTimeEntry(data as RemoteTimeEntryRow);
 }
 
-async function getLocalActiveEntry(subcontractorId: string): Promise<LocalTimeEntry | null> {
-  const localEntries = await db.timeEntries.where('subcontractor_id').equals(subcontractorId).toArray();
+async function getLocalActiveEntry(contractorId: string): Promise<LocalTimeEntry | null> {
+  const localEntries = await db.timeEntries.where('contractor_id').equals(contractorId).toArray();
   const activeLocal = localEntries
     .filter((entry) => !entry.clock_out_at)
     .sort((left, right) => {
@@ -256,7 +256,7 @@ const defaultDependencies: TimeEntryServiceDependencies = {
 };
 
 export interface TimeEntryService {
-  getActiveEntry: (subcontractorId: string) => Promise<TimeEntry | null>;
+  getActiveEntry: (contractorId: string) => Promise<TimeEntry | null>;
   clockIn: (request: ClockInRequest) => Promise<TimeEntry>;
   clockOut: (request: ClockOutRequest) => Promise<TimeEntry>;
 }
@@ -270,8 +270,8 @@ export function createTimeEntryService(
   };
 
   return {
-    async getActiveEntry(subcontractorId: string) {
-      const localActive = await dependencies.getLocalActiveEntry(subcontractorId);
+    async getActiveEntry(contractorId: string) {
+      const localActive = await dependencies.getLocalActiveEntry(contractorId);
       if (localActive) {
         return mapLocalEntryToTimeEntry(localActive);
       }
@@ -281,7 +281,7 @@ export function createTimeEntryService(
       }
 
       try {
-        return await dependencies.fetchRemoteActiveEntry(subcontractorId);
+        return await dependencies.fetchRemoteActiveEntry(contractorId);
       } catch {
         return null;
       }
@@ -294,7 +294,7 @@ export function createTimeEntryService(
       if (dependencies.isOnline()) {
         try {
           return await dependencies.insertRemoteEntry({
-            subcontractor_id: request.subcontractorId,
+            contractor_id: request.contractorId,
             ticket_id: request.ticketId ?? null,
             clock_in_at: nowIso,
             clock_in_latitude: request.location.latitude,

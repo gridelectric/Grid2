@@ -22,8 +22,8 @@ function isContractorPortalPath(pathname: string): boolean {
   return (
     normalizedPath === '/contractor'
     || normalizedPath.startsWith('/contractor/')
-    || normalizedPath === '/subcontractor'
-    || normalizedPath.startsWith('/subcontractor/')
+    || normalizedPath === '/contractor'
+    || normalizedPath.startsWith('/contractor/')
   );
 }
 

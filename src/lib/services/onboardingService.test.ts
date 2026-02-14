@@ -21,7 +21,7 @@ const validInput = {
 interface MockOptions {
   userId?: string | null;
   role?: 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
-  existingSubcontractor?: {
+  existingContractor?: {
     id: string;
     business_name: string;
     onboarding_status: string;
@@ -31,7 +31,7 @@ interface MockOptions {
 function createMockClient(options: MockOptions = {}) {
   const userId = options.userId === undefined ? 'user-1' : options.userId;
   const role = options.role ?? 'CONTRACTOR';
-  const existingSubcontractor = options.existingSubcontractor ?? null;
+  const existingContractor = options.existingContractor ?? null;
 
   const profileSelectSingle = vi.fn().mockResolvedValue({
     data: { role },
@@ -43,27 +43,27 @@ function createMockClient(options: MockOptions = {}) {
   const profileUpdateEq = vi.fn().mockResolvedValue({ error: null });
   const profileUpdate = vi.fn(() => ({ eq: profileUpdateEq }));
 
-  const subcontractorSelectMaybeSingle = vi.fn().mockResolvedValue({
-    data: existingSubcontractor,
+  const contractorSelectMaybeSingle = vi.fn().mockResolvedValue({
+    data: existingContractor,
     error: null,
   });
-  const subcontractorSelectEq = vi.fn(() => ({ maybeSingle: subcontractorSelectMaybeSingle }));
-  const subcontractorSelect = vi.fn(() => ({ eq: subcontractorSelectEq }));
+  const contractorSelectEq = vi.fn(() => ({ maybeSingle: contractorSelectMaybeSingle }));
+  const contractorSelect = vi.fn(() => ({ eq: contractorSelectEq }));
 
-  const subcontractorInsertSingle = vi.fn().mockResolvedValue({
+  const contractorInsertSingle = vi.fn().mockResolvedValue({
     data: { id: 'sub-new', onboarding_status: 'PENDING' },
     error: null,
   });
-  const subcontractorInsertSelect = vi.fn(() => ({ single: subcontractorInsertSingle }));
-  const subcontractorInsert = vi.fn(() => ({ select: subcontractorInsertSelect }));
+  const contractorInsertSelect = vi.fn(() => ({ single: contractorInsertSingle }));
+  const contractorInsert = vi.fn(() => ({ select: contractorInsertSelect }));
 
-  const subcontractorUpdateSingle = vi.fn().mockResolvedValue({
-    data: { id: existingSubcontractor?.id ?? 'sub-existing', onboarding_status: 'PENDING' },
+  const contractorUpdateSingle = vi.fn().mockResolvedValue({
+    data: { id: existingContractor?.id ?? 'sub-existing', onboarding_status: 'PENDING' },
     error: null,
   });
-  const subcontractorUpdateSelect = vi.fn(() => ({ single: subcontractorUpdateSingle }));
-  const subcontractorUpdateEq = vi.fn(() => ({ select: subcontractorUpdateSelect }));
-  const subcontractorUpdate = vi.fn(() => ({ eq: subcontractorUpdateEq }));
+  const contractorUpdateSelect = vi.fn(() => ({ single: contractorUpdateSingle }));
+  const contractorUpdateEq = vi.fn(() => ({ select: contractorUpdateSelect }));
+  const contractorUpdate = vi.fn(() => ({ eq: contractorUpdateEq }));
 
   const client = {
     auth: {
@@ -80,11 +80,11 @@ function createMockClient(options: MockOptions = {}) {
         };
       }
 
-      if (table === 'subcontractors') {
+      if (table === 'contractors') {
         return {
-          select: subcontractorSelect,
-          insert: subcontractorInsert,
-          update: subcontractorUpdate,
+          select: contractorSelect,
+          insert: contractorInsert,
+          update: contractorUpdate,
         };
       }
 
@@ -97,8 +97,8 @@ function createMockClient(options: MockOptions = {}) {
     spies: {
       profileUpdate,
       profileUpdateEq,
-      subcontractorInsert,
-      subcontractorUpdate,
+      contractorInsert,
+      contractorUpdate,
     },
   };
 }
@@ -146,7 +146,7 @@ describe('submitCoreOnboardingProfile', () => {
 
   it('rejects users with verified onboarding', async () => {
     const { client } = createMockClient({
-      existingSubcontractor: {
+      existingContractor: {
         id: 'sub-verified',
         business_name: 'Verified Electric',
         onboarding_status: 'APPROVED',
@@ -158,13 +158,13 @@ describe('submitCoreOnboardingProfile', () => {
     ).rejects.toThrow(ONBOARDING_ALREADY_VERIFIED_ERROR);
   });
 
-  it('creates a new subcontractor record when one does not exist', async () => {
+  it('creates a new contractor record when one does not exist', async () => {
     const { client, spies } = createMockClient();
 
     const result = await submitCoreOnboardingProfile(validInput, client as never);
 
     expect(result).toEqual({
-      subcontractorId: 'sub-new',
+      contractorId: 'sub-new',
       onboardingStatus: 'PENDING',
     });
 
@@ -177,7 +177,7 @@ describe('submitCoreOnboardingProfile', () => {
       })
     );
 
-    expect(spies.subcontractorInsert).toHaveBeenCalledWith([
+    expect(spies.contractorInsert).toHaveBeenCalledWith([
       expect.objectContaining({
         profile_id: 'user-1',
         business_email: validInput.email,
@@ -189,9 +189,9 @@ describe('submitCoreOnboardingProfile', () => {
     ]);
   });
 
-  it('updates an existing subcontractor record', async () => {
+  it('updates an existing contractor record', async () => {
     const { client, spies } = createMockClient({
-      existingSubcontractor: {
+      existingContractor: {
         id: 'sub-existing',
         business_name: 'Existing Electric LLC',
         onboarding_status: 'IN_PROGRESS',
@@ -201,11 +201,11 @@ describe('submitCoreOnboardingProfile', () => {
     const result = await submitCoreOnboardingProfile(validInput, client as never);
 
     expect(result).toEqual({
-      subcontractorId: 'sub-existing',
+      contractorId: 'sub-existing',
       onboardingStatus: 'PENDING',
     });
-    expect(spies.subcontractorInsert).not.toHaveBeenCalled();
-    expect(spies.subcontractorUpdate).toHaveBeenCalledWith(
+    expect(spies.contractorInsert).not.toHaveBeenCalled();
+    expect(spies.contractorUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         business_name: 'Existing Electric LLC',
         onboarding_status: 'PENDING',

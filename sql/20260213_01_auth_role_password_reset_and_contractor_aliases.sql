@@ -132,19 +132,19 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_single_super_admin
 
 CREATE OR REPLACE VIEW public.contractors AS
 SELECT *
-FROM public.subcontractors;
+FROM public.contractors;
 
 CREATE OR REPLACE VIEW public.contractor_rates AS
 SELECT *
-FROM public.subcontractor_rates;
+FROM public.contractor_rates;
 
 CREATE OR REPLACE VIEW public.contractor_banking AS
 SELECT *
-FROM public.subcontractor_banking;
+FROM public.contractor_banking;
 
 CREATE OR REPLACE VIEW public.contractor_invoices AS
 SELECT *
-FROM public.subcontractor_invoices;
+FROM public.contractor_invoices;
 
 CREATE OR REPLACE FUNCTION public.get_contractor_id(profile_uuid UUID)
 RETURNS UUID
@@ -154,7 +154,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
   SELECT s.id
-  FROM public.subcontractors s
+  FROM public.contractors s
   WHERE s.profile_id = profile_uuid
   LIMIT 1;
 $$;
@@ -167,7 +167,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
   SELECT s.profile_id
-  FROM public.subcontractors s
+  FROM public.contractors s
   WHERE s.id = contractor_uuid
   LIMIT 1;
 $$;

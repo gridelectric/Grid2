@@ -39,8 +39,8 @@ type StatusFilterValue = TimeEntryStatus | 'ALL';
 type ReviewDecision = Extract<TimeEntryStatus, 'APPROVED' | 'REJECTED'>;
 
 export interface TimeEntryListProps {
-  mode: 'subcontractor' | 'admin';
-  subcontractorId?: string;
+  mode: 'contractor' | 'admin';
+  contractorId?: string;
   reviewerId?: string;
 }
 
@@ -86,7 +86,7 @@ function toWorkTypeLabel(workType: string): string {
     .join(' ');
 }
 
-export function TimeEntryList({ mode, subcontractorId, reviewerId }: TimeEntryListProps) {
+export function TimeEntryList({ mode, contractorId, reviewerId }: TimeEntryListProps) {
   const [entries, setEntries] = useState<TimeEntryListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,7 +100,7 @@ export function TimeEntryList({ mode, subcontractorId, reviewerId }: TimeEntryLi
   const [selectedEntryIds, setSelectedEntryIds] = useState<string[]>([]);
 
   const loadEntries = useCallback(async () => {
-    if (mode === 'subcontractor' && !subcontractorId) {
+    if (mode === 'contractor' && !contractorId) {
       setEntries([]);
       setIsLoading(false);
       return;
@@ -115,8 +115,8 @@ export function TimeEntryList({ mode, subcontractorId, reviewerId }: TimeEntryLi
       to: toEndOfDayIso(toDate),
     };
 
-    if (mode === 'subcontractor' && subcontractorId) {
-      filters.subcontractorId = subcontractorId;
+    if (mode === 'contractor' && contractorId) {
+      filters.contractorId = contractorId;
     }
 
     try {
@@ -128,7 +128,7 @@ export function TimeEntryList({ mode, subcontractorId, reviewerId }: TimeEntryLi
     } finally {
       setIsLoading(false);
     }
-  }, [fromDate, mode, statusFilter, subcontractorId, toDate]);
+  }, [fromDate, mode, statusFilter, contractorId, toDate]);
 
   useEffect(() => {
     void loadEntries();
@@ -147,8 +147,8 @@ export function TimeEntryList({ mode, subcontractorId, reviewerId }: TimeEntryLi
     return entries.filter((entry) => {
       const searchableValues = [
         entry.id,
-        entry.subcontractor_name,
-        entry.subcontractor_id,
+        entry.contractor_name,
+        entry.contractor_id,
         entry.ticket_number,
         entry.ticket_id,
         entry.work_type,
@@ -298,9 +298,9 @@ export function TimeEntryList({ mode, subcontractorId, reviewerId }: TimeEntryLi
       });
 
       baseColumns.push({
-        key: 'subcontractor_name',
-        header: 'Subcontractor',
-        cell: (entry) => entry.subcontractor_name ?? entry.subcontractor_id,
+        key: 'contractor_name',
+        header: 'Contractor',
+        cell: (entry) => entry.contractor_name ?? entry.contractor_id,
       });
     }
 
@@ -399,7 +399,7 @@ export function TimeEntryList({ mode, subcontractorId, reviewerId }: TimeEntryLi
             <Input
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search subcontractor, ticket, work type"
+              placeholder="Search contractor, ticket, work type"
             />
 
             <Select

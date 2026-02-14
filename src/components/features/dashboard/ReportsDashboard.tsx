@@ -381,18 +381,18 @@ export function ReportsDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Subcontractor Breakdown</CardTitle>
+          <CardTitle>Contractor Breakdown</CardTitle>
         </CardHeader>
         <CardContent>
-          {!report || report.subcontractors.length === 0 ? (
+          {!report || report.contractors.length === 0 ? (
             <div className="rounded-md border bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
-              {isLoading ? 'Loading subcontractor data...' : 'No subcontractor activity found for this range.'}
+              {isLoading ? 'Loading contractor data...' : 'No contractor activity found for this range.'}
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Subcontractor</TableHead>
+                  <TableHead>Contractor</TableHead>
                   <TableHead className="text-right">Approved Time</TableHead>
                   <TableHead className="text-right">Approved Expenses</TableHead>
                   <TableHead className="text-right">Invoiced</TableHead>
@@ -400,9 +400,9 @@ export function ReportsDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {report.subcontractors.map((row) => (
-                  <TableRow key={row.subcontractor_id}>
-                    <TableCell className="font-medium">{row.subcontractor_name}</TableCell>
+                {report.contractors.map((row) => (
+                  <TableRow key={row.contractor_id}>
+                    <TableCell className="font-medium">{row.contractor_name}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.approved_time_amount)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.approved_expense_amount)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(row.invoiced_amount)}</TableCell>

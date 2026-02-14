@@ -17,51 +17,54 @@ import {
   Ticket,
   XCircle,
 } from 'lucide-react';
-import { subcontractorService, type SubcontractorDetail } from '@/lib/services/subcontractorService';
+import { contractorService, type ContractorDetail } from '@/lib/services/contractorService';
+import { getErrorLogContext, isAuthOrPermissionError } from '@/lib/utils/errorHandling';
 import { formatCurrency, formatDate } from '@/lib/utils/formatters';
 
-function toDisplayStatus(subcontractor: SubcontractorDetail): string {
-  if (subcontractor.onboardingStatus.toUpperCase() === 'APPROVED') {
-    return subcontractor.eligibleForAssignment ? 'Active' : 'Inactive';
+function toDisplayStatus(contractor: ContractorDetail): string {
+  if (contractor.onboardingStatus.toUpperCase() === 'APPROVED') {
+    return contractor.eligibleForAssignment ? 'Active' : 'Inactive';
   }
 
-  if (subcontractor.onboardingStatus.toUpperCase() === 'PENDING') {
+  if (contractor.onboardingStatus.toUpperCase() === 'PENDING') {
     return 'Pending';
   }
 
   return 'Onboarding';
 }
 
-export default function SubcontractorDetailPage() {
+export default function ContractorDetailPage() {
   const params = useParams();
-  const subcontractorId = useMemo(() => {
+  const contractorId = useMemo(() => {
     const value = params?.id;
     return Array.isArray(value) ? value[0] : value;
   }, [params?.id]);
 
-  const [subcontractor, setSubcontractor] = useState<SubcontractorDetail | null>(null);
+  const [contractor, setContractor] = useState<ContractorDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!subcontractorId) {
-      setSubcontractor(null);
+    if (!contractorId) {
+      setContractor(null);
       setIsLoading(false);
       return;
     }
 
     let active = true;
 
-    const loadSubcontractor = async () => {
+    const loadContractor = async () => {
       setIsLoading(true);
       try {
-        const detail = await subcontractorService.getSubcontractorById(subcontractorId);
+        const detail = await contractorService.getContractorById(contractorId);
         if (active) {
-          setSubcontractor(detail);
+          setContractor(detail);
         }
       } catch (error) {
-        console.error('Failed to load subcontractor details:', error);
+        if (!isAuthOrPermissionError(error)) {
+          console.warn('Failed to load contractor details:', getErrorLogContext(error));
+        }
         if (active) {
-          setSubcontractor(null);
+          setContractor(null);
         }
       } finally {
         if (active) {
@@ -70,23 +73,23 @@ export default function SubcontractorDetailPage() {
       }
     };
 
-    void loadSubcontractor();
+    void loadContractor();
 
     return () => {
       active = false;
     };
-  }, [subcontractorId]);
+  }, [contractorId]);
 
   if (isLoading) {
-    return <div className="text-sm text-slate-500">Loading subcontractor details...</div>;
+    return <div className="text-sm text-slate-500">Loading contractor details...</div>;
   }
 
-  if (!subcontractor) {
+  if (!contractor) {
     return (
       <div className="space-y-4">
         <PageHeader
-          title="Subcontractor Not Found"
-          description="The requested subcontractor record could not be loaded."
+          title="Contractor Not Found"
+          description="The requested contractor record could not be loaded."
           showBackButton
           backHref="/admin/contractors"
         />
@@ -94,7 +97,7 @@ export default function SubcontractorDetailPage() {
     );
   }
 
-  const initials = subcontractor.fullName
+  const initials = contractor.fullName
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
@@ -104,8 +107,8 @@ export default function SubcontractorDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={subcontractor.fullName}
-        description="Subcontractor details and management"
+        title={contractor.fullName}
+        description="Contractor details and management"
         showBackButton
         backHref="/admin/contractors"
       >
@@ -126,24 +129,24 @@ export default function SubcontractorDetailPage() {
                 </AvatarFallback>
               </Avatar>
               <h2 className="text-xl font-bold">
-                {subcontractor.fullName}
+                {contractor.fullName}
               </h2>
-              <p className="text-slate-500">{subcontractor.businessName}</p>
+              <p className="text-slate-500">{contractor.businessName}</p>
               <div className="mt-4">
-                <StatusBadge status={toDisplayStatus(subcontractor)} />
+                <StatusBadge status={toDisplayStatus(contractor)} />
               </div>
               <div className="mt-6 space-y-2 w-full text-left">
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="w-4 h-4 text-slate-400" />
-                  <span>{subcontractor.email || 'No email on file'}</span>
+                  <span>{contractor.email || 'No email on file'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="w-4 h-4 text-slate-400" />
-                  <span>{subcontractor.phone ?? subcontractor.businessPhone ?? 'No phone on file'}</span>
+                  <span>{contractor.phone ?? contractor.businessPhone ?? 'No phone on file'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <MapPin className="w-4 h-4 text-slate-400" />
-                  <span>{[subcontractor.city, subcontractor.state].filter(Boolean).join(', ') || 'Location unavailable'}</span>
+                  <span>{[contractor.city, contractor.state].filter(Boolean).join(', ') || 'Location unavailable'}</span>
                 </div>
               </div>
             </div>
@@ -156,26 +159,26 @@ export default function SubcontractorDetailPage() {
             <Card>
               <CardContent className="pt-6">
                 <p className="text-sm text-slate-500">YTD Earnings</p>
-                <p className="text-2xl font-bold">{formatCurrency(subcontractor.ytdEarnings)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(contractor.ytdEarnings)}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
                 <p className="text-sm text-slate-500">Active Tickets</p>
-                <p className="text-2xl font-bold">{subcontractor.activeTicketCount}</p>
+                <p className="text-2xl font-bold">{contractor.activeTicketCount}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
                 <p className="text-sm text-slate-500">Total Tickets</p>
-                <p className="text-2xl font-bold">{subcontractor.totalTicketCount}</p>
+                <p className="text-2xl font-bold">{contractor.totalTicketCount}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
                 <p className="text-sm text-slate-500">Eligible</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {subcontractor.eligibleForAssignment ? 'Yes' : 'No'}
+                  {contractor.eligibleForAssignment ? 'Yes' : 'No'}
                 </p>
               </CardContent>
             </Card>
@@ -190,20 +193,20 @@ export default function SubcontractorDetailPage() {
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <p>
-                <span className="font-medium">Onboarding:</span> {subcontractor.onboardingStatus}
+                <span className="font-medium">Onboarding:</span> {contractor.onboardingStatus}
               </p>
               <p>
                 <span className="font-medium">Assignment Eligibility:</span>{' '}
-                {subcontractor.eligibleForAssignment ? 'Eligible' : 'Not Eligible'}
+                {contractor.eligibleForAssignment ? 'Eligible' : 'Not Eligible'}
               </p>
-              {!subcontractor.eligibleForAssignment && subcontractor.eligibilityReason ? (
+              {!contractor.eligibleForAssignment && contractor.eligibilityReason ? (
                 <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-amber-900">
-                  {subcontractor.eligibilityReason}
+                  {contractor.eligibilityReason}
                 </p>
               ) : null}
               <p className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-slate-400" />
-                Added {formatDate(subcontractor.createdAt)}
+                Added {formatDate(contractor.createdAt)}
               </p>
             </CardContent>
           </Card>
@@ -216,10 +219,10 @@ export default function SubcontractorDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {subcontractor.recentTickets.length === 0 ? (
+              {contractor.recentTickets.length === 0 ? (
                 <p className="text-sm text-slate-500">No assigned tickets found.</p>
               ) : (
-                subcontractor.recentTickets.map((ticket) => (
+                contractor.recentTickets.map((ticket) => (
                   <Link
                     key={ticket.id}
                     href={`/tickets/${ticket.id}`}

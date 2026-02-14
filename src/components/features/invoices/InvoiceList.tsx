@@ -29,7 +29,7 @@ import { Tax1099TrackingDisplay } from './Tax1099TrackingDisplay';
 type StatusFilterValue = InvoiceStatus | 'ALL';
 
 interface InvoiceListProps {
-  subcontractorId?: string;
+  contractorId?: string;
 }
 
 function parseError(error: unknown): string {
@@ -82,7 +82,7 @@ function toStatusVariant(status: InvoiceStatus): 'pending' | 'approved' | 'rejec
   return 'pending';
 }
 
-export function InvoiceList({ subcontractorId }: InvoiceListProps) {
+export function InvoiceList({ contractorId }: InvoiceListProps) {
   const [invoices, setInvoices] = useState<InvoiceListItemType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -99,7 +99,7 @@ export function InvoiceList({ subcontractorId }: InvoiceListProps) {
 
     try {
       const data = await invoiceGenerationService.listInvoices({
-        subcontractorId,
+        contractorId,
         status: statusFilter,
         from: toStartOfDayIso(fromDate),
         to: toEndOfDayIso(toDate),
@@ -112,7 +112,7 @@ export function InvoiceList({ subcontractorId }: InvoiceListProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [fromDate, statusFilter, subcontractorId, toDate]);
+  }, [fromDate, statusFilter, contractorId, toDate]);
 
   useEffect(() => {
     void loadInvoices();
@@ -138,8 +138,8 @@ export function InvoiceList({ subcontractorId }: InvoiceListProps) {
     return invoices.filter((invoice) => {
       const searchable = [
         invoice.invoice_number,
-        invoice.subcontractor_name,
-        invoice.subcontractor_id,
+        invoice.contractor_name,
+        invoice.contractor_id,
         invoice.payment_reference,
       ]
         .filter(Boolean)
@@ -339,7 +339,7 @@ export function InvoiceList({ subcontractorId }: InvoiceListProps) {
         )}
       </div>
 
-      <Tax1099TrackingDisplay subcontractorId={subcontractorId} />
+      <Tax1099TrackingDisplay contractorId={contractorId} />
 
       {selectedInvoiceId ? <InvoicePDFViewer invoiceId={selectedInvoiceId} /> : null}
     </div>

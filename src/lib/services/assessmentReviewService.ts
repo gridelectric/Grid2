@@ -4,7 +4,7 @@ import type { PriorityLevel, SyncStatus } from '@/types';
 interface RemoteAssessmentRow {
   id: string;
   ticket_id: string;
-  subcontractor_id: string;
+  contractor_id: string;
   safety_observations: Record<string, boolean> | null;
   damage_cause: string | null;
   priority: string | null;
@@ -26,7 +26,7 @@ interface RemoteTicketRow {
   ticket_number: string;
 }
 
-interface RemoteSubcontractorRow {
+interface RemoteContractorRow {
   id: string;
   profile_id?: string;
 }
@@ -44,8 +44,8 @@ export interface AssessmentReviewListItem {
   id: string;
   ticket_id: string;
   ticket_number?: string;
-  subcontractor_id: string;
-  subcontractor_name?: string;
+  contractor_id: string;
+  contractor_name?: string;
   damage_cause?: string;
   priority?: PriorityLevel;
   safety_flags: string[];
@@ -191,8 +191,8 @@ function matchesSearch(item: AssessmentReviewListItem, search?: string): boolean
     item.id,
     item.ticket_id,
     item.ticket_number,
-    item.subcontractor_id,
-    item.subcontractor_name,
+    item.contractor_id,
+    item.contractor_name,
     item.damage_cause,
     item.priority,
     item.review_notes,
@@ -228,7 +228,7 @@ function mapRemoteAssessment(
   row: RemoteAssessmentRow,
   equipmentCountByAssessmentId: Map<string, number>,
   ticketNumberById: Map<string, string>,
-  subcontractorNameById: Map<string, string>,
+  contractorNameById: Map<string, string>,
 ): AssessmentReviewListItem {
   const reviewDecision = parseReviewDecision(row.review_notes);
 
@@ -236,8 +236,8 @@ function mapRemoteAssessment(
     id: row.id,
     ticket_id: row.ticket_id,
     ticket_number: ticketNumberById.get(row.ticket_id),
-    subcontractor_id: row.subcontractor_id,
-    subcontractor_name: subcontractorNameById.get(row.subcontractor_id),
+    contractor_id: row.contractor_id,
+    contractor_name: contractorNameById.get(row.contractor_id),
     damage_cause: row.damage_cause ?? undefined,
     priority: toPriority(row.priority),
     safety_flags: toSafetyFlags(row.safety_observations),
@@ -262,7 +262,7 @@ function mapLocalAssessment(row: LocalAssessment): AssessmentReviewListItem {
   return {
     id: row.id,
     ticket_id: row.ticket_id,
-    subcontractor_id: row.subcontractor_id,
+    contractor_id: row.contractor_id,
     damage_cause: row.damage_cause,
     priority: toPriority(row.priority),
     safety_flags: toSafetyFlags(row.safety_observations),
@@ -309,29 +309,29 @@ async function fetchTicketNumbers(
   }
 }
 
-async function fetchSubcontractorNames(
+async function fetchContractorNames(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
-  subcontractorIds: string[],
+  contractorIds: string[],
 ): Promise<Map<string, string>> {
-  if (subcontractorIds.length === 0) {
+  if (contractorIds.length === 0) {
     return new Map();
   }
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: subcontractors } = await (supabase.from('subcontractors') as any)
+    const { data: contractors } = await (supabase.from('contractors') as any)
       .select('id, profile_id')
-      .in('id', subcontractorIds);
+      .in('id', contractorIds);
 
-    const subcontractorRows = (subcontractors ?? []) as RemoteSubcontractorRow[];
-    if (subcontractorRows.length === 0) {
+    const contractorRows = (contractors ?? []) as RemoteContractorRow[];
+    if (contractorRows.length === 0) {
       return new Map();
     }
 
     const profileIds = Array.from(
       new Set(
-        subcontractorRows
+        contractorRows
           .map((row) => row.profile_id)
           .filter((value): value is string => Boolean(value)),
       ),
@@ -352,7 +352,7 @@ async function fetchSubcontractorNames(
     );
 
     return new Map(
-      subcontractorRows.map((row) => [
+      contractorRows.map((row) => [
         row.id,
         (row.profile_id ? profileNameById.get(row.profile_id) : undefined) ?? row.id,
       ]),
@@ -396,7 +396,7 @@ async function listRemoteAssessments(filters: AssessmentReviewFilters): Promise<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase.from('damage_assessments') as any)
     .select(
-      'id, ticket_id, subcontractor_id, safety_observations, damage_cause, priority, assessed_at, reviewed_by, reviewed_at, review_notes, sync_status, created_at, updated_at',
+      'id, ticket_id, contractor_id, safety_observations, damage_cause, priority, assessed_at, reviewed_by, reviewed_at, review_notes, sync_status, created_at, updated_at',
     )
     .order('assessed_at', { ascending: false });
 
@@ -428,19 +428,19 @@ async function listRemoteAssessments(filters: AssessmentReviewFilters): Promise<
 
   const assessmentRows = (data ?? []) as RemoteAssessmentRow[];
   const ticketIds = Array.from(new Set(assessmentRows.map((row) => row.ticket_id).filter(Boolean)));
-  const subcontractorIds = Array.from(
-    new Set(assessmentRows.map((row) => row.subcontractor_id).filter(Boolean)),
+  const contractorIds = Array.from(
+    new Set(assessmentRows.map((row) => row.contractor_id).filter(Boolean)),
   );
   const assessmentIds = assessmentRows.map((row) => row.id);
 
-  const [ticketNumberById, subcontractorNameById, equipmentCountByAssessmentId] = await Promise.all([
+  const [ticketNumberById, contractorNameById, equipmentCountByAssessmentId] = await Promise.all([
     fetchTicketNumbers(supabase, ticketIds),
-    fetchSubcontractorNames(supabase, subcontractorIds),
+    fetchContractorNames(supabase, contractorIds),
     fetchEquipmentCounts(supabase, assessmentIds),
   ]);
 
   const mapped = assessmentRows.map((row) =>
-    mapRemoteAssessment(row, equipmentCountByAssessmentId, ticketNumberById, subcontractorNameById),
+    mapRemoteAssessment(row, equipmentCountByAssessmentId, ticketNumberById, contractorNameById),
   );
 
   return applyFilters(mapped, filters);

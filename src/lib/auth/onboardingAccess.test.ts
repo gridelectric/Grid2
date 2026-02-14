@@ -12,8 +12,8 @@ describe('isStormFeaturePath', () => {
     expect(isStormFeaturePath('/tickets/123')).toBe(true);
     expect(isStormFeaturePath('/contractor')).toBe(true);
     expect(isStormFeaturePath('/contractor/map')).toBe(true);
-    expect(isStormFeaturePath('/subcontractor')).toBe(true);
-    expect(isStormFeaturePath('/subcontractor/map')).toBe(true);
+    expect(isStormFeaturePath('/contractor')).toBe(true);
+    expect(isStormFeaturePath('/contractor/map')).toBe(true);
   });
 
   it('does not match onboarding/auth routes', () => {
