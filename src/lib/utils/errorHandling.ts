@@ -1,0 +1,131 @@
+interface ErrorWithMetadata {
+  message?: string;
+  details?: string;
+  hint?: string;
+  code?: string;
+  status?: number;
+  statusCode?: number;
+  error_description?: string;
+  error?: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function stringifyUnknown(value: unknown): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function getNumericStatus(error: unknown): number | undefined {
+  if (!isRecord(error)) {
+    return undefined;
+  }
+
+  const value = (error.status ?? error.statusCode) as unknown;
+  return typeof value === 'number' ? value : undefined;
+}
+
+function getErrorCode(error: unknown): string | undefined {
+  if (!isRecord(error)) {
+    return undefined;
+  }
+
+  return typeof error.code === 'string' ? error.code : undefined;
+}
+
+export function getErrorMessage(error: unknown, fallback = 'An unexpected error occurred.'): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (isRecord(error)) {
+    const errorLike = error as ErrorWithMetadata;
+    if (typeof errorLike.message === 'string' && errorLike.message.trim().length > 0) {
+      return errorLike.message;
+    }
+
+    if (typeof errorLike.error_description === 'string' && errorLike.error_description.trim().length > 0) {
+      return errorLike.error_description;
+    }
+
+    if (typeof errorLike.error === 'string' && errorLike.error.trim().length > 0) {
+      return errorLike.error;
+    }
+  }
+
+  return fallback;
+}
+
+export function getErrorLogContext(error: unknown): Record<string, unknown> {
+  const message = getErrorMessage(error, 'Unknown error');
+  const status = getNumericStatus(error);
+  const code = getErrorCode(error);
+  const serialized = stringifyUnknown(error);
+
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message,
+      code,
+      status,
+      serialized,
+      stack: error.stack,
+    };
+  }
+
+  if (isRecord(error)) {
+    const errorLike = error as ErrorWithMetadata;
+    return {
+      message,
+      details: errorLike.details,
+      hint: errorLike.hint,
+      code,
+      status,
+      serialized,
+      raw: error,
+    };
+  }
+
+  return {
+    message,
+    status,
+    code,
+    serialized,
+    raw: error,
+  };
+}
+
+export function isAuthOrPermissionError(error: unknown): boolean {
+  const status = getNumericStatus(error);
+  if (status === 401 || status === 403) {
+    return true;
+  }
+
+  const code = (getErrorCode(error) ?? '').toUpperCase();
+  if (code === '42501') {
+    return true;
+  }
+
+  const message = getErrorMessage(error, '').toLowerCase();
+  return (
+    message.includes('auth') ||
+    message.includes('jwt') ||
+    message.includes('permission') ||
+    message.includes('row-level security') ||
+    message.includes('rls') ||
+    message.includes('session')
+  );
+}

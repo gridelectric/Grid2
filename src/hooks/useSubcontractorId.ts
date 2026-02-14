@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import { supabase } from '@/lib/supabase/client';
+import { getErrorLogContext, isAuthOrPermissionError } from '@/lib/utils/errorHandling';
 
 interface UseSubcontractorIdResult {
   subcontractorId: string | undefined;
@@ -24,21 +26,33 @@ export function useSubcontractorId(profileId?: string): UseSubcontractorIdResult
     const resolveSubcontractorId = async () => {
       setIsLoading(true);
       try {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !sessionData.session) {
+          if (active) {
+            setSubcontractorId(profileId);
+          }
+          return;
+        }
+
+        // Use a bounded list query instead of maybeSingle to tolerate legacy duplicate rows.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, error } = await (supabase.from('subcontractors') as any)
           .select('id')
           .eq('profile_id', profileId)
-          .maybeSingle();
+          .limit(1);
 
         if (error) {
           throw error;
         }
 
         if (active) {
-          setSubcontractorId(data?.id ?? profileId);
+          const resolvedId = Array.isArray(data) && data.length > 0 ? (data[0]?.id as string | undefined) : undefined;
+          setSubcontractorId(resolvedId ?? profileId);
         }
       } catch (error) {
-        console.error('Failed to resolve subcontractor ID:', error);
+        if (!isAuthOrPermissionError(error)) {
+          console.warn('Failed to resolve subcontractor ID:', getErrorLogContext(error));
+        }
         if (active) {
           setSubcontractorId(profileId);
         }

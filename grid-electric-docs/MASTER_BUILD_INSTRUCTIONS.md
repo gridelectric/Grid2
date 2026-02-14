@@ -626,6 +626,27 @@ grid-electric-app/
 - **Status Update:** 2026-02-14
 - **Agent:** GPT-5 Codex
 - **Notes:** Stabilized first-login password setup by replacing async auth-state callback deadlock patterns in `AuthProvider`, hardened `/set-password` error/session handling, and validated login -> `/set-password` -> role landing redirect with live Playwright flow and Supabase profile flag verification.
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Hardened ticket and subcontractor lookup error handling by normalizing unknown Supabase error objects into structured console context and user-facing fallback messages (`src/lib/utils/errorHandling.ts`, `TicketList`, `useSubcontractorId`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Resolved contractor ticket loading instability by making subcontractor ID resolution tolerant of duplicate rows and normalizing `profile_id`/`subcontractor_id` inputs in ticket assignment queries (`src/hooks/useSubcontractorId.ts`, `src/lib/services/ticketService.ts`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Fixed Next.js manifest route conflict causing `/manifest.webmanifest` 500 responses by removing duplicate static manifest and keeping `src/app/manifest.ts` as the single source (`public/manifest.webmanifest` removed).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Eliminated repeated contractor ticket/subcontractor lookup console failures by making assignee lookup resilient to auth/RLS timing and legacy ID formats, and improved error serialization so Supabase failures surface actionable metadata instead of `{}` (`src/lib/services/ticketService.ts`, `src/hooks/useSubcontractorId.ts`, `src/lib/utils/errorHandling.ts`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Added explicit Supabase session guards for ticket/subcontractor read paths and downgraded noisy ticket/subcontractor diagnostic logs from console errors to warnings to prevent false-positive runtime error overlays during transient auth initialization (`src/lib/services/ticketService.ts`, `src/hooks/useSubcontractorId.ts`, `src/components/features/tickets/TicketList.tsx`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Fixed Webpack `UnhandledSchemeError` for `node:crypto` by removing Node-only crypto import fallback from shared hash utility and relying on Web Crypto API (`src/lib/utils/hash.ts`), which is compatible with browser and modern JS runtimes.
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Stabilized Next.js artifact generation to prevent runtime ENOENT reads of `next-font-manifest.json`/`routes-manifest.json` by removing runtime dependency on Google-hosted `next/font` in root layout and fixing Next 15 async `params` typing in legacy redirect page (`src/app/layout.tsx`, `src/app/(admin)/admin/subcontractors/[id]/page.tsx`); full `npm run build` now completes successfully.
 
 ---
 

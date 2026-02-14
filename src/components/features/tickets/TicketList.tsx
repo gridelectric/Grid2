@@ -10,6 +10,7 @@ import { DataTable, Column } from '@/components/common/data-display/DataTable';
 import { StatusBadge } from '@/components/common/data-display/StatusBadge';
 import { TicketPriorityBadge } from './TicketPriorityBadge';
 import { formatDate } from '@/lib/utils/formatters';
+import { getErrorLogContext, getErrorMessage } from '@/lib/utils/errorHandling';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Plus, UserPlus } from 'lucide-react';
@@ -55,9 +56,9 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
             }
             setTickets(Array.isArray(data) ? data : []);
         } catch (error) {
-            console.error('Failed to load tickets:', error);
+            console.warn('Failed to load tickets:', getErrorLogContext(error));
             setTickets([]);
-            toast.error("Failed to load tickets");
+            toast.error(getErrorMessage(error, 'Failed to load tickets'));
         } finally {
             setIsLoading(false);
         }
@@ -98,8 +99,8 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
             toast.success(`Ticket ${assignRequest.ticketNumber} assigned successfully`);
             loadTickets(); // Reload to update list
         } catch (error) {
-            console.error("Failed to assign ticket", error);
-            toast.error("Failed to assign ticket");
+            console.error('Failed to assign ticket:', getErrorLogContext(error));
+            toast.error(getErrorMessage(error, 'Failed to assign ticket'));
         }
     };
 

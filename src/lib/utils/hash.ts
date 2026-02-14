@@ -14,8 +14,7 @@ async function getSubtleCrypto(): Promise<HashSubtle> {
     return globalThis.crypto.subtle as unknown as HashSubtle;
   }
 
-  const cryptoModule = await import('node:crypto');
-  return cryptoModule.webcrypto.subtle as unknown as HashSubtle;
+  throw new Error('Web Crypto API is unavailable in this environment.');
 }
 
 function isArrayBuffer(value: unknown): value is ArrayBuffer {

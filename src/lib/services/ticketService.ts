@@ -5,6 +5,7 @@ import { validateGPSWorkflow } from '@/lib/utils/gpsWorkflow';
 import { Ticket, TicketStatus, UserRole } from '@/types';
 import { Database } from '@/types/database';
 import { isValidTransition } from '@/lib/utils/statusTransitions';
+import { isAuthOrPermissionError } from '@/lib/utils/errorHandling';
 
 type ProfileRole = Pick<Database['public']['Tables']['profiles']['Row'], 'role'>;
 
@@ -14,6 +15,10 @@ interface ProfilesRoleTableClient {
             single: () => Promise<{ data: ProfileRole | null; error: unknown }>;
         };
     };
+}
+
+interface SubcontractorIdRow {
+    id: string;
 }
 
 const TICKET_ENTRY_EDIT_FIELDS: Array<keyof Ticket> = [
@@ -59,14 +64,48 @@ async function assertManagementActionAllowed(action: ManagementAction): Promise<
     }
 }
 
+async function resolveSubcontractorId(assigneeId: string): Promise<string | null> {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) {
+        return null;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.from('subcontractors') as any)
+        .select('id, profile_id')
+        .or(`id.eq.${assigneeId},profile_id.eq.${assigneeId}`)
+        .limit(1);
+
+    if (error) {
+        throw error;
+    }
+
+    if (!Array.isArray(data) || data.length === 0) {
+        return null;
+    }
+
+    const row = data[0] as SubcontractorIdRow;
+    return row.id ?? null;
+}
+
 export const ticketService = {
     async getTickets() {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !sessionData.session) {
+            return [];
+        }
+
         const { data, error } = await supabase
             .from('tickets')
             .select('*')
             .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+            if (isAuthOrPermissionError(error)) {
+                return [];
+            }
+            throw error;
+        }
         return data as Ticket[];
     },
 
@@ -119,14 +158,56 @@ export const ticketService = {
     },
 
     async getTicketsByAssignee(assigneeId: string) {
-        const { data, error } = await supabase
+        if (!assigneeId) {
+            return [];
+        }
+
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !sessionData.session) {
+            return [];
+        }
+
+        // Try direct match first to support existing records regardless of ID shape.
+        const { data: directData, error: directError } = await supabase
             .from('tickets')
             .select('*')
             .eq('assigned_to', assigneeId)
             .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        return data as Ticket[];
+        if (directError && !isAuthOrPermissionError(directError)) {
+            throw directError;
+        }
+
+        if (Array.isArray(directData) && directData.length > 0) {
+            return directData as Ticket[];
+        }
+
+        let subcontractorId: string | null = null;
+        try {
+            subcontractorId = await resolveSubcontractorId(assigneeId);
+        } catch (error) {
+            if (!isAuthOrPermissionError(error)) {
+                throw error;
+            }
+
+            return Array.isArray(directData) ? (directData as Ticket[]) : [];
+        }
+
+        if (!subcontractorId || subcontractorId === assigneeId) {
+            return Array.isArray(directData) ? (directData as Ticket[]) : [];
+        }
+
+        const { data, error } = await supabase
+            .from('tickets')
+            .select('*')
+            .eq('assigned_to', subcontractorId)
+            .order('created_at', { ascending: false });
+
+        if (error && !isAuthOrPermissionError(error)) {
+            throw error;
+        }
+
+        return Array.isArray(data) ? (data as Ticket[]) : [];
     },
 
     /**
