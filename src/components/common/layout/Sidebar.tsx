@@ -18,7 +18,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { BrandMark } from '@/components/common/brand/BrandMark';
 import type { NavigationSignals } from '@/hooks/useNavigationSignals';
 import { cn } from '@/lib/utils';
 
@@ -101,15 +100,7 @@ export function Sidebar({ isOpen, onClose, userRole, signals }: SidebarProps) {
     userRole === 'admin' ? ADMIN_SIDEBAR_NAV_ITEMS : CONTRACTOR_SIDEBAR_NAV_ITEMS;
 
   const renderNavContent = () => (
-    <div className="flex h-full flex-col bg-gradient-storm text-white">
-      <div className="flex h-16 items-center border-b border-white/15 px-6">
-        <BrandMark
-          portalLabel={userRole === 'admin' ? 'Admin Portal' : 'Contractor Portal'}
-          tone="light"
-          variant="full"
-        />
-      </div>
-
+    <div className="flex h-full flex-col bg-gradient-storm text-white shadow-[inset_-0.5px_0_0_rgba(255,192,56,0.4)]">
       <ScrollArea className="flex-1 py-4">
         <nav className="space-y-1 px-3">
           {navItems.map((item) => {
@@ -119,26 +110,25 @@ export function Sidebar({ isOpen, onClose, userRole, signals }: SidebarProps) {
             return (
               <Link
                 className={cn(
-                  'transition-grid group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium',
+                  'transition-grid group flex min-h-11 items-center gap-3 rounded-xl border-[0.5px] px-3 py-2.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,192,56,0.7)] focus-visible:ring-offset-1 focus-visible:ring-offset-[#002168]',
                   isActive
-                    ? 'bg-white/12 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.24)]'
-                    : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                    ? 'border-[rgba(255,192,56,0.62)] bg-[linear-gradient(90deg,rgba(255,192,56,0.24)_0%,rgba(255,255,255,0.16)_55%,rgba(255,255,255,0.12)_100%)] text-white shadow-[inset_0_0_0_0.5px_rgba(255,192,56,0.46)]'
+                    : 'border-transparent text-blue-100 hover:border-[rgba(255,192,56,0.5)] hover:bg-[linear-gradient(90deg,rgba(255,192,56,0.14)_0%,rgba(255,255,255,0.08)_72%,rgba(255,255,255,0.07)_100%)] hover:text-white'
                 )}
                 href={item.href}
                 key={item.href}
                 onClick={onClose}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className={cn('h-5 w-5 transition-grid', isActive ? 'text-grid-lightning' : 'text-blue-100 group-hover:text-grid-lightning')} />
                 <span className="flex-1">{item.label}</span>
                 {renderBadge(item, signals)}
-                {isActive ? <span aria-hidden className="storm-lightning-dot" /> : null}
               </Link>
             );
           })}
         </nav>
       </ScrollArea>
 
-      <div className="space-y-1 border-t border-white/15 p-4">
+      <div className="space-y-1 border-t-[0.5px] border-[rgba(255,192,56,0.35)] p-4">
         <p className="text-xs text-blue-200">
           {signals.isOnline ? 'Online sync ready' : 'Offline mode active'}
         </p>
@@ -157,13 +147,13 @@ export function Sidebar({ isOpen, onClose, userRole, signals }: SidebarProps) {
         }}
         open={isOpen}
       >
-        <SheetContent className="w-72 p-0" side="left">
+        <SheetContent className="w-72 border-r-[0.5px] border-r-[rgba(255,192,56,0.55)] p-0" side="left">
           {renderNavContent()}
         </SheetContent>
       </Sheet>
 
       <aside
-        className="hidden w-72 border-r border-grid-surface lg:block"
+        className="hidden w-72 border-r-[0.5px] border-r-[rgba(255,192,56,0.55)] lg:block"
         style={{
           top: 'calc(var(--top-bar-height) + var(--offline-banner-height))',
           height: 'calc(100vh - var(--top-bar-height) - var(--offline-banner-height))',
@@ -182,7 +172,7 @@ export function Sidebar({ isOpen, onClose, userRole, signals }: SidebarProps) {
 
 export function SidebarTrigger({ onClick }: { onClick: () => void }) {
   return (
-    <Button className="h-11 w-11 lg:hidden" onClick={onClick} size="icon" variant="ghost">
+    <Button className="h-11 w-11 text-white hover:bg-white/15 hover:text-white lg:hidden" onClick={onClick} size="icon" variant="ghost">
       <Menu className="h-5 w-5" />
       <span className="sr-only">Open navigation menu</span>
     </Button>

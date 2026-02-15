@@ -92,7 +92,6 @@ export default function StormEventsPage() {
                   <CloudRain className="h-5 w-5 text-blue-600" />
                   {stormEvent.name}
                 </CardTitle>
-                <p className="text-xs text-slate-500">Event Code: {stormEvent.eventCode}</p>
               </CardHeader>
               <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-sm text-slate-600">

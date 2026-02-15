@@ -59,24 +59,24 @@ export function TopBar({
 
   return (
     <header
-      className="safe-area-pr safe-area-pl fixed left-0 right-0 z-50 border-b border-grid-surface bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90"
+      className="safe-area-pr safe-area-pl fixed left-0 right-0 z-50 border-b border-white/20 bg-transparent"
       style={{ height: 'var(--top-bar-height)', top: 'var(--offline-banner-height)' }}
     >
-      <div className="mx-auto flex h-full max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="topbar-center-gradient mx-auto flex h-full max-w-[1400px] items-center justify-between gap-4 px-4 text-white sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <SidebarTrigger onClick={onMenuClick} />
           <Link className="inline-flex items-center lg:hidden" href="/tickets">
             <BrandMark variant="compact" />
           </Link>
           <div className="hidden lg:block">
-            <BrandMark portalLabel={getPortalLabel(userPortal)} variant="full" />
+            <BrandMark portalLabel={getPortalLabel(userPortal)} tone="light" variant="full" />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
-              <Button className="relative" size="icon" variant="ghost">
+              <Button className="relative text-white hover:bg-white/15 hover:text-white" size="icon" variant="ghost">
                 <Bell className="h-5 w-5" />
                 {signals.notificationCount > 0 ? (
                   <span className="absolute right-1.5 top-1.5 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-grid-lightning px-1 text-[10px] font-semibold text-slate-900">
@@ -144,7 +144,7 @@ export function TopBar({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="flex items-center gap-2" variant="ghost">
+              <Button className="flex items-center gap-2 text-white hover:bg-white/15 hover:text-white" variant="ghost">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-grid-storm-100 text-grid-navy text-sm font-medium">
                     {getInitials(userName)}
@@ -152,7 +152,7 @@ export function TopBar({
                 </Avatar>
                 <div className="hidden text-left sm:block">
                   <p className="text-sm font-medium">{userName}</p>
-                  <p className="text-xs capitalize text-slate-500">{userRole.toLowerCase().replace('_', ' ')}</p>
+                  <p className="text-xs capitalize text-blue-100">{userRole.toLowerCase().replace('_', ' ')}</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>

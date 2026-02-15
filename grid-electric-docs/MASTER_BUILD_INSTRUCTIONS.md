@@ -753,6 +753,27 @@ grid-electric-app/
 - **Status Update:** 2026-02-15
 - **Agent:** GPT-5 Codex
 - **Notes:** Extended E2E coverage for UI polish validation by adding authenticated portal journey smoke specs (`tests/e2e/portal-flows-authenticated.spec.ts`) for admin (`/admin/dashboard -> /admin/storms -> /tickets`) and contractor (`/contractor/time -> /tickets -> /contractor/expenses`) flows using env-gated credentials (`E2E_*`) with no hardcoded secrets; `npm run test:e2e` passes with these tests auto-skipping when credentials are not configured.
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Applied `/admin/storms` UI feedback by removing Event Code text from storm event card headers so only storm name appears in the header (`src/app/(admin)/storms/page.tsx`).
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Applied `/admin/contractors` shell feedback by changing the TopBar center container to a centered blue dark-to-light gradient and updating top-bar contrast for readability (`src/components/common/layout/TopBar.tsx`, `src/app/globals.css`, `src/components/common/layout/Sidebar.tsx`).
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Applied `/admin/contractors` sidebar feedback by removing the sidebar top flex brand/header row so navigation items begin at the top of the sidebar (`src/components/common/layout/Sidebar.tsx`).
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Applied gold/lightning accent pass for sidebar navigation: changed sidebar border to lightning accent, updated active row styling to use gold-accent border/fill/indicator, and updated hover reactions to use gold-accent borders + glow while preserving keyboard focus visibility (`src/components/common/layout/Sidebar.tsx`).
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Refined sidebar gold-accent treatment by reducing border thickness across sidebar edge, nav row outlines, active inset border, and footer divider for a lighter visual weight while keeping the same accent behavior (`src/components/common/layout/Sidebar.tsx`).
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Applied `/admin/contractors` sidebar feedback by removing the per-row right-side `h-5` accent indicator element from nav links while preserving gold border/hover accents (`src/components/common/layout/Sidebar.tsx`).
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Applied `/tickets` page feedback by removing top-level header descriptive text from the tickets landing page (`src/app/tickets/page.tsx`).
 
 ---
 

@@ -23,11 +23,6 @@ export default function TicketsPage() {
     <div className="space-y-6">
       <PageHeader
         title={userRole === 'admin' ? 'Ticket Management' : 'My Tickets'}
-        description={
-          userRole === 'admin'
-            ? 'Monitor assignment load and ticket lifecycle status across all crews.'
-            : 'Track assigned assessments, status transitions, and required follow-ups.'
-        }
       />
       {profile ? (
         <TicketList

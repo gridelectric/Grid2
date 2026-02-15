@@ -238,6 +238,11 @@
   .bg-gradient-storm {
     background: linear-gradient(135deg, #001545 0%, #002168 45%, #2ea3f2 100%);
   }
+  .topbar-center-gradient {
+    background:
+      radial-gradient(circle at 50% 36%, rgba(145, 211, 255, 0.5) 0%, rgba(46, 163, 242, 0.22) 38%, transparent 66%),
+      linear-gradient(90deg, #001545 0%, #002168 34%, #2ea3f2 50%, #002168 66%, #001545 100%);
+  }
   .bg-grid-shell {
     background-color: #f6f9ff;
     background-image:
