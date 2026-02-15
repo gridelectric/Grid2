@@ -124,9 +124,63 @@ export interface Database {
           updated_at?: string;
         };
       };
+      storm_events: {
+        Row: {
+          id: string;
+          event_code: string;
+          name: string;
+          utility_client: string;
+          status: string;
+          region: string | null;
+          contract_reference: string | null;
+          start_date: string | null;
+          end_date: string | null;
+          notes: string | null;
+          created_by: string | null;
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+          is_deleted: boolean;
+        };
+        Insert: {
+          id?: string;
+          event_code: string;
+          name: string;
+          utility_client: string;
+          status?: string;
+          region?: string | null;
+          contract_reference?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          notes?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          is_deleted?: boolean;
+        };
+        Update: {
+          id?: string;
+          event_code?: string;
+          name?: string;
+          utility_client?: string;
+          status?: string;
+          region?: string | null;
+          contract_reference?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          notes?: string | null;
+          created_by?: string | null;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          is_deleted?: boolean;
+        };
+      };
       tickets: {
         Row: {
           id: string;
+          storm_event_id: string | null;
           ticket_number: string;
           status: string;
           priority: string;
@@ -147,6 +201,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          storm_event_id?: string | null;
           ticket_number: string;
           status?: string;
           priority?: string;
@@ -167,6 +222,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          storm_event_id?: string | null;
           ticket_number?: string;
           status?: string;
           priority?: string;

@@ -88,6 +88,28 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.current_user_role()
+RETURNS TEXT
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  current_role TEXT;
+BEGIN
+  SELECT p.role::text
+  INTO current_role
+  FROM public.profiles p
+  WHERE p.id = auth.uid()
+  LIMIT 1;
+
+  RETURN current_role;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.current_user_role() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.current_user_role() TO anon;
 GRANT EXECUTE ON FUNCTION public.is_super_admin() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_super_admin() TO anon;
 
@@ -97,10 +119,9 @@ CREATE POLICY profiles_update_own ON public.profiles
   USING (id = auth.uid())
   WITH CHECK (
     id = auth.uid()
-    AND role = (
-      SELECT p.role
-      FROM public.profiles p
-      WHERE p.id = auth.uid()
+    AND (
+      public.current_user_role() = 'SUPER_ADMIN'
+      OR role::text = public.current_user_role()
     )
   );
 

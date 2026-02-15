@@ -33,7 +33,7 @@ export default function ReviewPage() {
           {onboardingRequired && (
             <Alert variant="destructive">
               <AlertDescription>
-                Your onboarding is not yet verified. Resolve required onboarding items to access storm project features.
+                Your onboarding is not yet verified. Resolve required onboarding items to access storm event features.
               </AlertDescription>
             </Alert>
           )}

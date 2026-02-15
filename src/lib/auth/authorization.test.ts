@@ -9,7 +9,7 @@ import {
 
 describe('canPerformManagementAction', () => {
   const superAdminActions: ManagementAction[] = [
-    'storm_project_write',
+    'storm_event_write',
     'ticket_entry_write',
     'contractor_assignment_write',
   ];
@@ -40,9 +40,11 @@ describe('getManagementActionForPath', () => {
     expect(getManagementActionForPath('/admin/contractors/approval')).toBeNull();
   });
 
-  it('maps storm project write paths', () => {
-    expect(getManagementActionForPath('/admin/storms/create')).toBe('storm_project_write');
-    expect(getManagementActionForPath('/admin/storms/storm-1/edit')).toBe('storm_project_write');
+  it('maps storm event write paths', () => {
+    expect(getManagementActionForPath('/admin/storms/create')).toBe('storm_event_write');
+    expect(getManagementActionForPath('/storms/create')).toBe('storm_event_write');
+    expect(getManagementActionForPath('/admin/storms/storm-1/edit')).toBe('storm_event_write');
+    expect(getManagementActionForPath('/storms/storm-1/edit')).toBe('storm_event_write');
   });
 
   it('returns null for non-management paths', () => {

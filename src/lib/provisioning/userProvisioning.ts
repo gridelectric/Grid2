@@ -11,6 +11,7 @@ export type ProvisioningRole = 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TEMP_PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,}$/;
+const MAX_SUPER_ADMINS = 2;
 
 const ROLE_ALIASES: Record<string, ProvisioningRole | null> = {
   SUPER_ADMIN: 'SUPER_ADMIN',
@@ -315,23 +316,23 @@ export function validateProvisioningRows(rows: ParsedProvisioningRow[]): Validat
   return { validRows, rowIssues, warnings };
 }
 
-function resolveSecondSuperAdminReason(
+function resolveSuperAdminLimitReason(
   row: ValidatedProvisioningRow,
-  activeSuperAdminEmail: string | null
+  activeSuperAdminEmails: Set<string>,
 ): string | null {
   if (row.role !== 'SUPER_ADMIN') {
     return null;
   }
 
-  if (!activeSuperAdminEmail) {
+  if (activeSuperAdminEmails.has(row.email)) {
     return null;
   }
 
-  if (activeSuperAdminEmail === row.email) {
+  if (activeSuperAdminEmails.size < MAX_SUPER_ADMINS) {
     return null;
   }
 
-  return 'Second SUPER_ADMIN creation attempt blocked by policy.';
+  return `SUPER_ADMIN limit reached (${MAX_SUPER_ADMINS} max).`;
 }
 
 export async function runProvisioning(
@@ -348,31 +349,35 @@ export async function runProvisioning(
   let failedRows = 0;
 
   const existingSuperAdmins = await adapter.listSuperAdmins();
-  if (existingSuperAdmins.length > 1) {
+  if (existingSuperAdmins.length > MAX_SUPER_ADMINS) {
     warnings.push(
       `Security warning: ${existingSuperAdmins.length} SUPER_ADMIN profiles already exist before provisioning.`,
     );
   }
 
-  let activeSuperAdminEmail = existingSuperAdmins[0]?.email?.toLowerCase() ?? null;
+  const activeSuperAdminEmails = new Set(
+    existingSuperAdmins
+      .map((admin) => admin.email?.toLowerCase())
+      .filter((email): email is string => typeof email === 'string' && email.length > 0),
+  );
 
   for (const row of rows) {
-    const secondSuperAdminReason = resolveSecondSuperAdminReason(row, activeSuperAdminEmail);
-    if (secondSuperAdminReason) {
+    const superAdminLimitReason = resolveSuperAdminLimitReason(row, activeSuperAdminEmails);
+    if (superAdminLimitReason) {
       failedRows += 1;
       outcomes.push({
         lineNumber: row.lineNumber,
         email: row.email,
         status: 'failed',
         mode: apply ? 'applied' : 'dry-run',
-        reason: secondSuperAdminReason,
+        reason: superAdminLimitReason,
       });
-      warnings.push(`Line ${row.lineNumber}: ${secondSuperAdminReason}`);
+      warnings.push(`Line ${row.lineNumber}: ${superAdminLimitReason}`);
       continue;
     }
 
-    if (!activeSuperAdminEmail && row.role === 'SUPER_ADMIN') {
-      activeSuperAdminEmail = row.email;
+    if (row.role === 'SUPER_ADMIN') {
+      activeSuperAdminEmails.add(row.email);
     }
 
     try {

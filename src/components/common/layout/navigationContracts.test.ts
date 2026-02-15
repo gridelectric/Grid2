@@ -16,7 +16,7 @@ describe('navigation contracts', () => {
       expect.arrayContaining([
         expect.objectContaining({ href: '/admin/dashboard', label: 'Dashboard' }),
         expect.objectContaining({ href: '/admin/contractors', label: 'Users' }),
-        expect.objectContaining({ href: '/admin/storms', label: 'Storms' }),
+        expect.objectContaining({ href: '/admin/storms', label: 'Storm Events' }),
       ])
     );
   });

@@ -5,6 +5,7 @@ import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ServiceWorkerProvider } from "@/components/providers/ServiceWorkerProvider";
 import { SyncProvider } from "@/components/providers/SyncProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { Agentation } from "agentation";
 
 export const metadata: Metadata = {
   title: "Grid Electric Services",
@@ -24,6 +25,7 @@ export default function RootLayout({
             <SyncProvider>
               <OfflineBanner />
               {children}
+              {process.env.NODE_ENV === "development" && <Agentation />}
               <Toaster />
             </SyncProvider>
           </ServiceWorkerProvider>

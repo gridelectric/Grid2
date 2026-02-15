@@ -2,7 +2,7 @@
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
@@ -29,7 +29,9 @@ import {
     type EntergyTicketFormatInput,
 } from "@/lib/constants/entergyTicketFormat"
 import { isEntergyUtilityClient, UTILITY_CLIENTS } from "@/lib/constants/utilityClients"
+import { stormEventService, type StormEventSummary } from "@/lib/services/stormEventService"
 import { ticketService } from "@/lib/services/ticketService"
+import { getErrorMessage } from "@/lib/utils/errorHandling"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
@@ -47,6 +49,7 @@ const optionalNonNegativeInteger = z.preprocess((value) => {
 }, z.number().int().min(0).optional())
 
 const ticketFormSchema = z.object({
+    storm_event_id: z.string().min(1, "Storm event is required"),
     ticket_number: z.string().min(1, "Ticket number is required"),
     utility_client: z.string().min(1, "Utility Client is required"),
     work_order_ref: z.string().optional(),
@@ -181,6 +184,8 @@ type TicketFormValues = z.infer<typeof ticketFormSchema>
 interface TicketFormProps {
     defaultUtilityClient?: string
     lockUtilityClient?: boolean
+    defaultStormEventId?: string
+    lockStormEvent?: boolean
 }
 
 function toTrimmedOrUndefined(value?: string): string | undefined {
@@ -188,11 +193,19 @@ function toTrimmedOrUndefined(value?: string): string | undefined {
     return trimmed ? trimmed : undefined
 }
 
-export function TicketForm({ defaultUtilityClient, lockUtilityClient = false }: TicketFormProps) {
+export function TicketForm({
+    defaultUtilityClient,
+    lockUtilityClient = false,
+    defaultStormEventId,
+    lockStormEvent = false,
+}: TicketFormProps) {
     const router = useRouter()
+    const [stormEvents, setStormEvents] = useState<StormEventSummary[]>([])
+    const [isStormEventsLoading, setIsStormEventsLoading] = useState(true)
     const form = useForm<TicketFormValues>({
         resolver: zodResolver(ticketFormSchema),
         defaultValues: {
+            storm_event_id: "",
             ticket_number: "",
             utility_client: "",
             work_order_ref: "",
@@ -239,8 +252,55 @@ export function TicketForm({ defaultUtilityClient, lockUtilityClient = false }: 
         form.setValue("utility_client", defaultUtilityClient, { shouldValidate: true })
     }, [defaultUtilityClient, form])
 
+    useEffect(() => {
+        if (!defaultStormEventId) {
+            return
+        }
+
+        form.setValue("storm_event_id", defaultStormEventId, { shouldValidate: true })
+    }, [defaultStormEventId, form])
+
+    useEffect(() => {
+        let active = true
+
+        const loadStormEvents = async () => {
+            setIsStormEventsLoading(true)
+            try {
+                const items = await stormEventService.listStormEvents()
+                if (active) {
+                    setStormEvents(items.filter((item) => item.status !== "ARCHIVED"))
+                }
+            } catch (error) {
+                if (active) {
+                    setStormEvents([])
+                }
+                toast.error(getErrorMessage(error, "Failed to load storm events"))
+            } finally {
+                if (active) {
+                    setIsStormEventsLoading(false)
+                }
+            }
+        }
+
+        void loadStormEvents()
+
+        return () => {
+            active = false
+        }
+    }, [])
+
+    const selectedStormEventId = form.watch("storm_event_id")
     const selectedUtilityClient = form.watch("utility_client")
+    const selectedStormEvent = stormEvents.find((item) => item.id === selectedStormEventId)
     const isEntergyFormat = isEntergyUtilityClient(selectedUtilityClient)
+
+    useEffect(() => {
+        if (!selectedStormEvent) {
+            return
+        }
+
+        form.setValue("utility_client", selectedStormEvent.utilityClient, { shouldValidate: true })
+    }, [form, selectedStormEvent])
 
     async function onSubmit(data: TicketFormValues) {
         try {
@@ -279,6 +339,7 @@ export function TicketForm({ defaultUtilityClient, lockUtilityClient = false }: 
             }
 
             const payload = {
+                storm_event_id: data.storm_event_id,
                 ticket_number: data.ticket_number.trim(),
                 utility_client: utilityClient,
                 work_order_ref: toTrimmedOrUndefined(data.work_order_ref),
@@ -307,8 +368,7 @@ export function TicketForm({ defaultUtilityClient, lockUtilityClient = false }: 
             router.push("/tickets")
             router.refresh()
         } catch (error) {
-            toast.error("Failed to create ticket")
-            console.error(error)
+            toast.error(getErrorMessage(error, "Failed to create ticket"))
         }
     }
 
@@ -316,6 +376,39 @@ export function TicketForm({ defaultUtilityClient, lockUtilityClient = false }: 
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="storm_event_id"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Storm Event *</FormLabel>
+                                <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                    disabled={lockStormEvent || isStormEventsLoading}
+                                >
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={isStormEventsLoading ? "Loading storm events..." : "Select Storm Event"} />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {stormEvents.map((stormEvent) => (
+                                            <SelectItem key={stormEvent.id} value={stormEvent.id}>
+                                                {stormEvent.eventCode} - {stormEvent.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {!isStormEventsLoading && stormEvents.length === 0 ? (
+                                    <p className="text-xs text-amber-700">
+                                        No storm events found. Create a storm event before adding ticket entries.
+                                    </p>
+                                ) : null}
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                     <FormField
                         control={form.control}
                         name="ticket_number"
@@ -341,7 +434,7 @@ export function TicketForm({ defaultUtilityClient, lockUtilityClient = false }: 
                                 <Select
                                     onValueChange={field.onChange}
                                     value={field.value}
-                                    disabled={lockUtilityClient}
+                                    disabled={lockUtilityClient || Boolean(selectedStormEvent)}
                                 >
                                     <FormControl>
                                         <SelectTrigger>

@@ -7,7 +7,7 @@ export const ADMIN_SIDEBAR_NAV_ITEMS: NavLinkItem[] = [
   { href: '/admin/dashboard', label: 'Dashboard' },
   { href: '/tickets', label: 'Tickets' },
   { href: '/admin/contractors', label: 'Users' },
-  { href: '/admin/storms', label: 'Storms' },
+  { href: '/admin/storms', label: 'Storm Events' },
   { href: '/admin/time-review', label: 'Time Review' },
   { href: '/admin/expense-review', label: 'Expenses' },
   { href: '/admin/assessment-review', label: 'Assessments' },

@@ -676,7 +676,55 @@ grid-electric-app/
 - **Notes:** Added Entergy-specific OCR-derived ticket intake support: extracted incident batch data to `output/pdf/entergy_incident_tickets_batch1_extracted.json`, documented the canonical Entergy format (`grid-electric-docs/ENTERGY_TICKET_FORMAT.md`), enforced Entergy-only intake schema in ticket creation when utility is Entergy (`src/components/features/tickets/TicketForm.tsx`), and wired storm-page utility selection to preselect/lock utility format in ticket entry (`src/app/(admin)/storms/page.tsx`, `src/app/tickets/create/page.tsx`).
 - **Status Update:** 2026-02-14
 - **Agent:** GPT-5 Codex
-- **Notes:** Removed noisy runtime error overlay from storm operations loading by replacing `console.error` with structured recoverable handling: auth/RLS failures are silently tolerated, and non-auth failures now show user toast + warning context (`src/app/(admin)/storms/page.tsx`).
+- **Notes:** Removed noisy runtime error overlay from storm event loading by replacing `console.error` with structured recoverable handling: auth/RLS failures are silently tolerated, and non-auth failures now show user toast + warning context (`src/app/(admin)/storms/page.tsx`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Fully eliminated console logging from storm event loader to stop browser console/runtime overlays on storm fetch failures; loader now falls back to empty state and only shows toast for non-auth failures (`src/app/(admin)/storms/page.tsx`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Completed full `Storm Project` -> `Storm Event` terminology refactor across management authorization, admin storm UI copy/state labels, and navigation labels/tests; added defensive Supabase migration `sql/20260214_04_rename_storm_project_to_storm_event.sql` to rename legacy schema objects (`storm_projects`, `storm_project_id`, related index/FK/policy names) to `storm_event` equivalents and validated with successful `npm run build`.
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Configured Supabase CLI project linkage for this workspace and applied remote migration `20260214174200_rename_storm_project_to_storm_event.sql` via `supabase db push`; verified migration history contains local/remote version `20260214174200` (`supabase migration list --linked`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Eliminated stale dev-bundle regressions that surfaced old `Storm Project/operations` console traces by updating `ServiceWorkerProvider` to disable/unregister service workers and clear `grid-electric-*` caches in non-production; retained production SW/background-sync behavior (`src/components/providers/ServiceWorkerProvider.tsx`). Verified with successful `npm run build`.
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Added a second dev-cache safeguard in `public/sw.js` to bypass custom fetch caching entirely on `localhost`/`127.0.0.1`, preventing stale `_next` bundle reuse that can continue surfacing outdated console traces after refactors.
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Added dev-only runtime recovery for `[object Event]` chunk/script failures by intercepting event-shaped `error`/`unhandledrejection`, clearing service workers + `grid-electric-*` caches, and auto-reloading once (`src/components/providers/ServiceWorkerProvider.tsx`); also downgraded `AuthProvider` transient session/profile diagnostics from `console.error` to structured `console.warn` to prevent false runtime overlays (`src/components/providers/AuthProvider.tsx`).
+- **Status Update:** 2026-02-14
+- **Agent:** GPT-5 Codex
+- **Notes:** Updated SUPER_ADMIN policy from single-admin to max-two-admins across provisioning and database: added `MAX_SUPER_ADMINS=2` enforcement in provisioning flow with integration tests (`src/lib/provisioning/userProvisioning.ts`, `src/lib/provisioning/userProvisioning.integration.test.ts`), added migration `sql/20260214_05_allow_two_super_admins_and_promote_jeanie.sql` and applied remotely (`supabase/migrations/20260214182500_allow_two_super_admins_and_promote_jeanie.sql`), then verified remote state has exactly two SUPER_ADMIN profiles including Jeanie Campbell (`jcampbell@gridelectriccorp.com`).
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Completed Storm Event root-workflow wiring: moved dashboard `Quick Actions` to top with horizontal layout (`src/app/(admin)/dashboard/page.tsx`), changed storm entry CTA to `Create Storm Event` and added dedicated create flow (`src/app/(admin)/storms/page.tsx`, `src/app/(admin)/storms/create/page.tsx`, `src/app/(admin)/admin/storms/create/page.tsx`), introduced `stormEventService` and ticket linkage via required `storm_event_id` (`src/lib/services/stormEventService.ts`, `src/components/features/tickets/TicketForm.tsx`, `src/app/tickets/create/page.tsx`, `src/types/*`), and added/applied `storm_events` schema + RLS + trigger + ticket FK migration (`sql/20260214_06_create_storm_events_root_workflow.sql`, `supabase/migrations/20260214194000_create_storm_events_root_workflow.sql`).
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Replaced application icon assets across favicon/Next app icons/PWA icon set using the new Grid Electric storm icon source (`src/app/favicon.ico`, `src/app/icon.png`, `src/app/apple-icon.png`, `public/icons/icon-*.png`), preserving manifest paths in `src/app/manifest.ts`.
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Fixed Supabase RLS recursion failure `infinite recursion detected in policy for relation "profiles"` by adding non-recursive helper `public.current_user_role()`, hardening `public.is_admin()`/`public.is_super_admin()` as `SECURITY DEFINER`, and replacing recursive `profiles_update_own` policy checks; applied remote migration `supabase/migrations/20260215001000_fix_profiles_policy_recursion.sql` via `supabase db push` and mirrored SQL script `sql/20260215_07_fix_profiles_policy_recursion.sql`.
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Installed UI annotation workflow support by installing Codex skill `agentation` from `benjitaylor/agentation` and integrating the development toolbar in root layout (`src/app/layout.tsx`) with `process.env.NODE_ENV === "development"` gating; installed npm dependency `agentation` and validated successful `npm run build`.
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Ingested official Agentation documentation (`agentation.dev` Install/Features/Output/Schema/MCP/API/Webhooks/Changelog/FAQ) and recorded an implementation-ready integration reference in `grid-electric-docs/AGENTATION_DOCS_INGEST_2026-02-15.md` for future UI annotation-driven changes.
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Rebased all application icon assets onto `/Users/grid/Desktop/grid-ge-storm-icon.svg` source by extracting and cleaning its embedded image to remove edge-connected white background (transparent corners/edges), then regenerated favicon + Next icon + apple icon + full PWA icon set (`src/app/favicon.ico`, `src/app/icon.png`, `src/app/apple-icon.png`, `public/icons/icon-*.png`) and validated with successful `npm run build`.
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Stabilized blank-page/dev runtime regressions (`Cannot find module './1331.js'`, manifest/favicon route 500s) by moving icon/manifest delivery from App Router metadata routes to static public assets: added `public/manifest.webmanifest`, `public/favicon.ico`, `public/icon.png`, `public/apple-touch-icon.png`, and removed `src/app/manifest.ts` + `src/app/favicon.ico` metadata route files to avoid flaky dev chunk resolution; revalidated with fresh dev requests and successful production build.
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Updated admin/contractor shell sidebar brand mark to use the new GE storm SVG icon instead of the placeholder blue `G` tile (`src/components/common/layout/Sidebar.tsx`, asset `/public/icons/grid-ge-storm-icon-clean.svg`), matching the requested UI feedback for `/admin/storms/create`; verified with successful `npm run build`.
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Hardened dev runtime stability for intermittent `[object Event]` overlays by disabling webpack filesystem cache in development (`next.config.ts`), then revalidated via fresh dev boot + repeated `manifest/favicon/login` requests and headless browser runtime checks (no page errors, no failed chunk/module requests observed).
 
 ---
 

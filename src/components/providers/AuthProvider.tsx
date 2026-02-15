@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { User as AppUser } from '@/types';
 import { getLandingPathForRole } from '@/lib/auth/roleLanding';
+import { getErrorLogContext } from '@/lib/utils/errorHandling';
 
 interface AuthContextType {
   user: User | null;
@@ -62,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!response.ok) {
         const body = await response.text();
-        console.error('Error fetching profile:', {
+        console.warn('Error fetching profile:', {
           status: response.status,
           body,
         });
@@ -74,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(payload.profile);
       }
     } catch (error) {
-      console.error('Error in fetchProfile:', error);
+      console.warn('Error in fetchProfile:', getErrorLogContext(error));
     }
   };
 
@@ -91,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
       router.push('/login');
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.warn('Error signing out:', getErrorLogContext(error));
     }
   };
 
@@ -106,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(null);
         }
       } catch (error) {
-        console.error('Error applying session:', error);
+        console.warn('Error applying session:', getErrorLogContext(error));
       } finally {
         setIsLoading(false);
       }
@@ -118,14 +119,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error) {
-          console.error('Session error:', error);
+          console.warn('Session error:', getErrorLogContext(error));
           setIsLoading(false);
           return;
         }
 
         await applySession(session);
       } catch (error) {
-        console.error('Error checking session:', error);
+        console.warn('Error checking session:', getErrorLogContext(error));
         setIsLoading(false);
       }
     };

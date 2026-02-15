@@ -65,7 +65,29 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.current_user_role()
+RETURNS TEXT
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  current_role TEXT;
+BEGIN
+  SELECT p.role::text
+  INTO current_role
+  FROM public.profiles p
+  WHERE p.id = auth.uid()
+  LIMIT 1;
+
+  RETURN current_role;
+END;
+$$;
+
 -- 5. Grant permissions
+GRANT EXECUTE ON FUNCTION public.current_user_role() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.current_user_role() TO anon;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO anon;
 GRANT EXECUTE ON FUNCTION public.is_super_admin() TO authenticated;
@@ -87,10 +109,9 @@ DO $$ BEGIN
       FOR UPDATE USING (id = auth.uid())
       WITH CHECK (
         id = auth.uid()
-        AND role = (
-          SELECT p.role
-          FROM public.profiles p
-          WHERE p.id = auth.uid()
+        AND (
+          public.current_user_role() = 'SUPER_ADMIN'
+          OR role::text = public.current_user_role()
         )
       );
 EXCEPTION WHEN duplicate_object THEN null; END $$;

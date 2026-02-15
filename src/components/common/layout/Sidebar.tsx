@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -61,8 +62,15 @@ export function Sidebar({ isOpen, onClose, userRole }: SidebarProps) {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="flex items-center h-16 px-6 border-b">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-          <span className="text-white font-bold text-lg">G</span>
+        <div className="w-8 h-8 mr-3 shrink-0 overflow-hidden rounded-lg">
+          <Image
+            src="/icons/grid-ge-storm-icon-clean.svg"
+            alt="Grid Electric logo"
+            width={32}
+            height={32}
+            className="w-8 h-8 object-contain"
+            priority
+          />
         </div>
         <div>
           <span className="font-bold text-slate-900 dark:text-white">Grid Electric</span>

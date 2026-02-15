@@ -32,7 +32,29 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.current_user_role()
+RETURNS TEXT
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  current_role TEXT;
+BEGIN
+  SELECT p.role::text
+  INTO current_role
+  FROM public.profiles p
+  WHERE p.id = auth.uid()
+  LIMIT 1;
+
+  RETURN current_role;
+END;
+$$;
+
 -- Grant execute permission on the helper function
+GRANT EXECUTE ON FUNCTION public.current_user_role() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.current_user_role() TO anon;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO anon;
 GRANT EXECUTE ON FUNCTION public.is_super_admin() TO authenticated;
@@ -52,10 +74,9 @@ CREATE POLICY profiles_update_own ON profiles
   FOR UPDATE USING (id = auth.uid())
   WITH CHECK (
     id = auth.uid()
-    AND role = (
-      SELECT p.role
-      FROM profiles p
-      WHERE p.id = auth.uid()
+    AND (
+      public.current_user_role() = 'SUPER_ADMIN'
+      OR role::text = public.current_user_role()
     )
   );
 
@@ -89,6 +110,16 @@ CREATE POLICY contractors_update_own ON contractors
 -- Admins have full access to contractors
 CREATE POLICY contractors_write_admin ON contractors
   FOR ALL USING (is_admin());
+
+-- Storm Events RLS Policies
+-- Admins can view all storm events
+CREATE POLICY storm_events_select_admin ON storm_events
+  FOR SELECT USING (is_admin());
+
+-- Only super admins can create/update/delete storm events
+CREATE POLICY storm_events_write_super_admin ON storm_events
+  FOR ALL USING (is_super_admin())
+  WITH CHECK (is_super_admin());
 
 -- Tickets RLS Policies
 -- Users can view tickets assigned to them

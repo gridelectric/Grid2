@@ -58,7 +58,7 @@ describe('runProvisioning', () => {
     expect(adapter.upsertContractor).not.toHaveBeenCalled();
   });
 
-  it('blocks second super admin attempts', async () => {
+  it('allows a second super admin when one already exists', async () => {
     const adapter = buildAdapter({
       listSuperAdmins: vi.fn(async () => [{ id: 'sa-1', email: 'founder@grid.com' }]),
     });
@@ -69,10 +69,30 @@ describe('runProvisioning', () => {
       { apply: true },
     );
 
+    expect(result.createdUsers).toBe(1);
+    expect(result.updatedUsers).toBe(0);
+    expect(result.failedRows).toBe(0);
+    expect(result.outcomes[0].status).toBe('created');
+  });
+
+  it('blocks super admin creation when max super admin count is already reached', async () => {
+    const adapter = buildAdapter({
+      listSuperAdmins: vi.fn(async () => [
+        { id: 'sa-1', email: 'founder@grid.com' },
+        { id: 'sa-2', email: 'ops@grid.com' },
+      ]),
+    });
+
+    const result = await runProvisioning(
+      [row({ email: 'third@grid.com', role: 'SUPER_ADMIN' })],
+      adapter,
+      { apply: true },
+    );
+
     expect(result.createdUsers).toBe(0);
     expect(result.updatedUsers).toBe(0);
     expect(result.failedRows).toBe(1);
-    expect(result.outcomes[0].reason).toContain('Second SUPER_ADMIN');
+    expect(result.outcomes[0].reason).toContain('SUPER_ADMIN limit reached');
   });
 
   it('supports dry-run without mutating records', async () => {

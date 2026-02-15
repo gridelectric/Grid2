@@ -77,6 +77,7 @@ export type CredentialStatus = 'ACTIVE' | 'EXPIRED' | 'EXPIRING_SOON' | 'REVOKED
 // Ticket Types
 export interface Ticket {
   id: string;
+  storm_event_id?: string;
   ticket_number: string;
   status: TicketStatus;
   priority: PriorityLevel;
@@ -105,6 +106,23 @@ export interface Ticket {
   damage_types?: string[];
   severity?: DamageSeverity;
   created_by: string;
+  updated_at: string;
+}
+
+export interface StormEvent {
+  id: string;
+  event_code: string;
+  name: string;
+  utility_client: string;
+  status: 'PLANNED' | 'ACTIVE' | 'PAUSED' | 'COMPLETE' | 'ARCHIVED';
+  region?: string;
+  contract_reference?: string;
+  start_date?: string;
+  end_date?: string;
+  notes?: string;
+  created_by?: string;
+  updated_by?: string;
+  created_at: string;
   updated_at: string;
 }
 

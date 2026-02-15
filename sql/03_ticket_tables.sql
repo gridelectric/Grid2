@@ -1,8 +1,37 @@
 -- Grid Electric Services - Ticket System Tables
 
+-- Storm Events table (root operational umbrella)
+CREATE TABLE storm_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_code VARCHAR(50) NOT NULL UNIQUE,
+  name VARCHAR(255) NOT NULL,
+  utility_client VARCHAR(255) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'PLANNED',
+  region VARCHAR(255),
+  contract_reference VARCHAR(255),
+  start_date DATE,
+  end_date DATE,
+  notes TEXT,
+  created_by UUID REFERENCES profiles(id),
+  updated_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  is_deleted BOOLEAN DEFAULT false,
+  CONSTRAINT storm_events_status_check CHECK (
+    status IN ('PLANNED', 'ACTIVE', 'PAUSED', 'COMPLETE', 'ARCHIVED')
+  )
+);
+
+ALTER TABLE storm_events ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX idx_storm_events_status ON storm_events(status);
+CREATE INDEX idx_storm_events_utility_client ON storm_events(utility_client);
+CREATE INDEX idx_storm_events_created_at ON storm_events(created_at DESC);
+
 -- Tickets table
 CREATE TABLE tickets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  storm_event_id UUID REFERENCES storm_events(id),
   ticket_number VARCHAR(50) NOT NULL UNIQUE,
   
   -- Status
@@ -65,6 +94,7 @@ ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
 -- Indexes
 CREATE INDEX idx_tickets_status ON tickets(status);
 CREATE INDEX idx_tickets_assigned ON tickets(assigned_to);
+CREATE INDEX idx_tickets_storm_event ON tickets(storm_event_id);
 CREATE INDEX idx_tickets_priority ON tickets(priority);
 CREATE INDEX idx_tickets_client ON tickets(utility_client);
 CREATE INDEX idx_tickets_scheduled ON tickets(scheduled_date);

@@ -19,6 +19,10 @@ const BACKGROUND_SYNC_TAG_TO_MESSAGE = {
   'sync-photos': 'SYNC_PHOTOS',
 };
 
+const IS_LOCAL_DEV_HOST =
+  self.location.hostname === 'localhost'
+  || self.location.hostname === '127.0.0.1';
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
@@ -151,6 +155,12 @@ function offlineNavigationResponse() {
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET') {
+    return;
+  }
+
+  if (IS_LOCAL_DEV_HOST) {
+    // Never cache app bundles in local development; stale caches mask current code.
+    event.respondWith(fetch(request));
     return;
   }
 

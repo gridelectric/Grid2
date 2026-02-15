@@ -12,6 +12,7 @@ import { canPerformManagementAction } from '@/lib/auth/authorization';
 
 export default function AdminDashboardPage() {
   const { profile } = useAuth();
+  const canManageStormEvents = canPerformManagementAction(profile?.role, 'storm_event_write');
   const canCreateTickets = canPerformManagementAction(profile?.role, 'ticket_entry_write');
   const canAssignContractors = canPerformManagementAction(profile?.role, 'contractor_assignment_write');
 
@@ -22,72 +23,59 @@ export default function AdminDashboardPage() {
           <Link href="/admin/reports">View Reports</Link>
         </Button>
 
-        {canCreateTickets ? (
+        {canManageStormEvents ? (
           <Button asChild size="sm">
-            <Link href="/tickets/create">
+            <Link href="/admin/storms/create">
               <Plus className="mr-2 h-4 w-4" />
-              New Ticket
+              Create Storm Event
             </Link>
           </Button>
         ) : (
-          <Button size="sm" disabled title="Only Super Admin can create tickets">
+          <Button size="sm" disabled title="Only Super Admin can create storm events">
             <Plus className="mr-2 h-4 w-4" />
-            New Ticket
+            Create Storm Event
           </Button>
         )}
       </PageHeader>
 
-      <DashboardMetrics />
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Today&apos;s Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="aspect-video rounded-lg border bg-slate-50 p-6">
-              <div className="flex h-full flex-col items-center justify-center text-center">
-                <MapPin className="mb-3 h-10 w-10 text-slate-400" />
-                <p className="text-sm font-medium text-slate-700">Live map operations are available in Map View.</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  Use map mode to validate geofence activity and monitor route progress.
-                </p>
-                <Button asChild variant="outline" className="mt-4">
-                  <Link href="/admin/map">Open Map View</Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {canCreateTickets ? (
-              <Button asChild className="w-full justify-start" variant="outline">
-                <Link href="/tickets/create">
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {canManageStormEvents ? (
+              <Button asChild variant="outline" size="sm">
+                <Link href="/admin/storms/create">
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Ticket
+                  Create Storm Event
                 </Link>
               </Button>
             ) : (
-              <Button
-                className="w-full justify-start"
-                variant="outline"
-                disabled
-                title="Only Super Admin can create tickets"
-              >
+              <Button variant="outline" size="sm" disabled title="Only Super Admin can create storm events">
                 <Plus className="mr-2 h-4 w-4" />
-                Create Ticket
+                Create Storm Event
+              </Button>
+            )}
+
+            {canCreateTickets ? (
+              <Button asChild variant="outline" size="sm">
+                <Link href="/tickets/create">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Ticket Entry
+                </Link>
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" disabled title="Only Super Admin can create tickets">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Ticket Entry
               </Button>
             )}
 
             <Button
               asChild={canAssignContractors}
-              className="w-full justify-start"
               variant="outline"
+              size="sm"
               disabled={!canAssignContractors}
               title={canAssignContractors ? 'Assign routes' : 'Only Super Admin can assign contractors'}
             >
@@ -104,26 +92,50 @@ export default function AdminDashboardPage() {
               )}
             </Button>
 
-            <Button asChild className="w-full justify-start" variant="outline">
+            <Button asChild variant="outline" size="sm">
               <Link href="/admin/time-review">
                 <Clock className="mr-2 h-4 w-4" />
                 Review Timesheets
               </Link>
             </Button>
 
-            <Button asChild className="w-full justify-start" variant="outline">
+            <Button asChild variant="outline" size="sm">
               <Link href="/admin/invoice-generation">
                 <DollarSign className="mr-2 h-4 w-4" />
                 Generate Invoices
               </Link>
             </Button>
 
-            <Button asChild className="w-full justify-start" variant="outline">
+            <Button asChild variant="outline" size="sm">
               <Link href="/admin/reports">
                 <MapPin className="mr-2 h-4 w-4" />
                 Open Reports
               </Link>
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <DashboardMetrics />
+
+      <div className="grid grid-cols-1 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Today&apos;s Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="aspect-video rounded-lg border bg-slate-50 p-6">
+              <div className="flex h-full flex-col items-center justify-center text-center">
+                <MapPin className="mb-3 h-10 w-10 text-slate-400" />
+                <p className="text-sm font-medium text-slate-700">Live map operations are available in Map View.</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Use map mode to validate geofence activity and monitor route progress.
+                </p>
+                <Button asChild variant="outline" className="mt-4">
+                  <Link href="/admin/map">Open Map View</Link>
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

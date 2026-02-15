@@ -1,7 +1,7 @@
 import type { UserRole } from '../../types';
 
 export type ManagementAction =
-  | 'storm_project_write'
+  | 'storm_event_write'
   | 'ticket_entry_write'
   | 'contractor_assignment_write';
 
@@ -22,9 +22,11 @@ export function getManagementActionForPath(pathname: string): ManagementAction |
 
   if (
     normalizedPath === '/admin/storms/create'
+    || normalizedPath === '/storms/create'
     || (normalizedPath.startsWith('/admin/storms/') && normalizedPath.endsWith('/edit'))
+    || (normalizedPath.startsWith('/storms/') && normalizedPath.endsWith('/edit'))
   ) {
-    return 'storm_project_write';
+    return 'storm_event_write';
   }
 
   return null;
@@ -38,7 +40,7 @@ export function canPerformManagementAction(
     return false;
   }
 
-  if (action === 'storm_project_write') {
+  if (action === 'storm_event_write') {
     return role === 'SUPER_ADMIN';
   }
 
