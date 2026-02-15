@@ -308,9 +308,9 @@ export function InvoiceList({ contractorId }: InvoiceListProps) {
 
       <div className="space-y-3 md:hidden">
         {isLoading ? (
-          <div className="rounded-md border bg-white px-4 py-6 text-sm text-slate-500">Loading invoices...</div>
+          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">Loading invoices...</div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="rounded-md border bg-white px-4 py-6 text-sm text-slate-500">
+          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">
             No invoices found for selected filters.
           </div>
         ) : (

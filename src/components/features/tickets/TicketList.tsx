@@ -186,8 +186,13 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold tracking-tight">Tickets</h2>
+            <div className="storm-surface flex items-center justify-between rounded-xl p-4">
+                <div>
+                    <h2 className="text-xl font-bold tracking-tight text-grid-navy">Tickets</h2>
+                    <p className="text-sm text-slate-500">
+                        {isLoading ? 'Loading...' : `${filteredTickets.length} visible ticket${filteredTickets.length === 1 ? '' : 's'}`}
+                    </p>
+                </div>
                 {userRole === 'admin' && canCreateTicket && (
                     <Button asChild>
                         <Link href="/tickets/create">
@@ -197,7 +202,9 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
                 )}
             </div>
 
-            <TicketFilters onFilterChange={setFilters} />
+            <div className="storm-surface rounded-xl p-4">
+                <TicketFilters onFilterChange={setFilters} />
+            </div>
 
             {/* Desktop View */}
             <div className="hidden md:block">

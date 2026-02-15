@@ -36,7 +36,7 @@ export default function CreateTicketPage() {
     }, [canCreateTicket, isLoading, router]);
 
     if (isLoading || !canCreateTicket) {
-        return <div className="text-sm text-slate-500">Checking access...</div>;
+        return <div className="storm-surface rounded-xl p-4 text-sm text-slate-500">Checking access...</div>;
     }
 
     return (
@@ -46,7 +46,7 @@ export default function CreateTicketPage() {
                 description="Fill out the form below to create a ticket entry under a storm event."
                 backHref="/tickets"
             />
-            <div className="bg-card rounded-lg border p-6">
+            <div className="storm-surface rounded-xl p-6">
                 <TicketForm
                     defaultUtilityClient={defaultUtilityClient}
                     lockUtilityClient={Boolean(defaultUtilityClient)}

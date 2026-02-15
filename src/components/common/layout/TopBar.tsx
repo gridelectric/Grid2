@@ -1,7 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
+import { useState } from 'react';
+import { Bell, Loader2, LogOut, RefreshCw, Settings, ShieldAlert, User } from 'lucide-react';
+
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,68 +15,144 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { BrandMark } from '@/components/common/brand/BrandMark';
+import type { NavigationSignals } from '@/hooks/useNavigationSignals';
+
 import { SidebarTrigger } from './Sidebar';
-import { Bell, Menu, User, LogOut, Settings } from 'lucide-react';
 
 interface TopBarProps {
   onMenuClick: () => void;
   userName: string;
   userRole: string;
+  userPortal: 'admin' | 'contractor';
   onSignOut: () => void;
+  signals: NavigationSignals;
+  isSignalsLoading: boolean;
+  onRefreshSignals: () => Promise<void>;
 }
 
-export function TopBar({ onMenuClick, userName, userRole, onSignOut }: TopBarProps) {
-  const [notifications] = useState(3);
+function getPortalLabel(portal: 'admin' | 'contractor'): 'Admin Portal' | 'Contractor Portal' {
+  return portal === 'admin' ? 'Admin Portal' : 'Contractor Portal';
+}
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+export function TopBar({
+  onMenuClick,
+  userName,
+  userRole,
+  userPortal,
+  onSignOut,
+  signals,
+  isSignalsLoading,
+  onRefreshSignals,
+}: TopBarProps) {
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-slate-800 border-b z-50">
-      <div className="h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        {/* Left Side */}
-        <div className="flex items-center gap-4">
+    <header
+      className="safe-area-pr safe-area-pl fixed left-0 right-0 z-50 border-b border-grid-surface bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90"
+      style={{ height: 'var(--top-bar-height)', top: 'var(--offline-banner-height)' }}
+    >
+      <div className="mx-auto flex h-full max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-3">
           <SidebarTrigger onClick={onMenuClick} />
-          
-          {/* Logo - Mobile */}
-          <Link href="/" className="lg:hidden flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">G</span>
-            </div>
+          <Link className="inline-flex items-center lg:hidden" href="/tickets">
+            <BrandMark variant="compact" />
           </Link>
+          <div className="hidden lg:block">
+            <BrandMark portalLabel={getPortalLabel(userPortal)} variant="full" />
+          </div>
         </div>
 
-        {/* Right Side */}
         <div className="flex items-center gap-2">
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-5 h-5" />
-            {notifications > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                {notifications}
-              </span>
-            )}
-          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button className="relative" size="icon" variant="ghost">
+                <Bell className="h-5 w-5" />
+                {signals.notificationCount > 0 ? (
+                  <span className="absolute right-1.5 top-1.5 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-grid-lightning px-1 text-[10px] font-semibold text-slate-900">
+                    {signals.notificationCount > 99 ? '99+' : signals.notificationCount}
+                  </span>
+                ) : null}
+                <span className="sr-only">Open operations summary</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="storm-surface w-80 p-0">
+              <div className="space-y-3 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-grid-navy">Operations Summary</p>
+                    <p className="text-xs text-muted-foreground">
+                      {signals.isOnline ? 'Online and synced' : 'Offline mode active'}
+                    </p>
+                  </div>
+                  <Badge variant={signals.isOnline ? 'secondary' : 'destructive'}>
+                    {signals.isOnline ? 'Online' : 'Offline'}
+                  </Badge>
+                </div>
 
-          {/* User Menu */}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="rounded-md border border-grid-surface bg-grid-surface p-2">
+                    <p className="text-muted-foreground">Tickets</p>
+                    <p className="text-sm font-semibold">{signals.counts.tickets}</p>
+                  </div>
+                  <div className="rounded-md border border-grid-surface bg-grid-surface p-2">
+                    <p className="text-muted-foreground">Pending Reviews</p>
+                    <p className="text-sm font-semibold">{signals.counts.reviews}</p>
+                  </div>
+                  <div className="rounded-md border border-grid-surface bg-grid-surface p-2">
+                    <p className="text-muted-foreground">Sync Queue</p>
+                    <p className="text-sm font-semibold">{signals.counts.sync}</p>
+                  </div>
+                  <div className="rounded-md border border-grid-surface bg-grid-surface p-2">
+                    <p className="text-muted-foreground">Conflicts</p>
+                    <p className="text-sm font-semibold">{signals.counts.conflicts}</p>
+                  </div>
+                </div>
+
+                <Button
+                  className="w-full justify-center"
+                  disabled={isRefreshing}
+                  onClick={() => {
+                    setIsRefreshing(true);
+                    void onRefreshSignals().finally(() => {
+                      setIsRefreshing(false);
+                    });
+                  }}
+                  size="sm"
+                  variant="outline"
+                >
+                  {isRefreshing || isSignalsLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                  )}
+                  Refresh Signals
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2">
-                <Avatar className="w-8 h-8">
-                  <AvatarFallback className="bg-blue-100 text-blue-700 text-sm font-medium">
+              <Button className="flex items-center gap-2" variant="ghost">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-grid-storm-100 text-grid-navy text-sm font-medium">
                     {getInitials(userName)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="hidden sm:block text-left">
+                <div className="hidden text-left sm:block">
                   <p className="text-sm font-medium">{userName}</p>
-                  <p className="text-xs text-slate-500 capitalize">{userRole.toLowerCase().replace('_', ' ')}</p>
+                  <p className="text-xs capitalize text-slate-500">{userRole.toLowerCase().replace('_', ' ')}</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
@@ -87,8 +167,14 @@ export function TopBar({ onMenuClick, userName, userRole, onSignOut }: TopBarPro
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
+              {!signals.isOnline ? (
+                <DropdownMenuItem>
+                  <ShieldAlert className="mr-2 h-4 w-4" />
+                  Offline mode enabled
+                </DropdownMenuItem>
+              ) : null}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onSignOut} className="text-red-600">
+              <DropdownMenuItem className="text-red-600" onClick={onSignOut}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign out
               </DropdownMenuItem>

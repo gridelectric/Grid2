@@ -72,23 +72,23 @@ export default function StormEventsPage() {
       </PageHeader>
 
       {!canManageStormEvents && (
-        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
           Admin users can view storm events, but create/edit actions are restricted to Super Admin.
         </div>
       )}
 
       <div className="grid gap-4">
         {isLoading ? (
-          <div className="rounded-md border bg-white px-4 py-6 text-sm text-slate-500">Loading storm events...</div>
+          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">Loading storm events...</div>
         ) : stormEvents.length === 0 ? (
-          <div className="rounded-md border bg-white px-4 py-6 text-sm text-slate-500">
+          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">
             No storm events found. Create a storm event to begin the operational workflow.
           </div>
         ) : (
           stormEvents.map((stormEvent) => (
-            <Card key={stormEvent.id}>
+            <Card key={stormEvent.id} className="storm-surface">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className="flex items-center gap-2 text-lg text-grid-navy">
                   <CloudRain className="h-5 w-5 text-blue-600" />
                   {stormEvent.name}
                 </CardTitle>

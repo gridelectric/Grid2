@@ -11,7 +11,9 @@ export default function AdminReportsPage() {
         description="Analyze operational throughput and export billing/compliance reports."
       />
 
-      <ReportsDashboard />
+      <div className="storm-surface rounded-xl p-4">
+        <ReportsDashboard />
+      </div>
     </div>
   );
 }

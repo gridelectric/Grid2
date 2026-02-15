@@ -174,7 +174,7 @@ export function MapView({
   return (
     <div
       className={cn(
-        'relative min-h-[420px] overflow-hidden rounded-lg border bg-slate-100',
+        'storm-surface relative min-h-[420px] overflow-hidden rounded-xl bg-grid-surface',
         className,
       )}
     >

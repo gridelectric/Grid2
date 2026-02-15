@@ -2,8 +2,10 @@
 
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+import { BrandMark } from '@/components/common/brand/BrandMark';
 import { LoginForm } from '@/components/features/auth/LoginForm';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const metadata: Metadata = {
   title: 'Sign In - Grid Electric Services',
@@ -12,14 +14,12 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <Card className="w-full">
+    <Card className="storm-surface w-full shadow-card">
       <CardHeader className="space-y-1 text-center">
         <div className="flex justify-center mb-4">
-          <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">G</span>
-          </div>
+          <BrandMark portalLabel="Secure Access" variant="full" />
         </div>
-        <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+        <CardTitle className="text-2xl font-bold text-grid-navy">Welcome back</CardTitle>
         <CardDescription>
           Sign in to your Grid Electric Services account
         </CardDescription>
@@ -30,13 +30,13 @@ export default function LoginPage() {
         <div className="flex items-center justify-between text-sm">
           <Link 
             href="/forgot-password" 
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="font-medium text-grid-blue hover:text-grid-blue-dark"
           >
             Forgot password?
           </Link>
           <Link 
             href="/magic-link" 
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="font-medium text-grid-blue hover:text-grid-blue-dark"
           >
             Use magic link
           </Link>

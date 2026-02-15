@@ -16,7 +16,7 @@ export function TicketCard({ ticket, onClick, className }: TicketCardProps) {
     return (
         <Card
             className={cn(
-                "hover:shadow-md transition-shadow cursor-pointer",
+                "storm-surface cursor-pointer transition-grid hover:shadow-card-hover",
                 className
             )}
             onClick={() => onClick?.(ticket)}
@@ -27,7 +27,7 @@ export function TicketCard({ ticket, onClick, className }: TicketCardProps) {
                         <div className="font-semibold text-sm text-muted-foreground">
                             {ticket.ticket_number}
                         </div>
-                        <div className="font-bold line-clamp-1">
+                        <div className="line-clamp-1 font-bold text-grid-navy">
                             {ticket.utility_client}
                         </div>
                     </div>

@@ -728,7 +728,7 @@ grid-electric-app/
 
 ---
 
-#### Week 14: Background Sync & Polish (NOT STARTED)
+#### Week 14: Background Sync & Polish (IN PROGRESS)
 
 ##### Task 14.1: Background Sync
 
@@ -740,10 +740,19 @@ grid-electric-app/
 
 ##### Task 14.2: UI Polish
 
-- [ ] Add loading states (skeletons)
-- [ ] Add animations & transitions
-- [ ] Create error boundaries
-- [ ] Implement toast notifications
+- [x] Add loading states (skeletons)
+- [x] Add animations & transitions
+- [x] Create error boundaries
+- [x] Implement toast notifications
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Began Week 14.2 UI-first modernization pass: added storm/lightning design tokens + motion utilities + reduced-motion and safe-area helpers (`src/app/globals.css`), introduced reusable `BrandMark`, wired reactive navigation signals into shell/top-bar/sidebar/bottom-nav, modernized auth/core dashboard/storm/ticket/contractor surfaces, and added App Router loading/error/global/not-found boundaries for admin, contractor, and tickets segments.
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Completed Week 14.2 UI-first pass across core and extended app surfaces: standardized shared shell/card/data-table/status semantics to brand-light storm/lightning tokens, completed reactive nav signal wiring + dynamic notification summary, and confirmed toast-driven feedback paths remain active across storms/tickets/time/expenses/assessments/invoices. Verification: `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` all passed.
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Extended E2E coverage for UI polish validation by adding authenticated portal journey smoke specs (`tests/e2e/portal-flows-authenticated.spec.ts`) for admin (`/admin/dashboard -> /admin/storms -> /tickets`) and contractor (`/contractor/time -> /tickets -> /contractor/expenses`) flows using env-gated credentials (`E2E_*`) with no hardcoded secrets; `npm run test:e2e` passes with these tests auto-skipping when credentials are not configured.
 
 ---
 

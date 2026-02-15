@@ -30,6 +30,21 @@ export function OfflineBanner() {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    document.documentElement.style.setProperty(
+      '--offline-banner-height',
+      isOnline ? '0px' : 'calc(2.5rem + var(--safe-area-top))',
+    );
+
+    return () => {
+      document.documentElement.style.setProperty('--offline-banner-height', '0px');
+    };
+  }, [isOnline]);
+
   if (!shouldRenderOfflineBanner(isOnline)) {
     return null;
   }
@@ -37,7 +52,7 @@ export function OfflineBanner() {
   return (
     <div
       aria-live="polite"
-      className="fixed top-0 left-0 right-0 z-50 border-b border-amber-300 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-950 shadow-sm"
+      className="safe-area-pt fixed top-0 left-0 right-0 z-[60] border-b border-amber-300 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-950 shadow-sm"
       role="status"
     >
       You are offline. Changes will be queued and synced when connection is restored.

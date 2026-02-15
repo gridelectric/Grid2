@@ -268,7 +268,7 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
             </Button>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-slate-50 px-3 py-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-grid-surface bg-grid-surface px-3 py-2">
             <label className="flex items-center gap-2 text-sm">
               <Checkbox
                 checked={allFilteredSelected}
@@ -344,9 +344,9 @@ export function InvoiceGenerator({ generatedBy }: InvoiceGeneratorProps) {
 
       <div className="space-y-3 md:hidden">
         {isLoading ? (
-          <div className="rounded-md border bg-white px-4 py-6 text-sm text-slate-500">Loading candidates...</div>
+          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">Loading candidates...</div>
         ) : filteredCandidates.length === 0 ? (
-          <div className="rounded-md border bg-white px-4 py-6 text-sm text-slate-500">
+          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">
             No approved billable entries found in this billing period.
           </div>
         ) : (

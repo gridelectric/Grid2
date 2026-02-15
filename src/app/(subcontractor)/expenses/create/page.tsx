@@ -21,12 +21,14 @@ export default function ContractorExpenseCreatePage() {
         backHref="/contractor/expenses"
       />
 
-      <ExpenseForm
-        contractorId={contractorId}
-        onSaved={() => {
-          router.push('/contractor/expenses');
-        }}
-      />
+      <div className="storm-surface rounded-xl p-4">
+        <ExpenseForm
+          contractorId={contractorId}
+          onSaved={() => {
+            router.push('/contractor/expenses');
+          }}
+        />
+      </div>
     </div>
   );
 }

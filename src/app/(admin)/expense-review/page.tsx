@@ -14,7 +14,9 @@ export default function AdminExpenseReviewPage() {
         description="Review submitted expenses, validate policy flags, and approve or reject reports."
       />
 
-      <ExpenseReviewList reviewerId={profile?.id} />
+      <div className="storm-surface rounded-xl p-4">
+        <ExpenseReviewList reviewerId={profile?.id} />
+      </div>
     </div>
   );
 }

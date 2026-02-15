@@ -14,7 +14,9 @@ export default function AdminInvoiceGenerationPage() {
         description="Generate contractor invoices from approved time entries and expense reports."
       />
 
-      <InvoiceGenerator generatedBy={profile?.id} />
+      <div className="storm-surface rounded-xl p-4">
+        <InvoiceGenerator generatedBy={profile?.id} />
+      </div>
     </div>
   );
 }

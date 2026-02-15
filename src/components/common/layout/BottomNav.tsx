@@ -2,22 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Clock, LayoutDashboard, Map, Ticket, User } from 'lucide-react';
+
+import type { NavigationSignals } from '@/hooks/useNavigationSignals';
 import { cn } from '@/lib/utils';
+
 import {
   ADMIN_BOTTOM_NAV_ITEMS,
   CONTRACTOR_BOTTOM_NAV_ITEMS,
-  NavLinkItem,
+  type NavLinkItem,
 } from './navigationConfig';
-import {
-  Clock,
-  LayoutDashboard,
-  Map,
-  Ticket,
-  User,
-} from 'lucide-react';
 
 interface BottomNavProps {
   userRole: 'admin' | 'contractor';
+  signals: NavigationSignals;
 }
 
 const iconByHref = {
@@ -33,31 +31,80 @@ function getNavIcon(href: string) {
   return iconByHref[href as keyof typeof iconByHref] ?? Ticket;
 }
 
-export function BottomNav({ userRole }: BottomNavProps) {
+function isItemActive(pathname: string | null, item: NavLinkItem): boolean {
+  if (!pathname) {
+    return false;
+  }
+
+  if (pathname === item.href || pathname.startsWith(`${item.href}/`)) {
+    return true;
+  }
+
+  if (!item.matchPaths || item.matchPaths.length === 0) {
+    return false;
+  }
+
+  return item.matchPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
+
+function renderBottomBadge(item: NavLinkItem, signals: NavigationSignals) {
+  if (!item.signalKey) {
+    return null;
+  }
+
+  const count = signals.counts[item.signalKey];
+  if (item.badgeStyle === 'dot') {
+    return (
+      <span
+        aria-hidden
+        className={cn(
+          'absolute right-4 top-2 h-2 w-2 rounded-full',
+          count > 0 ? 'bg-grid-lightning' : 'bg-slate-300'
+        )}
+      />
+    );
+  }
+
+  if (count <= 0) {
+    return null;
+  }
+
+  return (
+    <span className="absolute right-3 top-1.5 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-grid-lightning px-1 text-[10px] font-semibold text-slate-900">
+      {count > 99 ? '99+' : count}
+    </span>
+  );
+}
+
+export function BottomNav({ userRole, signals }: BottomNavProps) {
   const pathname = usePathname();
   const navItems: NavLinkItem[] =
     userRole === 'admin' ? ADMIN_BOTTOM_NAV_ITEMS : CONTRACTOR_BOTTOM_NAV_ITEMS;
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t z-40 safe-area-pb">
-      <div className="flex items-center justify-around h-16">
+    <nav className="safe-area-pb fixed bottom-0 left-0 right-0 z-40 border-t border-grid-surface bg-white/95 backdrop-blur lg:hidden">
+      <div
+        className="grid h-16 items-center gap-1 px-2"
+        style={{ gridTemplateColumns: `repeat(${navItems.length}, minmax(0, 1fr))` }}
+      >
         {navItems.map((item) => {
           const Icon = getNavIcon(item.href);
-          const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+          const isActive = isItemActive(pathname, item);
 
           return (
             <Link
-              key={item.href}
-              href={item.href}
               className={cn(
-                'flex flex-col items-center justify-center flex-1 h-full gap-1',
+                'transition-grid relative flex min-h-11 flex-col items-center justify-center rounded-xl px-2 text-[11px] font-medium',
                 isActive
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-slate-500 dark:text-slate-400'
+                  ? 'bg-grid-storm-100 text-grid-navy'
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
               )}
+              href={item.href}
+              key={item.href}
             >
-              <Icon className="w-5 h-5" />
-              <span className="text-xs font-medium">{item.label}</span>
+              <Icon className="mb-0.5 h-5 w-5" />
+              <span>{item.mobileLabel ?? item.label}</span>
+              {renderBottomBadge(item, signals)}
             </Link>
           );
         })}

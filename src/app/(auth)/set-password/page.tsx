@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+import { BrandMark } from '@/components/common/brand/BrandMark';
 import { SetPasswordForm } from '@/components/features/auth/SetPasswordForm';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const metadata: Metadata = {
   title: 'Set Password - Grid Electric Services',
@@ -9,14 +11,12 @@ export const metadata: Metadata = {
 
 export default function SetPasswordPage() {
   return (
-    <Card className="w-full">
+    <Card className="storm-surface w-full shadow-card">
       <CardHeader className="space-y-1 text-center">
         <div className="flex justify-center mb-4">
-          <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">G</span>
-          </div>
+          <BrandMark portalLabel="Secure Access" variant="full" />
         </div>
-        <CardTitle className="text-2xl font-bold">Set your password</CardTitle>
+        <CardTitle className="text-2xl font-bold text-grid-navy">Set your password</CardTitle>
         <CardDescription>
           You need to set a permanent password before accessing the app.
         </CardDescription>

@@ -14,10 +14,10 @@ export default function ContractorInvitePage() {
         backHref="/admin/contractors"
       />
 
-      <Card>
+      <Card className="storm-surface">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileDown className="h-5 w-5 text-blue-600" />
+            <FileDown className="h-5 w-5 text-grid-blue" />
             Step 1: Prepare CSV
           </CardTitle>
           <CardDescription>
@@ -36,10 +36,10 @@ export default function ContractorInvitePage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="storm-surface">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Terminal className="h-5 w-5 text-blue-600" />
+            <Terminal className="h-5 w-5 text-grid-blue" />
             Step 2: Run Provisioning
           </CardTitle>
           <CardDescription>
@@ -47,10 +47,10 @@ export default function ContractorInvitePage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="rounded-md border bg-slate-50 p-3 font-mono text-sm">
+          <div className="rounded-md border border-grid-surface bg-grid-surface p-3 font-mono text-sm">
             npm run provision:users -- --file ./contractor-invites.csv --dry-run
           </div>
-          <div className="rounded-md border bg-slate-50 p-3 font-mono text-sm">
+          <div className="rounded-md border border-grid-surface bg-grid-surface p-3 font-mono text-sm">
             npm run provision:users -- --file ./contractor-invites.csv --apply
           </div>
         </CardContent>

@@ -160,7 +160,7 @@ export function InvoicePDFViewer({ invoiceId, invoiceDetails }: InvoicePDFViewer
               <iframe title={`Invoice ${invoice.invoice_number}`} src={invoice.pdf_url} className="h-[560px] w-full" />
             </div>
           ) : (
-            <div className="rounded-md border bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            <div className="rounded-md border border-grid-surface bg-grid-surface px-4 py-3 text-sm text-slate-600">
               PDF file has not been generated for this invoice yet. Using line-item preview below.
             </div>
           )}

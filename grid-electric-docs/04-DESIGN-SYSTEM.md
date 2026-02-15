@@ -2,8 +2,8 @@
 
 ## Visual Identity & Component Library
 
-**Version:** 2.0  
-**Date:** February 10, 2026  
+**Version:** 2.1
+**Date:** February 15, 2026
 **Theme:** Based on gridelectriccorp.com Official Brand
 
 ---
@@ -18,6 +18,8 @@
 6. [Iconography](#6-iconography)
 7. [Animations & Interactions](#7-animations--interactions)
 8. [Responsive Design](#8-responsive-design)
+9. [Onboarding Flow Specifics](#9-onboarding-flow-specifics)
+10. [Week 14.2 UI Modernization Token Additions](#10-week-142-ui-modernization-token-additions)
 
 ---
 
@@ -647,12 +649,49 @@ Each onboarding page follows this structure:
 
 ---
 
+## 10. WEEK 14.2 UI MODERNIZATION TOKEN ADDITIONS
+
+### 10.1 Storm/Lightning Semantic Tokens
+
+| Token | Value | Purpose |
+|-------|-------|---------|
+| `--grid-storm-50` | `#f3f8ff` | Light storm surface fill |
+| `--grid-storm-100` | `#dcecff` | Elevated storm panel tone |
+| `--grid-storm-200` | `#b7d7ff` | Secondary stroke/highlight |
+| `--grid-lightning` | `#ffc038` | Attention accents and badges |
+| `--grid-lightning-soft` | `#ffd877` | Non-critical indicator tone |
+
+### 10.2 New Utility Classes
+
+| Utility | Purpose |
+|---------|---------|
+| `.bg-gradient-storm` | Navy-to-blue shell background for portal chrome |
+| `.bg-grid-shell` | Light branded atmospheric app background |
+| `.storm-surface` | Standardized card/surface treatment for core pages |
+| `.storm-lightning-dot` | Priority dot indicator for active nav signals |
+| `.safe-area-pb` / `.safe-area-pt` / `.safe-area-pl` / `.safe-area-pr` | Device safe-area inset handling |
+
+### 10.3 Motion + Accessibility Additions
+
+1. Motion tokens standardized in CSS variables: `--motion-duration-fast/base/slow` and `--motion-ease-standard`.
+2. Core keyframes renamed and normalized: `fade-in`, `slide-in`, `pulse-ring`.
+3. Reduced-motion compliance added via `prefers-reduced-motion: reduce` fallback that disables nonessential animation and long transitions.
+
+### 10.4 Toast Interaction Contract
+
+1. Toast notifications remain the primary transient feedback pattern for create/update/review actions in storm events, tickets, time entries, expenses, assessments, and invoice workflows.
+2. Success and failure toast copy should stay operationally concise and action-focused (what happened and what to do next when needed).
+3. Toast usage should avoid runtime overlays and preserve silent fallback behavior for passive signal polling failures.
+
+---
+
 ## DOCUMENT CONTROL
 
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
 | 1.0 | 2026-02-04 | Initial design system | Agent |
 | 2.0 | 2026-02-10 | Updated to match gridelectriccorp.com | Kimi Code CLI |
+| 2.1 | 2026-02-15 | Added Week 14.2 storm/lightning semantic tokens, shell utilities, motion/safe-area contracts, and toast interaction standards | GPT-5 Codex |
 
 ---
 

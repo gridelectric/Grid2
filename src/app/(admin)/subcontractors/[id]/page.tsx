@@ -81,7 +81,7 @@ export default function ContractorDetailPage() {
   }, [contractorId]);
 
   if (isLoading) {
-    return <div className="text-sm text-slate-500">Loading contractor details...</div>;
+    return <div className="storm-surface rounded-xl p-4 text-sm text-slate-500">Loading contractor details...</div>;
   }
 
   if (!contractor) {
@@ -120,11 +120,11 @@ export default function ContractorDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Card */}
-        <Card>
+        <Card className="storm-surface">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center">
               <Avatar className="w-24 h-24 mb-4">
-                <AvatarFallback className="text-2xl bg-blue-100 text-blue-700">
+                <AvatarFallback className="bg-grid-storm-100 text-grid-navy text-2xl">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -156,25 +156,25 @@ export default function ContractorDetailPage() {
         {/* Stats & Info */}
         <div className="lg:col-span-2 space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Card>
+            <Card className="storm-surface">
               <CardContent className="pt-6">
                 <p className="text-sm text-slate-500">YTD Earnings</p>
                 <p className="text-2xl font-bold">{formatCurrency(contractor.ytdEarnings)}</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="storm-surface">
               <CardContent className="pt-6">
                 <p className="text-sm text-slate-500">Active Tickets</p>
                 <p className="text-2xl font-bold">{contractor.activeTicketCount}</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="storm-surface">
               <CardContent className="pt-6">
                 <p className="text-sm text-slate-500">Total Tickets</p>
                 <p className="text-2xl font-bold">{contractor.totalTicketCount}</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="storm-surface">
               <CardContent className="pt-6">
                 <p className="text-sm text-slate-500">Eligible</p>
                 <p className="text-2xl font-bold text-green-600">
@@ -184,10 +184,10 @@ export default function ContractorDetailPage() {
             </Card>
           </div>
 
-          <Card>
+          <Card className="storm-surface">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <ShieldCheck className="h-4 w-4 text-blue-600" />
+                <ShieldCheck className="h-4 w-4 text-grid-blue" />
                 Compliance Snapshot
               </CardTitle>
             </CardHeader>
@@ -211,10 +211,10 @@ export default function ContractorDetailPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="storm-surface">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Ticket className="h-4 w-4 text-blue-600" />
+                <Ticket className="h-4 w-4 text-grid-blue" />
                 Recent Tickets
               </CardTitle>
             </CardHeader>
@@ -226,7 +226,7 @@ export default function ContractorDetailPage() {
                   <Link
                     key={ticket.id}
                     href={`/tickets/${ticket.id}`}
-                    className="block rounded-md border p-3 hover:bg-slate-50"
+                    className="transition-grid block rounded-lg border border-grid-surface p-3 hover:bg-grid-storm-50"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-sm font-semibold">{ticket.ticketNumber}</p>

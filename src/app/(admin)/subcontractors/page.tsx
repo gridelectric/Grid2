@@ -87,7 +87,7 @@ export default function ContractorsListPage() {
         <div className="space-y-1">
           <Link
             href={`/admin/contractors/${contractor.id}`}
-            className="font-medium text-blue-600 hover:text-blue-800"
+            className="font-medium text-grid-blue hover:text-grid-blue-dark"
           >
             {contractor.fullName}
           </Link>
@@ -158,7 +158,7 @@ export default function ContractorsListPage() {
         <MetricCard
           title="Total"
           value={totalCount}
-          icon={<Users className="w-4 h-4 text-blue-600" />}
+          icon={<Users className="w-4 h-4 text-grid-blue" />}
         />
         <MetricCard
           title="Active"
@@ -174,7 +174,7 @@ export default function ContractorsListPage() {
         <MetricCard
           title="Pending"
           value={pendingCount}
-          icon={<UserX className="w-4 h-4 text-slate-600" />}
+          icon={<UserX className="w-4 h-4 text-grid-navy" />}
           variant="default"
         />
         <MetricCard
@@ -186,7 +186,7 @@ export default function ContractorsListPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="storm-surface flex flex-col gap-4 rounded-xl p-4 sm:flex-row">
         <Input
           placeholder="Search by name..."
           value={searchQuery}

@@ -16,7 +16,9 @@ export default function ContractorInvoicesPage() {
         description="Review generated invoices, payment status, and 1099 tracking."
       />
 
-      <InvoiceList contractorId={contractorId} />
+      <div className="storm-surface rounded-xl p-4">
+        <InvoiceList contractorId={contractorId} />
+      </div>
     </div>
   );
 }

@@ -25,13 +25,15 @@ export default function ContractorAssessmentCreatePage() {
         backHref={backHref}
       />
 
-      <AssessmentForm
-        ticketId={ticketId}
-        contractorId={contractorId}
-        onSaved={() => {
-          router.push(backHref);
-        }}
-      />
+      <div className="storm-surface rounded-xl p-4">
+        <AssessmentForm
+          ticketId={ticketId}
+          contractorId={contractorId}
+          onSaved={() => {
+            router.push(backHref);
+          }}
+        />
+      </div>
     </div>
   );
 }

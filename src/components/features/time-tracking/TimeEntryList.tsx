@@ -549,11 +549,11 @@ export function TimeEntryList({ mode, contractorId, reviewerId }: TimeEntryListP
 
       <div className="space-y-3 md:hidden">
         {isLoading ? (
-          <div className="rounded-md border bg-white p-6 text-center text-sm text-slate-500">
+          <div className="storm-surface rounded-xl p-6 text-center text-sm text-slate-500">
             Loading time entries...
           </div>
         ) : filteredEntries.length === 0 ? (
-          <div className="rounded-md border bg-white p-6 text-center text-sm text-slate-500">
+          <div className="storm-surface rounded-xl p-6 text-center text-sm text-slate-500">
             No time entries found for the selected filters.
           </div>
         ) : (

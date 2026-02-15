@@ -40,7 +40,7 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   if (isLoading) {
     return (
-      <div className={cn('rounded-md border', className)}>
+      <div className={cn('storm-surface overflow-hidden rounded-xl', className)}>
         <Table>
           <TableHeader>
             <TableRow>
@@ -69,8 +69,8 @@ export function DataTable<T>({
 
   if (data.length === 0) {
     return (
-      <div className={cn('rounded-md border', className)}>
-        <div className="flex items-center justify-center h-32 text-slate-500">
+      <div className={cn('storm-surface overflow-hidden rounded-xl', className)}>
+        <div className="flex h-32 items-center justify-center text-slate-500">
           {emptyMessage}
         </div>
       </div>
@@ -78,15 +78,15 @@ export function DataTable<T>({
   }
 
   return (
-    <div className={cn('rounded-md border overflow-hidden', className)}>
+    <div className={cn('storm-surface overflow-hidden rounded-xl', className)}>
       <Table>
         <TableHeader>
-          <TableRow className="bg-slate-50 dark:bg-slate-800/50">
+          <TableRow className="bg-grid-storm-50">
             {columns.map((column) => (
               <TableHead 
                 key={column.key} 
                 style={{ width: column.width }}
-                className="font-semibold text-slate-700 dark:text-slate-300"
+                className="font-semibold text-grid-navy"
               >
                 {column.header}
               </TableHead>
@@ -99,7 +99,7 @@ export function DataTable<T>({
               key={keyExtractor(row)}
               onClick={() => onRowClick?.(row)}
               className={cn(
-                onRowClick && 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                onRowClick && 'cursor-pointer hover:bg-grid-storm-50/60'
               )}
             >
               {columns.map((column) => (

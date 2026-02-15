@@ -159,7 +159,7 @@ export default function ContractorMapPage() {
       </PageHeader>
 
       {isAuthLoading || isResolvingContractorId || isLoading ? (
-        <div className="rounded-md border bg-white px-4 py-6 text-sm text-slate-500">Loading assigned map data...</div>
+        <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">Loading assigned map data...</div>
       ) : hasCoordinateTickets ? (
         <MapView
           className="h-[60vh]"
@@ -171,14 +171,14 @@ export default function ContractorMapPage() {
           geofence={geofence}
         />
       ) : (
-        <div className="rounded-md border bg-white px-4 py-6 text-sm text-slate-500">
+        <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">
           No assigned tickets with coordinates are available yet.
         </div>
       )}
 
-      <Card>
+      <Card className="storm-surface">
         <CardHeader>
-          <CardTitle className="text-lg">Selected Assignment</CardTitle>
+          <CardTitle className="text-lg text-grid-navy">Selected Assignment</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           {selectedTicket ? (
@@ -204,7 +204,7 @@ export default function ContractorMapPage() {
       )}
 
       {isMobileMapOpen && hasCoordinateTickets && (
-        <div className="fixed inset-0 z-50 bg-white sm:hidden">
+        <div className="fixed inset-0 z-50 bg-grid-surface sm:hidden">
           <div className="flex h-full flex-col">
             <div className="flex items-center justify-between border-b px-4 py-3">
               <div>

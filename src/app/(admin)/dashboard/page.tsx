@@ -38,12 +38,26 @@ export default function AdminDashboardPage() {
         )}
       </PageHeader>
 
-      <Card>
+      <Card className="storm-surface">
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle className="text-grid-navy">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
+            {canCreateTickets ? (
+              <Button asChild size="sm">
+                <Link href="/tickets/create">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Ticket Entry
+                </Link>
+              </Button>
+            ) : (
+              <Button size="sm" disabled title="Only Super Admin can create tickets">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Ticket Entry
+              </Button>
+            )}
+
             {canManageStormEvents ? (
               <Button asChild variant="outline" size="sm">
                 <Link href="/admin/storms/create">
@@ -55,20 +69,6 @@ export default function AdminDashboardPage() {
               <Button variant="outline" size="sm" disabled title="Only Super Admin can create storm events">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Storm Event
-              </Button>
-            )}
-
-            {canCreateTickets ? (
-              <Button asChild variant="outline" size="sm">
-                <Link href="/tickets/create">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Ticket Entry
-                </Link>
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" disabled title="Only Super Admin can create tickets">
-                <Plus className="mr-2 h-4 w-4" />
-                Create Ticket Entry
               </Button>
             )}
 
@@ -100,16 +100,16 @@ export default function AdminDashboardPage() {
             </Button>
 
             <Button asChild variant="outline" size="sm">
-              <Link href="/admin/invoice-generation">
-                <DollarSign className="mr-2 h-4 w-4" />
-                Generate Invoices
+              <Link href="/admin/reports">
+                <MapPin className="mr-2 h-4 w-4" />
+                Open Reports
               </Link>
             </Button>
 
             <Button asChild variant="outline" size="sm">
-              <Link href="/admin/reports">
-                <MapPin className="mr-2 h-4 w-4" />
-                Open Reports
+              <Link href="/admin/invoice-generation">
+                <DollarSign className="mr-2 h-4 w-4" />
+                Generate Invoices
               </Link>
             </Button>
           </div>
@@ -119,15 +119,15 @@ export default function AdminDashboardPage() {
       <DashboardMetrics />
 
       <div className="grid grid-cols-1 gap-6">
-        <Card>
+        <Card className="storm-surface">
           <CardHeader>
-            <CardTitle>Today&apos;s Activity</CardTitle>
+            <CardTitle className="text-grid-navy">Today&apos;s Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="aspect-video rounded-lg border bg-slate-50 p-6">
+            <div className="aspect-video rounded-xl border border-grid-surface bg-grid-surface p-6">
               <div className="flex h-full flex-col items-center justify-center text-center">
-                <MapPin className="mb-3 h-10 w-10 text-slate-400" />
-                <p className="text-sm font-medium text-slate-700">Live map operations are available in Map View.</p>
+                <MapPin className="mb-3 h-10 w-10 text-grid-blue" />
+                <p className="text-sm font-medium text-grid-navy">Live map operations are available in Map View.</p>
                 <p className="mt-1 text-xs text-slate-500">
                   Use map mode to validate geofence activity and monitor route progress.
                 </p>
@@ -141,9 +141,9 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="storm-surface">
           <CardHeader>
-            <CardTitle>Operational Alerts</CardTitle>
+            <CardTitle className="text-grid-navy">Operational Alerts</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-900">
@@ -152,15 +152,15 @@ export default function AdminDashboardPage() {
                 <p>Pending reviews should be cleared before end-of-day invoice cycles.</p>
               </div>
             </div>
-            <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-blue-900">
+            <div className="rounded-md border border-grid-storm-100 bg-grid-storm-50 p-3 text-grid-navy">
               <p>Week 12 reporting exports are now available from the Reports dashboard.</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="storm-surface">
           <CardHeader>
-            <CardTitle>Week 12 Progress</CardTitle>
+            <CardTitle className="text-grid-navy">Week 12 Progress</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-slate-700">
             <p>Task 12.1: Invoice generation and 1099 tracking completed.</p>

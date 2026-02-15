@@ -1,10 +1,14 @@
 'use client';
 
 import { ReactNode, useState } from 'react';
+
+import { useAuth } from '@/components/providers/AuthProvider';
+import { useContractorId } from '@/hooks/useContractorId';
+import { useNavigationSignals } from '@/hooks/useNavigationSignals';
+
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { BottomNav } from './BottomNav';
-import { useAuth } from '@/components/providers/AuthProvider';
 
 interface AppShellProps {
   children: ReactNode;
@@ -13,36 +17,42 @@ interface AppShellProps {
 
 export function AppShell({ children, userRole = 'admin' }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, profile, signOut } = useAuth();
+  const { profile, signOut } = useAuth();
+  const { contractorId } = useContractorId(userRole === 'contractor' ? profile?.id : undefined);
+  const { signals, isLoading: isSignalsLoading, refresh } = useNavigationSignals({
+    userRole,
+    contractorId: userRole === 'contractor' ? contractorId : undefined,
+  });
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      {/* Top Bar - Desktop */}
+    <div className="min-h-screen bg-grid-shell">
       <TopBar
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         userName={profile ? `${profile.first_name} ${profile.last_name}` : 'User'}
         userRole={profile?.role || 'USER'}
         onSignOut={signOut}
+        onRefreshSignals={refresh}
+        signals={signals}
+        userPortal={userRole}
+        isSignalsLoading={isSignalsLoading}
       />
 
-      <div className="flex pt-16">
-        {/* Sidebar - Desktop */}
+      <div className="flex" style={{ paddingTop: 'calc(var(--top-bar-height) + var(--offline-banner-height))' }}>
         <Sidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
+          signals={signals}
           userRole={userRole}
         />
 
-        {/* Main Content */}
-        <main className="flex-1 min-h-[calc(100vh-4rem)] pb-20 lg:pb-8 px-4 sm:px-6 lg:px-8 py-6">
+        <main className="flex-1 min-h-[calc(100vh-var(--top-bar-height)-var(--offline-banner-height))] px-4 py-6 pb-24 sm:px-6 lg:px-8 lg:pb-8">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
         </main>
       </div>
 
-      {/* Bottom Navigation - Mobile */}
-      <BottomNav userRole={userRole} />
+      <BottomNav signals={signals} userRole={userRole} />
     </div>
   );
 }

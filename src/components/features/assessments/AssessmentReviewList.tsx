@@ -571,11 +571,11 @@ export function AssessmentReviewList({ reviewerId }: AssessmentReviewListProps) 
 
       <div className="space-y-3 md:hidden">
         {isLoading ? (
-          <div className="rounded-md border bg-white px-4 py-6 text-sm text-slate-500">
+          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">
             Loading assessments...
           </div>
         ) : assessments.length === 0 ? (
-          <div className="rounded-md border bg-white px-4 py-6 text-sm text-slate-500">
+          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">
             No assessments found for the selected filters.
           </div>
         ) : (

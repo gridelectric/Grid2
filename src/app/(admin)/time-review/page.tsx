@@ -14,10 +14,12 @@ export default function AdminTimeReviewPage() {
         description="Review pending field time entries, apply batch decisions, and verify billable totals."
       />
 
-      <TimeEntryList
-        mode="admin"
-        reviewerId={profile?.id}
-      />
+      <div className="storm-surface rounded-xl p-4">
+        <TimeEntryList
+          mode="admin"
+          reviewerId={profile?.id}
+        />
+      </div>
     </div>
   );
 }

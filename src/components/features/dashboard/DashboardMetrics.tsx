@@ -112,22 +112,22 @@ export function DashboardMetrics({ className }: DashboardMetricsProps) {
         <MetricCard
           title="Active Tickets"
           value={activeTicketsValue}
-          icon={<Ticket className="h-4 w-4 text-blue-600" />}
+          icon={<Ticket className="h-4 w-4 text-grid-navy" />}
           description="Open lifecycle workload"
         />
 
         <MetricCard
           title="Field Crews"
           value={fieldCrewsValue}
-          icon={<Users className="h-4 w-4 text-emerald-600" />}
+          icon={<Users className="h-4 w-4 text-grid-blue" />}
           description={metrics ? `${metrics.on_site_crews} currently on site` : 'Active assignments'}
-          variant="success"
+          variant="accent"
         />
 
         <MetricCard
           title="Pending Reviews"
           value={pendingReviewValue}
-          icon={<Clock className="h-4 w-4 text-amber-600" />}
+          icon={<Clock className="h-4 w-4 text-grid-lightning" />}
           description={
             metrics
               ? `${metrics.pending_time_entries} time, ${metrics.pending_expense_reports} expense, ${metrics.pending_assessments} assessments`
@@ -139,7 +139,7 @@ export function DashboardMetrics({ className }: DashboardMetricsProps) {
         <MetricCard
           title="Revenue (MTD)"
           value={revenueValue}
-          icon={<DollarSign className="h-4 w-4 text-indigo-600" />}
+          icon={<DollarSign className="h-4 w-4 text-grid-blue" />}
           trend={revenueTrendDirection}
           trendValue={metrics ? formatSignedTrend(metrics.revenue_trend_percent) : undefined}
           description="vs previous month-to-date"
@@ -147,25 +147,25 @@ export function DashboardMetrics({ className }: DashboardMetricsProps) {
         />
       </div>
 
-      <Card>
+      <Card className="storm-surface">
         <CardContent className="grid grid-cols-2 gap-3 pt-6 text-sm md:grid-cols-4">
-          <div className="rounded-md border bg-slate-50 p-3">
+          <div className="rounded-md border border-grid-surface bg-grid-surface p-3">
             <p className="text-xs text-slate-500">In Route</p>
-            <p className="text-lg font-semibold">{metrics?.status_breakdown.in_route ?? (isLoading ? '...' : 0)}</p>
+            <p className="text-lg font-semibold text-grid-navy">{metrics?.status_breakdown.in_route ?? (isLoading ? '...' : 0)}</p>
           </div>
-          <div className="rounded-md border bg-slate-50 p-3">
+          <div className="rounded-md border border-grid-surface bg-grid-surface p-3">
             <p className="text-xs text-slate-500">On Site</p>
-            <p className="text-lg font-semibold">{metrics?.status_breakdown.on_site ?? (isLoading ? '...' : 0)}</p>
+            <p className="text-lg font-semibold text-grid-navy">{metrics?.status_breakdown.on_site ?? (isLoading ? '...' : 0)}</p>
           </div>
-          <div className="rounded-md border bg-slate-50 p-3">
+          <div className="rounded-md border border-grid-surface bg-grid-surface p-3">
             <p className="text-xs text-slate-500">Pending Review</p>
-            <p className="text-lg font-semibold">
+            <p className="text-lg font-semibold text-grid-navy">
               {metrics?.status_breakdown.pending_review ?? (isLoading ? '...' : 0)}
             </p>
           </div>
-          <div className="rounded-md border bg-slate-50 p-3">
+          <div className="rounded-md border border-grid-surface bg-grid-surface p-3">
             <p className="text-xs text-slate-500">Unassigned</p>
-            <p className="text-lg font-semibold">{metrics?.status_breakdown.unassigned ?? (isLoading ? '...' : 0)}</p>
+            <p className="text-lg font-semibold text-grid-navy">{metrics?.status_breakdown.unassigned ?? (isLoading ? '...' : 0)}</p>
           </div>
         </CardContent>
       </Card>

@@ -14,7 +14,9 @@ export default function AdminAssessmentReviewPage() {
         description="Review submitted damage assessments and approve or request rework."
       />
 
-      <AssessmentReviewList reviewerId={profile?.id} />
+      <div className="storm-surface rounded-xl p-4">
+        <AssessmentReviewList reviewerId={profile?.id} />
+      </div>
     </div>
   );
 }

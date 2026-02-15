@@ -323,7 +323,7 @@ export function ReportsDashboard() {
         </CardHeader>
         <CardContent>
           {!report || report.series.length === 0 ? (
-            <div className="rounded-md border bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+            <div className="rounded-md border border-grid-surface bg-grid-surface px-4 py-8 text-center text-sm text-slate-500">
               {isLoading ? 'Loading chart data...' : 'No report data available for the selected range.'}
             </div>
           ) : (
@@ -385,7 +385,7 @@ export function ReportsDashboard() {
         </CardHeader>
         <CardContent>
           {!report || report.contractors.length === 0 ? (
-            <div className="rounded-md border bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+            <div className="rounded-md border border-grid-surface bg-grid-surface px-4 py-8 text-center text-sm text-slate-500">
               {isLoading ? 'Loading contractor data...' : 'No contractor activity found for this range.'}
             </div>
           ) : (

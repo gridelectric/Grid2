@@ -37,7 +37,7 @@ export default function TicketDetailPage() {
             const data = await ticketService.getTicketById(params.id as string);
             setTicket(data);
         } catch (error) {
-            console.error('Failed to load ticket:', error);
+            console.warn('Failed to load ticket:', error);
         } finally {
             setIsLoading(false);
         }
@@ -91,9 +91,9 @@ export default function TicketDetailPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2 space-y-6">
-                    <Card>
+                    <Card className="storm-surface">
                         <CardHeader>
-                            <CardTitle>Work Description</CardTitle>
+                            <CardTitle className="text-grid-navy">Work Description</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <p className="whitespace-pre-wrap">{ticket.work_description}</p>
@@ -107,9 +107,9 @@ export default function TicketDetailPage() {
                             <TabsTrigger value="history">History</TabsTrigger>
                         </TabsList>
                         <TabsContent value="details" className="space-y-4 mt-4">
-                            <Card>
+                            <Card className="storm-surface">
                                 <CardHeader>
-                                    <CardTitle>Location & Contact</CardTitle>
+                                    <CardTitle className="text-grid-navy">Location & Contact</CardTitle>
                                 </CardHeader>
                                 <CardContent className="grid gap-4">
                                     <div>
@@ -127,7 +127,7 @@ export default function TicketDetailPage() {
                         </TabsContent>
                         <TabsContent value="assessments">
                             {userRole === 'contractor' ? (
-                                <div className="text-muted-foreground p-4 text-center border-2 border-dashed rounded-lg">
+                                <div className="rounded-lg border-2 border-dashed border-grid-storm-200 bg-grid-storm-50 p-4 text-center text-muted-foreground">
                                     <p>No assessment submitted yet.</p>
                                     {(ticket.status === 'ON_SITE' || ticket.status === 'IN_PROGRESS' || ticket.status === 'NEEDS_REWORK') && (
                                         <Button asChild className="mt-3">
@@ -138,7 +138,7 @@ export default function TicketDetailPage() {
                                     )}
                                 </div>
                             ) : (
-                                <div className="text-muted-foreground p-4">No assessments yet.</div>
+                                <div className="rounded-lg border border-grid-surface bg-grid-surface p-4 text-muted-foreground">No assessments yet.</div>
                             )}
                         </TabsContent>
                         <TabsContent value="history">
@@ -150,9 +150,9 @@ export default function TicketDetailPage() {
                 </div>
 
                 <div className="space-y-6">
-                    <Card>
+                    <Card className="storm-surface">
                         <CardHeader>
-                            <CardTitle>{userRole === 'contractor' ? 'Metadata' : 'Info'}</CardTitle>
+                            <CardTitle className="text-grid-navy">{userRole === 'contractor' ? 'Metadata' : 'Info'}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>

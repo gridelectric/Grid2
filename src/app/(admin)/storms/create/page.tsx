@@ -88,7 +88,7 @@ export default function CreateStormEventPage() {
   }
 
   if (isLoading || !canCreateStormEvent) {
-    return <div className="text-sm text-slate-500">Checking access...</div>;
+    return <div className="storm-surface rounded-xl p-4 text-sm text-slate-500">Checking access...</div>;
   }
 
   return (
@@ -99,7 +99,7 @@ export default function CreateStormEventPage() {
         backHref="/admin/storms"
       />
 
-      <Card>
+      <Card className="storm-surface">
         <CardContent className="pt-6">
           <form className="space-y-6" onSubmit={onSubmit}>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
