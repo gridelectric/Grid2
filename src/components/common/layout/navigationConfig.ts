@@ -27,8 +27,6 @@ export const ADMIN_SIDEBAR_NAV_ITEMS: NavLinkItem[] = [
     href: '/admin/storms',
     label: 'Storm Events',
     matchPaths: ['/admin/admin/storms'],
-    signalKey: 'storms',
-    badgeStyle: 'dot',
   },
   { href: '/admin/time-review', label: 'Time Review', signalKey: 'reviews', badgeStyle: 'count' },
   { href: '/admin/expense-review', label: 'Expenses', signalKey: 'reviews', badgeStyle: 'count' },

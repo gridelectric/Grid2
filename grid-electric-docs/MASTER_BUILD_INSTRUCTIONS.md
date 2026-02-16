@@ -774,6 +774,9 @@ grid-electric-app/
 - **Status Update:** 2026-02-15
 - **Agent:** GPT-5 Codex
 - **Notes:** Applied `/tickets` page feedback by removing top-level header descriptive text from the tickets landing page (`src/app/tickets/page.tsx`).
+- **Status Update:** 2026-02-15
+- **Agent:** GPT-5 Codex
+- **Notes:** Applied sidebar feedback by removing the Storm Events nav-row trailing dot indicator through navigation metadata (removed dot badge wiring for `/admin/storms`) (`src/components/common/layout/navigationConfig.ts`).
 
 ---
 
