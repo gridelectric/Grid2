@@ -22,7 +22,7 @@ interface RemoteTicketCountRow {
   status: string;
 }
 
-export type StormEventStatus = 'PLANNED' | 'ACTIVE' | 'PAUSED' | 'COMPLETE' | 'ARCHIVED';
+export type StormEventStatus = 'MOB' | 'ACTIVE' | 'DE-MOB' | 'RELEASED' | 'BILLING' | 'CLOSED';
 
 export interface StormEventSummary {
   id: string;
@@ -53,19 +53,38 @@ export interface CreateStormEventInput {
 
 function normalizeStormEventStatus(value: string | null | undefined): StormEventStatus {
   const normalized = String(value ?? '').toUpperCase();
+  if (normalized === 'MOB') {
+    return 'MOB';
+  }
   if (normalized === 'ACTIVE') {
     return 'ACTIVE';
   }
-  if (normalized === 'PAUSED') {
-    return 'PAUSED';
+  if (normalized === 'DE-MOB') {
+    return 'DE-MOB';
+  }
+  if (normalized === 'RELEASED') {
+    return 'RELEASED';
+  }
+  if (normalized === 'BILLING') {
+    return 'BILLING';
+  }
+  if (normalized === 'CLOSED') {
+    return 'CLOSED';
+  }
+  // Legacy status compatibility fallback
+  if (normalized === 'PLANNED') {
+    return 'MOB';
   }
   if (normalized === 'COMPLETE') {
-    return 'COMPLETE';
+    return 'DE-MOB';
+  }
+  if (normalized === 'PAUSED') {
+    return 'RELEASED';
   }
   if (normalized === 'ARCHIVED') {
-    return 'ARCHIVED';
+    return 'CLOSED';
   }
-  return 'PLANNED';
+  return 'MOB';
 }
 
 function normalizeOptional(value: string | null | undefined): string | null {
@@ -216,7 +235,7 @@ export const stormEventService = {
         event_code: eventCode,
         name: input.name.trim(),
         utility_client: input.utilityClient.trim(),
-        status: normalizeStormEventStatus(input.status ?? 'PLANNED'),
+        status: normalizeStormEventStatus(input.status ?? 'MOB'),
         region: normalizeOptional(input.region),
         contract_reference: normalizeOptional(input.contractReference),
         start_date: normalizeOptional(input.startDate),
@@ -237,4 +256,3 @@ export const stormEventService = {
     return mapStormEventRow(data as RemoteStormEventRow, new Map());
   },
 };
-

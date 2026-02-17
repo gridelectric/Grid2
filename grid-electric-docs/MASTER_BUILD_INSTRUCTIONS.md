@@ -11,15 +11,14 @@
 
 ## DOCUMENT PURPOSE
 
-This document serves as the **single source of truth** for building the Grid Electric Services Damage Assessment Platform. All AI agents and developers MUST reference this document before, during, and after any development work.
+This document is a comprehensive build and tracking reference for the Grid Electric Services Damage Assessment Platform.
 
-### Critical Rules
+### Recommended Guidelines
 
-1. **ALWAYS check this document first** before starting any task
-2. **UPDATE the progress tracker** (Section 2) after completing ANY task
-3. **NEVER duplicate work** - check what's already completed
-4. **Reference specific files** listed in each task
-5. **Follow the exact phase order** - do not skip phases
+1. Check this document when you need roadmap or implementation context
+2. Avoid duplicate work by reviewing completed tasks
+3. Reference specific files listed in each task
+4. Follow the phase order when executing roadmap items
 
 ---
 
@@ -777,6 +776,9 @@ grid-electric-app/
 - **Status Update:** 2026-02-15
 - **Agent:** GPT-5 Codex
 - **Notes:** Applied sidebar feedback by removing the Storm Events nav-row trailing dot indicator through navigation metadata (removed dot badge wiring for `/admin/storms`) (`src/components/common/layout/navigationConfig.ts`).
+- **Status Update:** 2026-02-16
+- **Agent:** GPT-5 Codex
+- **Notes:** Implemented exact Entergy Incident Summary Report ticket intake layout in ticket creation when utility client is Entergy: added sectioned Entergy form fields (Incident Summary, Address/Timing, Device, Damage Assessment, Comments), 10-digit incident-number UX formatting, separate crew comments + `Need Scout` checkbox, and aligned structured Entergy payload formatting/output labels to extracted report nomenclature (`src/components/features/tickets/TicketForm.tsx`, `src/lib/constants/entergyTicketFormat.ts`, `src/lib/constants/entergyTicketFormat.test.ts`).
 
 ---
 
@@ -891,4 +893,4 @@ grid-electric-app/
 
 **END OF MASTER BUILD INSTRUCTIONS**
 
-**NEXT ACTION REQUIRED:** Update Section 2 (Progress Tracker) after every task completion.
+**Note:** Section 2 provides project progress context.

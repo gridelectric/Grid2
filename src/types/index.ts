@@ -114,7 +114,7 @@ export interface StormEvent {
   event_code: string;
   name: string;
   utility_client: string;
-  status: 'PLANNED' | 'ACTIVE' | 'PAUSED' | 'COMPLETE' | 'ARCHIVED';
+  status: 'MOB' | 'ACTIVE' | 'DE-MOB' | 'RELEASED' | 'BILLING' | 'CLOSED';
   region?: string;
   contract_reference?: string;
   start_date?: string;

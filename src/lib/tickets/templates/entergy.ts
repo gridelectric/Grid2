@@ -1,0 +1,83 @@
+import { z } from 'zod';
+import type { TicketTemplateDefinition } from './types';
+
+const incidentTypes = ['LGTS', 'WIRD', 'XFMR', 'OTHER'] as const;
+
+export const entergyPayloadSchema = z
+  .object({
+    incident_number: z.string().regex(/^\d{10}$/),
+    incident_type: z.enum(incidentTypes),
+    affected_customers: z.number().int().min(0).optional(),
+    address_line: z.string().min(1),
+    calls_count: z.number().int().min(0).optional(),
+    calls_start_time: z.string().optional(),
+    ert: z.string().optional(),
+    duration_hours: z.number().int().min(0).optional(),
+    device_name: z.string().optional(),
+    device_type: z.string().optional(),
+    device_type_raw: z.string().optional(),
+    network: z.string().optional(),
+    feeder: z.string().optional(),
+    local_office: z.string().optional(),
+    substation: z.string().optional(),
+    poles_down: z.number().int().min(0).optional(),
+    transformers_down: z.number().int().min(0).optional(),
+    conductor_span: z.number().int().min(0).optional(),
+    services: z.number().int().min(0).optional(),
+    cross_arms: z.number().int().min(0).optional(),
+    tree_trim: z.number().int().min(0).optional(),
+    dispatcher_comments: z.string().optional(),
+    crew_comments: z.string().optional(),
+    need_scout: z.boolean().optional(),
+    first_customer_comment: z.string().optional(),
+    ticket_generated_by: z.enum(['MANUAL', 'OCR', 'SMS', 'UNKNOWN']).default('UNKNOWN'),
+  })
+  .strict();
+
+export const ENTERGY_TEMPLATE: TicketTemplateDefinition = {
+  templateKey: 'ENTERGY_TROUBLE_TICKET_V1',
+  utilityClient: 'ENTERGY',
+  displayName: 'Entergy Trouble Ticket',
+  schema: entergyPayloadSchema,
+  payloadVersion: 1,
+  defaultValues: {
+    incident_number: '',
+    incident_type: 'LGTS',
+    address_line: '',
+    ticket_generated_by: 'UNKNOWN',
+  },
+  fieldConfig: [
+    { section: 'Header', fieldKey: 'incident_number', label: 'Incident Number', controlType: 'text', required: true, helpText: '10 digits' },
+    { section: 'Header', fieldKey: 'incident_type', label: 'Incident Type', controlType: 'select', required: true, enumValues: [...incidentTypes] },
+    { section: 'Header', fieldKey: 'affected_customers', label: 'Affected Customers', controlType: 'number', required: false },
+    { section: 'Location', fieldKey: 'address_line', label: 'Address', controlType: 'text', required: true },
+    { section: 'Timing', fieldKey: 'calls_count', label: 'Calls', controlType: 'number', required: false },
+    { section: 'Timing', fieldKey: 'calls_start_time', label: 'Calls Start Time', controlType: 'datetime', required: false },
+    { section: 'Timing', fieldKey: 'ert', label: 'ERT', controlType: 'datetime', required: false },
+    { section: 'Timing', fieldKey: 'duration_hours', label: 'Duration (h)', controlType: 'number', required: false },
+    { section: 'Asset / Device', fieldKey: 'device_name', label: 'Device Name', controlType: 'text', required: false },
+    { section: 'Asset / Device', fieldKey: 'device_type', label: 'Device Type', controlType: 'text', required: false },
+    { section: 'Circuit / Feeder / Grid', fieldKey: 'network', label: 'Network', controlType: 'text', required: false },
+    { section: 'Circuit / Feeder / Grid', fieldKey: 'feeder', label: 'Feeder', controlType: 'text', required: false },
+    { section: 'Circuit / Feeder / Grid', fieldKey: 'local_office', label: 'Local Office', controlType: 'text', required: false },
+    { section: 'Circuit / Feeder / Grid', fieldKey: 'substation', label: 'Substation', controlType: 'text', required: false },
+    { section: 'Damage Assessment', fieldKey: 'poles_down', label: 'Poles Down', controlType: 'number', required: false },
+    { section: 'Damage Assessment', fieldKey: 'transformers_down', label: 'Transformers Down', controlType: 'number', required: false },
+    { section: 'Damage Assessment', fieldKey: 'conductor_span', label: 'Conductor Span', controlType: 'number', required: false },
+    { section: 'Damage Assessment', fieldKey: 'services', label: 'Services', controlType: 'number', required: false },
+    { section: 'Damage Assessment', fieldKey: 'cross_arms', label: 'Cross Arms', controlType: 'number', required: false },
+    { section: 'Damage Assessment', fieldKey: 'tree_trim', label: 'Tree Trim', controlType: 'number', required: false },
+    { section: 'Notes / Comments', fieldKey: 'dispatcher_comments', label: 'Dispatcher Comments', controlType: 'textarea', required: false },
+    { section: 'Notes / Comments', fieldKey: 'crew_comments', label: 'Crew Comments', controlType: 'textarea', required: false },
+    { section: 'Notes / Comments', fieldKey: 'need_scout', label: 'Need Scout', controlType: 'toggle', required: false },
+    { section: 'Notes / Comments', fieldKey: 'first_customer_comment', label: 'First Customer Comment', controlType: 'textarea', required: false },
+    { section: 'Work Routing / SLA', fieldKey: 'ticket_generated_by', label: 'Ticket Generated By', controlType: 'select', required: false, enumValues: ['MANUAL', 'OCR', 'SMS', 'UNKNOWN'] },
+  ],
+  ocrMapping: [
+    { fieldKey: 'incident_number', anchors: ['Incident Number'], regex: /Incident\s*Number\s*:?\s*(\d{10})/i },
+    { fieldKey: 'incident_type', anchors: ['Incident Type'], regex: /Incident\s*Type\s*:?\s*([A-Z]{2,8})/i },
+    { fieldKey: 'address_line', anchors: ['Address'], regex: /Address\s*:?\s*([^\n]+)/i },
+    { fieldKey: 'feeder', anchors: ['Feeder'], regex: /Feeder\s*:?\s*([A-Z0-9-]+)/i },
+  ],
+  getTicketNumber: (payload) => String(payload.incident_number ?? ''),
+};

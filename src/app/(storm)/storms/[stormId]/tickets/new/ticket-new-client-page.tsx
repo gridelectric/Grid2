@@ -1,0 +1,125 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+import { TicketFormRenderer } from '@/components/features/tickets/TicketFormRenderer';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { canPerformManagementAction } from '@/lib/auth/authorization';
+import { runUtilityOcrExtraction } from '@/lib/tickets/ocr';
+import { getTicketTemplateByUtilityClient, normalizeUtilityClient } from '@/lib/tickets/templates';
+import { stormEventService } from '@/lib/services/stormEventService';
+import { ticketIntakeService } from '@/lib/services/ticketIntakeService';
+import { getErrorMessage } from '@/lib/utils/errorHandling';
+import { toast } from 'sonner';
+
+interface TicketNewClientPageProps {
+  stormId: string;
+}
+
+export function TicketNewClientPage({ stormId }: TicketNewClientPageProps) {
+  const router = useRouter();
+  const { profile } = useAuth();
+  const canCreate = canPerformManagementAction(profile?.role, 'ticket_entry_write');
+
+  const [stormName, setStormName] = useState('');
+  const [stormUtility, setStormUtility] = useState('Entergy');
+  const [stormState, setStormState] = useState('Unknown');
+  const [ready, setReady] = useState(false);
+  const [initialValues, setInitialValues] = useState<Record<string, unknown>>({});
+  const [confidenceByField, setConfidenceByField] = useState<Record<string, number>>({});
+  const [extractionWarnings, setExtractionWarnings] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    void stormEventService
+      .getStormEventById(stormId)
+      .then((stormEvent) => {
+        if (!stormEvent) {
+          toast.error('Storm event not found.');
+          router.replace('/admin/storms');
+          return;
+        }
+
+        setStormName(stormEvent.name);
+        setStormUtility(stormEvent.utilityClient);
+        setStormState(stormEvent.region ?? 'Unknown');
+        setReady(true);
+      })
+      .catch((error) => {
+        toast.error(getErrorMessage(error, 'Failed to load storm event.'));
+        router.replace('/admin/storms');
+      });
+  }, [router, stormId]);
+
+  const template = useMemo(() => {
+    const utility = normalizeUtilityClient(stormUtility);
+    return getTicketTemplateByUtilityClient(utility);
+  }, [stormUtility]);
+
+  if (!canCreate) {
+    return <div className="storm-surface rounded-xl p-4 text-sm text-slate-500">Only authorized users can create tickets.</div>;
+  }
+
+  if (!ready) {
+    return <div className="storm-surface rounded-xl p-4 text-sm text-slate-500">Loading storm details...</div>;
+  }
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-6">
+      <h1 className="text-2xl font-semibold text-grid-navy">Create Ticket</h1>
+      <TicketFormRenderer
+        storm={{ id: stormId, name: stormName, utilityClient: stormUtility, state: stormState }}
+        template={template}
+        initialValues={initialValues}
+        confidenceByField={confidenceByField}
+        extractionWarnings={extractionWarnings}
+        isSubmitting={isSubmitting}
+        onRunOcr={(ocrText) => {
+          const result = runUtilityOcrExtraction(template.templateKey, ocrText);
+          setInitialValues((current) => ({ ...current, ...result.payloadDraft, source_type: 'OCR_SCAN', raw_ocr_text: ocrText }));
+          setConfidenceByField(result.confidenceByField);
+          setExtractionWarnings(result.warnings);
+        }}
+        onSubmitTicket={async (values) => {
+          try {
+            setIsSubmitting(true);
+            const payloadInput = Object.fromEntries(
+              template.fieldConfig.map((field) => [field.fieldKey, values[field.fieldKey]]),
+            );
+            const parsedPayload = template.schema.parse(payloadInput);
+
+            const rawOcrText = typeof values.raw_ocr_text === 'string' ? values.raw_ocr_text : undefined;
+            const sourceFileId = typeof values.source_file_id === 'string' && values.source_file_id.length > 0
+              ? values.source_file_id
+              : undefined;
+
+            await ticketIntakeService.createUtilityTicket({
+              stormEventId: stormId,
+              stormUtilityClient: stormUtility,
+              template,
+              common: {
+                status: (typeof values.status === 'string' ? values.status : 'DRAFT') as 'DRAFT' | 'ASSIGNED' | 'IN_PROGRESS' | 'PENDING_REVIEW' | 'APPROVED' | 'CLOSED',
+                priority: (typeof values.priority === 'string' ? values.priority : 'C') as 'A' | 'B' | 'C' | 'X',
+                source_type: (typeof values.source_type === 'string' ? values.source_type : 'MANUAL') as 'MANUAL' | 'OCR_SCAN' | 'PDF_IMPORT' | 'CSV_IMPORT' | 'API',
+                raw_ocr_text: rawOcrText,
+                source_file_id: sourceFileId,
+              },
+              payload: parsedPayload,
+              extractionConfidence: confidenceByField,
+              extractionWarnings,
+            });
+
+            toast.success('Ticket created successfully.');
+            router.push('/tickets');
+            router.refresh();
+          } catch (error) {
+            toast.error(getErrorMessage(error, 'Failed to create ticket.'));
+          } finally {
+            setIsSubmitting(false);
+          }
+        }}
+      />
+    </div>
+  );
+}

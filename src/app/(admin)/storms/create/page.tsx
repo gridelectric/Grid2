@@ -24,7 +24,72 @@ import { stormEventService, type StormEventStatus } from '@/lib/services/stormEv
 import { getErrorMessage } from '@/lib/utils/errorHandling';
 import { toast } from 'sonner';
 
-const STORM_EVENT_STATUSES: StormEventStatus[] = ['PLANNED', 'ACTIVE', 'PAUSED', 'COMPLETE', 'ARCHIVED'];
+const STORM_EVENT_STATUS_OPTIONS: Array<{ value: StormEventStatus; label: string }> = [
+  { value: 'MOB', label: 'MOB' },
+  { value: 'ACTIVE', label: 'ACTIVE' },
+  { value: 'DE-MOB', label: 'DE-MOB' },
+  { value: 'RELEASED', label: 'RELEASED' },
+  { value: 'BILLING', label: 'BILLING' },
+  { value: 'CLOSED', label: 'CLOSED' },
+];
+
+const STATE_NAMES = [
+  'Alabama',
+  'Alaska',
+  'Arizona',
+  'Arkansas',
+  'California',
+  'Colorado',
+  'Connecticut',
+  'Delaware',
+  'Florida',
+  'Georgia',
+  'Hawaii',
+  'Idaho',
+  'Illinois',
+  'Indiana',
+  'Iowa',
+  'Kansas',
+  'Kentucky',
+  'Louisiana',
+  'Maine',
+  'Maryland',
+  'Massachusetts',
+  'Michigan',
+  'Minnesota',
+  'Mississippi',
+  'Missouri',
+  'Montana',
+  'Nebraska',
+  'Nevada',
+  'New Hampshire',
+  'New Jersey',
+  'New Mexico',
+  'New York',
+  'North Carolina',
+  'North Dakota',
+  'Ohio',
+  'Oklahoma',
+  'Oregon',
+  'Pennsylvania',
+  'Rhode Island',
+  'South Carolina',
+  'South Dakota',
+  'Tennessee',
+  'Texas',
+  'Utah',
+  'Vermont',
+  'Virginia',
+  'Washington',
+  'West Virginia',
+  'Wisconsin',
+  'Wyoming',
+] as const;
+
+const UTILITY_CLIENT_OPTIONS = [
+  ...UTILITY_CLIENTS.filter((client) => client === 'Entergy'),
+  ...UTILITY_CLIENTS.filter((client) => client !== 'Entergy'),
+];
 
 export default function CreateStormEventPage() {
   const router = useRouter();
@@ -33,12 +98,9 @@ export default function CreateStormEventPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [eventCode, setEventCode] = useState('');
   const [name, setName] = useState('');
-  const [utilityClient, setUtilityClient] = useState<string>(UTILITY_CLIENTS[0] ?? 'Entergy');
-  const [status, setStatus] = useState<StormEventStatus>('PLANNED');
+  const [utilityClient, setUtilityClient] = useState<string>('Entergy');
+  const [status, setStatus] = useState<StormEventStatus>('MOB');
   const [region, setRegion] = useState('');
-  const [contractReference, setContractReference] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
@@ -69,9 +131,6 @@ export default function CreateStormEventPage() {
         utilityClient,
         status,
         region,
-        contractReference,
-        startDate,
-        endDate,
         notes,
       });
 
@@ -109,7 +168,6 @@ export default function CreateStormEventPage() {
                   id="storm-event-name"
                   value={name}
                   onChange={(nextEvent) => setName(nextEvent.target.value)}
-                  placeholder="Entergy North Region - February 2026"
                 />
               </div>
 
@@ -130,7 +188,7 @@ export default function CreateStormEventPage() {
                     <SelectValue placeholder="Select utility client" />
                   </SelectTrigger>
                   <SelectContent>
-                    {UTILITY_CLIENTS.map((client) => (
+                    {UTILITY_CLIENT_OPTIONS.map((client) => (
                       <SelectItem key={client} value={client}>
                         {client}
                       </SelectItem>
@@ -146,9 +204,9 @@ export default function CreateStormEventPage() {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    {STORM_EVENT_STATUSES.map((stormEventStatus) => (
-                      <SelectItem key={stormEventStatus} value={stormEventStatus}>
-                        {stormEventStatus}
+                    {STORM_EVENT_STATUS_OPTIONS.map((stormEventStatus) => (
+                      <SelectItem key={stormEventStatus.value} value={stormEventStatus.value}>
+                        {stormEventStatus.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -156,43 +214,19 @@ export default function CreateStormEventPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="storm-event-region">Region</Label>
-                <Input
-                  id="storm-event-region"
-                  value={region}
-                  onChange={(nextEvent) => setRegion(nextEvent.target.value)}
-                  placeholder="LA Region 4"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="storm-event-contract-reference">Contract Reference</Label>
-                <Input
-                  id="storm-event-contract-reference"
-                  value={contractReference}
-                  onChange={(nextEvent) => setContractReference(nextEvent.target.value)}
-                  placeholder="Master service agreement or work order"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="storm-event-start-date">Start Date</Label>
-                <Input
-                  id="storm-event-start-date"
-                  type="date"
-                  value={startDate}
-                  onChange={(nextEvent) => setStartDate(nextEvent.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="storm-event-end-date">End Date</Label>
-                <Input
-                  id="storm-event-end-date"
-                  type="date"
-                  value={endDate}
-                  onChange={(nextEvent) => setEndDate(nextEvent.target.value)}
-                />
+                <Label>State</Label>
+                <Select value={region} onValueChange={setRegion}>
+                  <SelectTrigger id="storm-event-region">
+                    <SelectValue placeholder="Select state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATE_NAMES.map((stateName) => (
+                      <SelectItem key={stateName} value={stateName}>
+                        {stateName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

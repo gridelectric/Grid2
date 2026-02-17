@@ -70,7 +70,7 @@ describe('entergyTicketFormat', () => {
       treeTrim: 0,
       dispatcherComments: '',
       crewComments: 'Crew on site',
-      needScout: '',
+      needScout: undefined,
       firstCustomerComment: 'Customer called about down wire',
     });
 
@@ -80,4 +80,3 @@ describe('entergyTicketFormat', () => {
     expect(text).toContain('First Customer Comment: Customer called about down wire');
   });
 });
-

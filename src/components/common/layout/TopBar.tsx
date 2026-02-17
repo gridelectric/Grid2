@@ -59,10 +59,10 @@ export function TopBar({
 
   return (
     <header
-      className="safe-area-pr safe-area-pl fixed left-0 right-0 z-50 border-b border-white/20 bg-transparent"
+      className="fixed left-0 right-0 z-50 border-b border-white/20 bg-transparent"
       style={{ height: 'var(--top-bar-height)', top: 'var(--offline-banner-height)' }}
     >
-      <div className="topbar-center-gradient mx-auto flex h-full max-w-[1400px] items-center justify-between gap-4 px-4 text-white sm:px-6 lg:px-8">
+      <div className="topbar-center-gradient flex h-full w-full items-center justify-between gap-4 px-4 text-white sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <SidebarTrigger onClick={onMenuClick} />
           <Link className="inline-flex items-center lg:hidden" href="/tickets">

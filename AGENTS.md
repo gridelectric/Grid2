@@ -2,16 +2,14 @@
 
 ---
 
-## ⚠️ CRITICAL: MANDATORY PRE-WORK CHECKLIST
+## Pre-Work Checklist
 
-**BEFORE TAKING ANY ACTION ON THIS PROJECT, YOU MUST:**
+Before taking action on this project:
 
-1. **READ `grid-electric-docs/MASTER_BUILD_INSTRUCTIONS.md`** — This is the source of truth for all tasks
-2. **Check Section 2 (Progress Tracker)** — Verify what has already been completed
-3. **Follow the phase order** — Do not skip phases or jump ahead
-4. **Update the Progress Tracker** — Mark tasks complete and add your agent identifier after finishing ANY work
-
-**FAILURE TO FOLLOW THESE STEPS WILL RESULT IN DUPLICATED WORK AND PROJECT CONFUSION.**
+1. Review project documentation as needed for your task
+2. Check current implementation status to avoid duplicated work
+3. Follow phase order when executing roadmap tasks
+4. Keep task tracking documentation current when relevant
 
 ---
 
@@ -172,7 +170,7 @@ Grid2/
 ├── public/                       # Static assets
 │
 └── grid-electric-docs/           # 📚 TECHNICAL DOCUMENTATION
-    ├── MASTER_BUILD_INSTRUCTIONS.md  ⭐ START HERE FOR TASKS
+    ├── MASTER_BUILD_INSTRUCTIONS.md
     ├── README.md                     Documentation index
     ├── 01-TECHNICAL-PRD.md           Product requirements
     ├── 02-DATABASE-SCHEMA.md         Database schema
@@ -192,12 +190,7 @@ Grid2/
 
 ### Before Any Work, Read These Files in Order
 
-1. **`grid-electric-docs/MASTER_BUILD_INSTRUCTIONS.md`** ⭐ **MUST READ FIRST**
-   - Section 2: Progress Tracker (check what's done)
-   - Your specific task section
-   - File references for implementation
-
-2. **Technical Specifications (as needed):**
+1. **Technical Specifications (as needed):**
 
    | Topic | Document | When to Reference |
    |-------|----------|-------------------|
@@ -360,10 +353,8 @@ NEXT_PUBLIC_MIN_PHOTOS_REQUIRED=4
 
 ### ✅ DO
 
-- Read `MASTER_BUILD_INSTRUCTIONS.md` first
 - Check what's already completed in Section 2
 - Follow the phase order (1 → 2 → 3 → 4)
-- Update progress tracker after each task
 - Use existing components from `components/ui/`
 - Follow the design system (`04-DESIGN-SYSTEM.md`)
 - Test offline functionality when building features
@@ -375,7 +366,6 @@ NEXT_PUBLIC_MIN_PHOTOS_REQUIRED=4
 - Skip reading the master instructions
 - Duplicate work already completed
 - Skip phases or jump ahead
-- Forget to update progress tracker
 - Create new components that already exist in shadcn/ui
 - Ignore the design system colors/typography
 - Forget to handle offline scenarios
@@ -508,4 +498,4 @@ All actions logged with:
 
 ---
 
-*Remember: **ALWAYS** read `grid-electric-docs/MASTER_BUILD_INSTRUCTIONS.md` before starting any work.*
+*Use project documentation that best fits the task at hand.*

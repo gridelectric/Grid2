@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
     Form,
     FormControl,
@@ -67,7 +68,8 @@ const ticketFormSchema = z.object({
     geofence_radius_meters: z.coerce.number().min(0).default(500),
     entergy_device_name: z.string().optional(),
     entergy_device_type: z.string().optional(),
-    entergy_duration_minutes: optionalNonNegativeInteger,
+    entergy_incident_type: z.string().optional(),
+    entergy_duration_hours: optionalNonNegativeInteger,
     entergy_start_time: z.string().optional(),
     entergy_ert: z.string().optional(),
     entergy_network: z.string().optional(),
@@ -75,16 +77,17 @@ const ticketFormSchema = z.object({
     entergy_local_office: z.string().optional(),
     entergy_substation: z.string().optional(),
     entergy_poles_down: optionalNonNegativeInteger,
-    entergy_services_down: optionalNonNegativeInteger,
-    entergy_transformers: optionalNonNegativeInteger,
+    entergy_services: optionalNonNegativeInteger,
+    entergy_transformers_down: optionalNonNegativeInteger,
     entergy_cross_arms: optionalNonNegativeInteger,
     entergy_conductor_span: optionalNonNegativeInteger,
     entergy_tree_trim: optionalNonNegativeInteger,
     entergy_affected_customers: optionalNonNegativeInteger,
-    entergy_customer_calls: optionalNonNegativeInteger,
+    entergy_calls: optionalNonNegativeInteger,
     entergy_dispatcher_comments: z.string().optional(),
-    entergy_crew_need_scout_first: z.string().optional(),
-    entergy_customer_comment: z.string().optional(),
+    entergy_crew_comments: z.string().optional(),
+    entergy_need_scout: z.boolean().default(false),
+    entergy_first_customer_comment: z.string().optional(),
 }).superRefine((data, ctx) => {
     if (isEntergyUtilityClient(data.utility_client)) {
         if (!/^\d{10}$/.test(data.ticket_number.trim())) {
@@ -98,6 +101,7 @@ const ticketFormSchema = z.object({
         type EntergyRequiredFieldPath =
             | "entergy_device_name"
             | "entergy_device_type"
+            | "entergy_incident_type"
             | "entergy_start_time"
             | "entergy_ert"
             | "entergy_network"
@@ -108,6 +112,7 @@ const ticketFormSchema = z.object({
         const requiredEntergyFields: Array<{ path: EntergyRequiredFieldPath; label: string }> = [
             { path: "entergy_device_name", label: "Device Name is required for Entergy tickets" },
             { path: "entergy_device_type", label: "Device Type is required for Entergy tickets" },
+            { path: "entergy_incident_type", label: "Incident Type is required for Entergy tickets" },
             { path: "entergy_start_time", label: "Start Time is required for Entergy tickets" },
             { path: "entergy_ert", label: "ERT is required for Entergy tickets" },
             { path: "entergy_network", label: "Network is required for Entergy tickets" },
@@ -223,7 +228,8 @@ export function TicketForm({
             geofence_radius_meters: 500,
             entergy_device_name: "",
             entergy_device_type: "",
-            entergy_duration_minutes: undefined,
+            entergy_incident_type: "",
+            entergy_duration_hours: undefined,
             entergy_start_time: "",
             entergy_ert: "",
             entergy_network: "",
@@ -231,16 +237,17 @@ export function TicketForm({
             entergy_local_office: "",
             entergy_substation: "",
             entergy_poles_down: undefined,
-            entergy_services_down: undefined,
-            entergy_transformers: undefined,
+            entergy_services: undefined,
+            entergy_transformers_down: undefined,
             entergy_cross_arms: undefined,
             entergy_conductor_span: undefined,
             entergy_tree_trim: undefined,
             entergy_affected_customers: undefined,
-            entergy_customer_calls: undefined,
+            entergy_calls: undefined,
             entergy_dispatcher_comments: "",
-            entergy_crew_need_scout_first: "",
-            entergy_customer_comment: "",
+            entergy_crew_comments: "",
+            entergy_need_scout: false,
+            entergy_first_customer_comment: "",
         },
     })
 
@@ -268,7 +275,7 @@ export function TicketForm({
             try {
                 const items = await stormEventService.listStormEvents()
                 if (active) {
-                    setStormEvents(items.filter((item) => item.status !== "ARCHIVED"))
+                    setStormEvents(items.filter((item) => item.status !== "CLOSED"))
                 }
             } catch (error) {
                 if (active) {
@@ -310,10 +317,15 @@ export function TicketForm({
             if (isEntergyUtilityClient(utilityClient)) {
                 entergyInput = {
                     incidentNumber: data.ticket_number.trim(),
+                    incidentType: data.entergy_incident_type?.trim() ?? "",
                     sourceAddress: data.address.trim(),
                     city: data.city.trim(),
                     state: data.state.trim().toUpperCase(),
                     zipCode: data.zip_code.trim(),
+                    calls: data.entergy_calls,
+                    affectedCustomers: data.entergy_affected_customers,
+                    durationHours: data.entergy_duration_hours,
+                    workOrderId: toTrimmedOrUndefined(data.work_order_ref),
                     deviceName: data.entergy_device_name?.trim() ?? "",
                     deviceType: data.entergy_device_type?.trim() ?? "",
                     startTime: data.entergy_start_time?.trim() ?? "",
@@ -322,19 +334,16 @@ export function TicketForm({
                     feeder: data.entergy_feeder?.trim() ?? "",
                     localOffice: data.entergy_local_office?.trim() ?? "",
                     substation: data.entergy_substation?.trim() ?? "",
-                    workOrderId: toTrimmedOrUndefined(data.work_order_ref),
-                    durationMinutes: data.entergy_duration_minutes,
                     polesDown: data.entergy_poles_down,
-                    servicesDown: data.entergy_services_down,
-                    transformers: data.entergy_transformers,
+                    transformersDown: data.entergy_transformers_down,
                     crossArms: data.entergy_cross_arms,
                     conductorSpan: data.entergy_conductor_span,
+                    services: data.entergy_services,
                     treeTrim: data.entergy_tree_trim,
-                    affectedCustomers: data.entergy_affected_customers,
-                    customerCalls: data.entergy_customer_calls,
                     dispatcherComments: toTrimmedOrUndefined(data.entergy_dispatcher_comments),
-                    crewNeedScoutFirst: toTrimmedOrUndefined(data.entergy_crew_need_scout_first),
-                    customerComment: toTrimmedOrUndefined(data.entergy_customer_comment),
+                    crewComments: toTrimmedOrUndefined(data.entergy_crew_comments),
+                    needScout: data.entergy_need_scout,
+                    firstCustomerComment: toTrimmedOrUndefined(data.entergy_first_customer_comment),
                 }
             }
 
@@ -376,39 +385,48 @@ export function TicketForm({
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <FormField
-                        control={form.control}
-                        name="storm_event_id"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Storm Event *</FormLabel>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                    disabled={lockStormEvent || isStormEventsLoading}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={isStormEventsLoading ? "Loading storm events..." : "Select Storm Event"} />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {stormEvents.map((stormEvent) => (
-                                            <SelectItem key={stormEvent.id} value={stormEvent.id}>
-                                                {stormEvent.eventCode} - {stormEvent.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {!isStormEventsLoading && stormEvents.length === 0 ? (
-                                    <p className="text-xs text-amber-700">
-                                        No storm events found. Create a storm event before adding ticket entries.
-                                    </p>
-                                ) : null}
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    {lockStormEvent ? (
+                        <div className="space-y-2">
+                            <FormLabel>Storm</FormLabel>
+                            <p className="text-base font-bold text-grid-navy">
+                                {selectedStormEvent?.name ?? (isStormEventsLoading ? "Loading..." : selectedStormEventId)}
+                            </p>
+                        </div>
+                    ) : (
+                        <FormField
+                            control={form.control}
+                            name="storm_event_id"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Storm Event *</FormLabel>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        disabled={isStormEventsLoading}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={isStormEventsLoading ? "Loading storm events..." : "Select Storm Event"} />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {stormEvents.map((stormEvent) => (
+                                                <SelectItem key={stormEvent.id} value={stormEvent.id}>
+                                                    {stormEvent.eventCode} - {stormEvent.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {!isStormEventsLoading && stormEvents.length === 0 ? (
+                                        <p className="text-xs text-amber-700">
+                                            No storm events found. Create a storm event before adding ticket entries.
+                                        </p>
+                                    ) : null}
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
                     <FormField
                         control={form.control}
                         name="ticket_number"
@@ -418,54 +436,55 @@ export function TicketForm({
                                 <FormControl>
                                     <Input
                                         placeholder={isEntergyFormat ? "2030168317" : "GES-260210-001"}
+                                        inputMode={isEntergyFormat ? "numeric" : undefined}
+                                        maxLength={isEntergyFormat ? 10 : undefined}
+                                        className={isEntergyFormat ? "font-mono tracking-wide" : undefined}
                                         {...field}
                                     />
                                 </FormControl>
+                                {isEntergyFormat ? (
+                                    <p className="text-xs text-blue-800">Enter exactly 10 numeric digits.</p>
+                                ) : null}
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
-                    <FormField
-                        control={form.control}
-                        name="utility_client"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Utility Client *</FormLabel>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                    disabled={lockUtilityClient || Boolean(selectedStormEvent)}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Client" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {UTILITY_CLIENTS.map((utilityClient) => (
-                                            <SelectItem key={utilityClient} value={utilityClient}>
-                                                {utilityClient}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="work_order_ref"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>{isEntergyFormat ? "Work Order ID" : "Work Order Ref (Optional)"}</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Ref #" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    {lockUtilityClient || Boolean(selectedStormEvent) ? (
+                        <div className="space-y-2">
+                            <FormLabel>Utility Client</FormLabel>
+                            <p className="text-base font-bold text-grid-navy">
+                                {selectedStormEvent?.utilityClient ?? selectedUtilityClient}
+                            </p>
+                        </div>
+                    ) : (
+                        <FormField
+                            control={form.control}
+                            name="utility_client"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Utility Client *</FormLabel>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select Client" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {UTILITY_CLIENTS.map((utilityClient) => (
+                                                <SelectItem key={utilityClient} value={utilityClient}>
+                                                    {utilityClient}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
                 </div>
 
                 {isEntergyFormat ? (
@@ -474,162 +493,215 @@ export function TicketForm({
                             Entergy format is enforced for this ticket. Fields are based on the OCR extraction from your
                             Entergy incident report.
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <FormField
-                                control={form.control}
-                                name="entergy_device_name"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Device Name *</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="9304334" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="entergy_device_type"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Type *</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-semibold text-blue-900">Incident Summary Report</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_incident_type"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Incident Type *</FormLabel>
                                             <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Type" />
-                                                </SelectTrigger>
+                                                <Input placeholder="LGTS" {...field} />
                                             </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="ServicePoint">ServicePoint</SelectItem>
-                                                <SelectItem value="Service">Service</SelectItem>
-                                                <SelectItem value="Transformer">Transformer</SelectItem>
-                                                <SelectItem value="Pole">Pole</SelectItem>
-                                                <SelectItem value="Wire">Wire</SelectItem>
-                                                <SelectItem value="Other">Other</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="entergy_duration_minutes"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Duration (minutes)</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" placeholder="13543" {...field} value={field.value ?? ""} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="entergy_start_time"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Start Time *</FormLabel>
-                                        <FormControl>
-                                            <Input type="datetime-local" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="entergy_ert"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>ERT *</FormLabel>
-                                        <FormControl>
-                                            <Input type="datetime-local" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="entergy_network"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Network *</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="West Monroe" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="entergy_feeder"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Feeder *</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="N5303" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="entergy_local_office"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Local Office *</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="WEST MONROE" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="entergy_substation"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Substation *</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="CADEVILLE" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="entergy_affected_customers"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Affected Customers</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" placeholder="0" {...field} value={field.value ?? ""} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="entergy_customer_calls"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Customer Calls</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" placeholder="0" {...field} value={field.value ?? ""} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_affected_customers"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Affected Customers</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" placeholder="1" {...field} value={field.value ?? ""} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="work_order_ref"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Work Order ID</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Optional" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-semibold text-blue-900">Address / Timing</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="address"
+                                    render={({ field }) => (
+                                        <FormItem className="md:col-span-2 lg:col-span-2">
+                                            <FormLabel>Address *</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="HIGHWAY 144 4555" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_calls"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Calls</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" placeholder="0" {...field} value={field.value ?? ""} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_duration_hours"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Duration (h)</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" placeholder="13543" {...field} value={field.value ?? ""} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_start_time"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Calls Start Time *</FormLabel>
+                                            <FormControl>
+                                                <Input type="datetime-local" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_ert"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>ERT *</FormLabel>
+                                            <FormControl>
+                                                <Input type="datetime-local" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-semibold text-blue-900">Device</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_device_name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Device Name *</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="9304334" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_device_type"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Device Type *</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Service Point" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="Service Point">Service Point</SelectItem>
+                                                    <SelectItem value="ServicePoint">ServicePoint</SelectItem>
+                                                    <SelectItem value="Service">Service</SelectItem>
+                                                    <SelectItem value="Transformer">Transformer</SelectItem>
+                                                    <SelectItem value="Pole">Pole</SelectItem>
+                                                    <SelectItem value="Wire">Wire</SelectItem>
+                                                    <SelectItem value="Other">Other</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_network"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Network *</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="West Monroe" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_feeder"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Feeder *</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="N5303" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_local_office"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Local Office *</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="WEST MONROE" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_substation"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Substation *</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="CADEVILLE LA" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
                         </div>
                         <div className="space-y-3">
                             <h3 className="text-sm font-semibold text-blue-900">Damage Assessment</h3>
@@ -649,36 +721,10 @@ export function TicketForm({
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="entergy_services_down"
+                                    name="entergy_transformers_down"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Services Down</FormLabel>
-                                            <FormControl>
-                                                <Input type="number" placeholder="0" {...field} value={field.value ?? ""} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="entergy_transformers"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Transformers</FormLabel>
-                                            <FormControl>
-                                                <Input type="number" placeholder="0" {...field} value={field.value ?? ""} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="entergy_cross_arms"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Cross Arms</FormLabel>
+                                            <FormLabel>Transformers Down</FormLabel>
                                             <FormControl>
                                                 <Input type="number" placeholder="0" {...field} value={field.value ?? ""} />
                                             </FormControl>
@@ -701,6 +747,32 @@ export function TicketForm({
                                 />
                                 <FormField
                                     control={form.control}
+                                    name="entergy_cross_arms"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Cross Arms</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" placeholder="0" {...field} value={field.value ?? ""} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_services"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Services</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" placeholder="0" {...field} value={field.value ?? ""} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
                                     name="entergy_tree_trim"
                                     render={({ field }) => (
                                         <FormItem>
@@ -714,15 +786,74 @@ export function TicketForm({
                                 />
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-semibold text-blue-900">Comments</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_dispatcher_comments"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Dispatcher Comments</FormLabel>
+                                            <FormControl>
+                                                <Textarea placeholder="Dispatcher comments..." {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_crew_comments"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Crew Comments</FormLabel>
+                                            <FormControl>
+                                                <Textarea placeholder="Crew comments..." {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_need_scout"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-row items-center gap-3 rounded-md border border-blue-200 bg-white p-3">
+                                            <FormControl>
+                                                <Checkbox checked={field.value} onCheckedChange={(checked) => field.onChange(checked === true)} />
+                                            </FormControl>
+                                            <FormLabel className="m-0">Need Scout</FormLabel>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="entergy_first_customer_comment"
+                                    render={({ field }) => (
+                                        <FormItem className="md:col-span-2">
+                                            <FormLabel>First Customer Comment</FormLabel>
+                                            <FormControl>
+                                                <Textarea placeholder="First customer comment..." {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormField
                                 control={form.control}
-                                name="entergy_dispatcher_comments"
+                                name="work_order_ref"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Dispatcher Comments</FormLabel>
+                                        <FormLabel>Work Order Ref (Optional)</FormLabel>
                                         <FormControl>
-                                            <Textarea placeholder="Dispatcher notes from Entergy report..." {...field} />
+                                            <Input placeholder="Ref #" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -730,12 +861,12 @@ export function TicketForm({
                             />
                             <FormField
                                 control={form.control}
-                                name="entergy_crew_need_scout_first"
+                                name="work_description"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Crew Need Scout First</FormLabel>
+                                        <FormLabel>Work Description *</FormLabel>
                                         <FormControl>
-                                            <Textarea placeholder="Crew scouting requirement notes..." {...field} />
+                                            <Textarea placeholder="Describe the damage or work required (min 10 chars)..." {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -743,48 +874,18 @@ export function TicketForm({
                             />
                             <FormField
                                 control={form.control}
-                                name="entergy_customer_comment"
+                                name="special_instructions"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Customer Comment</FormLabel>
+                                        <FormLabel>Special Instructions</FormLabel>
                                         <FormControl>
-                                            <Textarea placeholder="Customer comments from report..." {...field} />
+                                            <Textarea placeholder="Access codes, gate keys, or safety warnings..." {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField
-                            control={form.control}
-                            name="work_description"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Work Description *</FormLabel>
-                                    <FormControl>
-                                        <Textarea placeholder="Describe the damage or work required (min 10 chars)..." {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="special_instructions"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Special Instructions</FormLabel>
-                                    <FormControl>
-                                        <Textarea placeholder="Access codes, gate keys, or safety warnings..." {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -868,22 +969,53 @@ export function TicketForm({
                 </div>
 
                 <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Location Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField
-                            control={form.control}
-                            name="address"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Address *</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="123 Main St" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <div className="grid grid-cols-2 gap-4">
+                    <h3 className="text-lg font-medium">{isEntergyFormat ? "Location Metadata" : "Location Information"}</h3>
+                    {!isEntergyFormat ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                                control={form.control}
+                                name="address"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Address *</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="123 Main St" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="city"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>City *</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="City" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="state"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>State *</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="FL" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormField
                                 control={form.control}
                                 name="city"
@@ -891,7 +1023,7 @@ export function TicketForm({
                                     <FormItem>
                                         <FormLabel>City *</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="City" {...field} />
+                                            <Input placeholder="Calhoun" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -904,14 +1036,14 @@ export function TicketForm({
                                     <FormItem>
                                         <FormLabel>State *</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="FL" {...field} />
+                                            <Input placeholder="LA" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
-                    </div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
                             control={form.control}
