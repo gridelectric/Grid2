@@ -114,7 +114,7 @@ export function BusinessInfoForm() {
           </SelectContent>
         </Select>
         {errors.businessType && (
-          <p className="text-sm text-red-600">{errors.businessType.message}</p>
+          <p className="text-sm text-grid-danger">{errors.businessType.message}</p>
         )}
       </div>
 
@@ -138,7 +138,7 @@ export function BusinessInfoForm() {
           {...register('taxId')}
         />
         {errors.taxId && (
-          <p className="text-sm text-red-600">{errors.taxId.message}</p>
+          <p className="text-sm text-grid-danger">{errors.taxId.message}</p>
         )}
       </div>
 
@@ -150,7 +150,7 @@ export function BusinessInfoForm() {
           {...register('addressLine1')}
         />
         {errors.addressLine1 && (
-          <p className="text-sm text-red-600">{errors.addressLine1.message}</p>
+          <p className="text-sm text-grid-danger">{errors.addressLine1.message}</p>
         )}
       </div>
 
@@ -172,7 +172,7 @@ export function BusinessInfoForm() {
             {...register('city')}
           />
           {errors.city && (
-            <p className="text-sm text-red-600">{errors.city.message}</p>
+            <p className="text-sm text-grid-danger">{errors.city.message}</p>
           )}
         </div>
 
@@ -194,7 +194,7 @@ export function BusinessInfoForm() {
             </SelectContent>
           </Select>
           {errors.state && (
-            <p className="text-sm text-red-600">{errors.state.message}</p>
+            <p className="text-sm text-grid-danger">{errors.state.message}</p>
           )}
         </div>
       </div>
@@ -207,7 +207,7 @@ export function BusinessInfoForm() {
           {...register('zipCode')}
         />
         {errors.zipCode && (
-          <p className="text-sm text-red-600">{errors.zipCode.message}</p>
+          <p className="text-sm text-grid-danger">{errors.zipCode.message}</p>
         )}
       </div>
 

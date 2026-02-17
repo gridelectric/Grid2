@@ -24,16 +24,16 @@ interface StatusBadgeProps {
 
 const variantStyles: Record<StatusVariant, string> = {
   default: 'bg-grid-storm-100 text-grid-navy',
-  success: 'bg-emerald-100 text-emerald-800',
-  warning: 'bg-amber-100 text-amber-800',
-  danger: 'bg-rose-100 text-rose-800',
-  info: 'bg-blue-100 text-blue-800',
-  neutral: 'bg-slate-100 text-slate-700',
-  active: 'bg-emerald-100 text-emerald-800',
-  inactive: 'bg-slate-100 text-slate-600',
-  pending: 'bg-amber-100 text-amber-800',
-  approved: 'bg-emerald-100 text-emerald-800',
-  rejected: 'bg-rose-100 text-rose-800',
+  success: 'bg-grid-success-soft text-grid-navy',
+  warning: 'bg-grid-warning-soft text-grid-navy',
+  danger: 'bg-grid-danger-soft text-grid-navy',
+  info: 'bg-grid-storm-100 text-grid-navy',
+  neutral: 'bg-[var(--grid-gray-100)] text-[var(--grid-gray-700)]',
+  active: 'bg-grid-success-soft text-grid-navy',
+  inactive: 'bg-[var(--grid-gray-100)] text-[var(--grid-gray-600)]',
+  pending: 'bg-grid-warning-soft text-grid-navy',
+  approved: 'bg-grid-success-soft text-grid-navy',
+  rejected: 'bg-grid-danger-soft text-grid-navy',
 };
 
 const sizeStyles = {
@@ -101,12 +101,12 @@ export function StatusBadge({
     >
       <span className={cn(
         'w-1.5 h-1.5 rounded-full mr-1.5',
-        determinedVariant === 'success' && 'bg-green-500',
-        determinedVariant === 'warning' && 'bg-amber-500',
-        determinedVariant === 'danger' && 'bg-red-500',
-        determinedVariant === 'info' && 'bg-blue-500',
-        determinedVariant === 'neutral' && 'bg-slate-400',
-        determinedVariant === 'default' && 'bg-slate-400',
+        determinedVariant === 'success' && 'bg-grid-success',
+        determinedVariant === 'warning' && 'bg-grid-warning',
+        determinedVariant === 'danger' && 'bg-grid-danger',
+        determinedVariant === 'info' && 'bg-grid-blue',
+        determinedVariant === 'neutral' && 'bg-[var(--grid-gray-400)]',
+        determinedVariant === 'default' && 'bg-[var(--grid-gray-400)]',
       )} />
       {displayStatus}
     </span>

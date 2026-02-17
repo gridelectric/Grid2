@@ -70,7 +70,7 @@ export function DataTable<T>({
   if (data.length === 0) {
     return (
       <div className={cn('storm-surface overflow-hidden rounded-xl', className)}>
-        <div className="flex h-32 items-center justify-center text-slate-500">
+        <div className="flex h-32 items-center justify-center text-grid-muted">
           {emptyMessage}
         </div>
       </div>

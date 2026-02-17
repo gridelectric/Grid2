@@ -62,62 +62,62 @@ export function CredentialsForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="licenseNumber" className="text-gray-700 font-medium">
+        <Label htmlFor="licenseNumber" className="text-grid-body font-medium">
           Professional License Number
         </Label>
         <Input
           id="licenseNumber"
           placeholder="e.g., EL-12345"
-          className="h-11 border-gray-200 focus:border-[#2ea3f2] focus:ring-[#2ea3f2]/20"
+          className="h-11 border-[var(--grid-gray-200)] focus:border-grid-blue focus:ring-grid-blue/20"
           {...register('licenseNumber')}
         />
-        <p className="text-xs text-gray-500">If applicable to your trade</p>
+        <p className="text-xs text-grid-muted">If applicable to your trade</p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="certifications" className="text-gray-700 font-medium">
+        <Label htmlFor="certifications" className="text-grid-body font-medium">
           Certifications
         </Label>
         <Textarea
           id="certifications"
           placeholder="List any relevant certifications (e.g., OSHA 30, First Aid, etc.)"
-          className="min-h-[100px] border-gray-200 focus:border-[#2ea3f2] focus:ring-[#2ea3f2]/20"
+          className="min-h-[100px] border-[var(--grid-gray-200)] focus:border-grid-blue focus:ring-grid-blue/20"
           {...register('certifications')}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="yearsExperience" className="text-gray-700 font-medium">
+        <Label htmlFor="yearsExperience" className="text-grid-body font-medium">
           Years of Experience
         </Label>
         <Input
           id="yearsExperience"
           type="number"
           placeholder="e.g., 5"
-          className="h-11 border-gray-200 focus:border-[#2ea3f2] focus:ring-[#2ea3f2]/20"
+          className="h-11 border-[var(--grid-gray-200)] focus:border-grid-blue focus:ring-grid-blue/20"
           {...register('yearsExperience')}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="specialties" className="text-gray-700 font-medium">
+        <Label htmlFor="specialties" className="text-grid-body font-medium">
           Areas of Specialization
         </Label>
         <Textarea
           id="specialties"
           placeholder="Describe your areas of expertise (e.g., residential, commercial, industrial, etc.)"
-          className="min-h-[100px] border-gray-200 focus:border-[#2ea3f2] focus:ring-[#2ea3f2]/20"
+          className="min-h-[100px] border-[var(--grid-gray-200)] focus:border-grid-blue focus:ring-grid-blue/20"
           {...register('specialties')}
         />
       </div>
 
       {/* Document Upload Placeholder */}
-      <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center hover:border-[#2ea3f2] transition-colors cursor-pointer">
-        <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-3">
-          <Upload className="w-6 h-6 text-[#2ea3f2]" />
+      <div className="border-2 border-dashed border-[var(--grid-gray-200)] rounded-lg p-8 text-center hover:border-grid-blue transition-colors cursor-pointer">
+        <div className="w-12 h-12 rounded-full bg-grid-storm-50 flex items-center justify-center mx-auto mb-3">
+          <Upload className="w-6 h-6 text-grid-blue" />
         </div>
-        <p className="text-sm font-medium text-gray-700">Upload certifications</p>
-        <p className="text-xs text-gray-500 mt-1">PDF, JPG, or PNG up to 10MB</p>
+        <p className="text-sm font-medium text-grid-body">Upload certifications</p>
+        <p className="text-xs text-grid-muted mt-1">PDF, JPG, or PNG up to 10MB</p>
       </div>
 
       {/* Action Buttons */}
@@ -125,7 +125,7 @@ export function CredentialsForm() {
         <Button
           type="button"
           variant="outline"
-          className="w-full sm:w-auto h-11 px-6 border-gray-300 hover:bg-gray-50"
+          className="w-full sm:w-auto h-11 px-6 border-[var(--grid-gray-300)] hover:bg-grid-storm-50"
           onClick={prevStep}
         >
           Back
@@ -133,7 +133,7 @@ export function CredentialsForm() {
         <Button
           type="button"
           variant="outline"
-          className="w-full sm:w-auto h-11 px-6 border-gray-300 hover:bg-gray-50 hover:border-gray-400"
+          className="w-full sm:w-auto h-11 px-6 border-[var(--grid-gray-300)] hover:bg-grid-storm-50 hover:border-[var(--grid-gray-400)]"
           onClick={handleSaveDraft}
           disabled={isSaving}
         >
@@ -151,7 +151,7 @@ export function CredentialsForm() {
         </Button>
         <Button
           type="submit"
-          className="w-full sm:w-auto sm:ml-auto h-11 px-6 bg-gradient-to-r from-[#002168] to-[#2ea3f2] hover:from-[#001545] hover:to-[#1a8fd9] shadow-md shadow-blue-200"
+          className="w-full sm:w-auto sm:ml-auto h-11 px-6 bg-gradient-to-r from-grid-navy to-grid-blue hover:from-[var(--grid-navy-dark)] hover:to-[var(--grid-blue-dark)] shadow-md shadow-[rgba(46,163,242,0.28)]"
           disabled={isSubmitting}
         >
           {isSubmitting ? (

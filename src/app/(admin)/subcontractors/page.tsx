@@ -91,7 +91,7 @@ export default function ContractorsListPage() {
           >
             {contractor.fullName}
           </Link>
-          <p className="text-xs text-slate-500">{contractor.businessName}</p>
+          <p className="text-xs text-grid-muted">{contractor.businessName}</p>
         </div>
       ),
     },
@@ -104,7 +104,7 @@ export default function ContractorsListPage() {
       key: 'eligible',
       header: 'Eligible',
       cell: (contractor) => (
-        <span className={contractor.eligibleForAssignment ? 'text-green-600' : 'text-slate-400'}>
+        <span className={contractor.eligibleForAssignment ? 'text-grid-success' : 'text-grid-subtle'}>
           {contractor.eligibleForAssignment ? 'Yes' : 'No'}
         </span>
       ),
@@ -128,7 +128,7 @@ export default function ContractorsListPage() {
           {contractor.alerts[0]}
         </span>
       ) : (
-        <span className="text-slate-400">-</span>
+        <span className="text-grid-subtle">-</span>
       ),
     },
   ], []);
@@ -163,7 +163,7 @@ export default function ContractorsListPage() {
         <MetricCard
           title="Active"
           value={activeCount}
-          icon={<UserCheck className="w-4 h-4 text-green-600" />}
+          icon={<UserCheck className="w-4 h-4 text-grid-success" />}
         />
         <MetricCard
           title="Onboarding"
@@ -180,7 +180,7 @@ export default function ContractorsListPage() {
         <MetricCard
           title="Expiring"
           value={expiringCount}
-          icon={<AlertTriangle className="w-4 h-4 text-red-600" />}
+          icon={<AlertTriangle className="w-4 h-4 text-grid-danger" />}
           variant="danger"
         />
       </div>

@@ -75,7 +75,7 @@ export function BankingForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 p-3 rounded-lg">
+      <div className="flex items-center gap-2 text-sm text-grid-muted bg-grid-storm-50 p-3 rounded-lg">
         <Lock className="w-4 h-4" />
         <span>Your banking information is encrypted and secure</span>
       </div>
@@ -88,7 +88,7 @@ export function BankingForm() {
           {...register('accountHolderName')}
         />
         {errors.accountHolderName && (
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-grid-danger">
             {errors.accountHolderName.message}
           </p>
         )}
@@ -135,7 +135,7 @@ export function BankingForm() {
           {...register('routingNumber')}
         />
         {errors.routingNumber && (
-          <p className="text-sm text-red-600">{errors.routingNumber.message}</p>
+          <p className="text-sm text-grid-danger">{errors.routingNumber.message}</p>
         )}
       </div>
 
@@ -148,7 +148,7 @@ export function BankingForm() {
           {...register('accountNumber')}
         />
         {errors.accountNumber && (
-          <p className="text-sm text-red-600">{errors.accountNumber.message}</p>
+          <p className="text-sm text-grid-danger">{errors.accountNumber.message}</p>
         )}
       </div>
 
@@ -161,7 +161,7 @@ export function BankingForm() {
           {...register('confirmAccountNumber')}
         />
         {errors.confirmAccountNumber && (
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-grid-danger">
             {errors.confirmAccountNumber.message}
           </p>
         )}

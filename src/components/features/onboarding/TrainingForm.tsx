@@ -141,15 +141,15 @@ export function TrainingForm() {
   return (
     <div className="space-y-6">
       {/* Overall Progress */}
-      <Card className="p-4 bg-blue-50 border-blue-200">
+      <Card className="p-4 bg-grid-storm-50 border-[var(--grid-storm-200)]">
         <div className="flex items-center justify-between mb-2">
-          <span className="font-medium text-blue-900">Training Progress</span>
-          <span className="text-sm font-medium text-blue-700">
+          <span className="font-medium text-grid-navy">Training Progress</span>
+          <span className="text-sm font-medium text-grid-blue-dark">
             {completedItems} of {TRAINING_ITEMS.length} items completed
           </span>
         </div>
-        <Progress value={overallProgress} className="h-3 bg-blue-200" />
-        <p className="text-sm text-blue-700 mt-2">
+        <Progress value={overallProgress} className="h-3 bg-[var(--grid-storm-200)]" />
+        <p className="text-sm text-grid-blue-dark mt-2">
           Complete all items in sequence to finish your training.
         </p>
       </Card>
@@ -167,7 +167,7 @@ export function TrainingForm() {
               className={cn(
                 'overflow-hidden transition-all duration-200',
                 !isUnlocked && 'opacity-60',
-                isCompleted && 'border-green-300 bg-green-50/30'
+                isCompleted && 'border-grid-success bg-grid-success-soft/70'
               )}
             >
               {/* Item Header */}
@@ -177,7 +177,7 @@ export function TrainingForm() {
                 disabled={!isUnlocked}
                 className={cn(
                   'w-full p-4 flex items-center gap-4 text-left',
-                  isUnlocked && 'hover:bg-slate-50 cursor-pointer',
+                  isUnlocked && 'hover:bg-grid-storm-50 cursor-pointer',
                   !isUnlocked && 'cursor-not-allowed'
                 )}
               >
@@ -186,10 +186,10 @@ export function TrainingForm() {
                   className={cn(
                     'w-10 h-10 rounded-full flex items-center justify-center shrink-0',
                     isCompleted
-                      ? 'bg-green-100 text-green-600'
+                      ? 'bg-grid-success-soft text-grid-success'
                       : isUnlocked
-                      ? 'bg-blue-100 text-blue-600'
-                      : 'bg-slate-100 text-slate-400'
+                      ? 'bg-grid-storm-100 text-grid-blue'
+                      : 'bg-[var(--grid-gray-100)] text-grid-subtle'
                   )}
                 >
                   {isCompleted ? (
@@ -206,28 +206,28 @@ export function TrainingForm() {
                 {/* Item Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-500">Step {index + 1}</span>
+                    <span className="text-sm font-medium text-grid-muted">Step {index + 1}</span>
                     {item.type === 'form' && (
-                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Form</span>
+                      <span className="text-xs bg-grid-storm-100 text-grid-navy px-2 py-0.5 rounded-full">Form</span>
                     )}
                     {item.type === 'video' && (
-                      <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Video</span>
+                      <span className="text-xs bg-grid-danger-soft text-grid-danger px-2 py-0.5 rounded-full">Video</span>
                     )}
                     {isCompleted && (
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-grid-success-soft text-grid-success px-2 py-0.5 rounded-full">
                         Completed
                       </span>
                     )}
                   </div>
-                  <h4 className={cn('font-semibold', !isUnlocked && 'text-slate-400')}>
+                  <h4 className={cn('font-semibold', !isUnlocked && 'text-grid-subtle')}>
                     {item.title}
                   </h4>
-                  <p className="text-sm text-slate-500 truncate">{item.description}</p>
+                  <p className="text-sm text-grid-muted truncate">{item.description}</p>
                 </div>
 
                 {/* Expand/Collapse Icon */}
                 {isUnlocked && (
-                  <div className="text-slate-400">
+                  <div className="text-grid-subtle">
                     {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </div>
                 )}
@@ -238,18 +238,18 @@ export function TrainingForm() {
                 <div className="border-t">
                   {/* Form Content */}
                   {item.type === 'form' && item.url && (
-                    <div className="p-6 bg-slate-50">
-                      <div className="bg-white rounded-lg p-6 border-2 border-dashed border-slate-300 text-center">
-                        <FileText className="w-12 h-12 text-purple-500 mx-auto mb-4" />
+                    <div className="p-6 bg-grid-storm-50">
+                      <div className="bg-white rounded-lg p-6 border-2 border-dashed border-[var(--grid-gray-300)] text-center">
+                        <FileText className="w-12 h-12 text-grid-blue mx-auto mb-4" />
                         <h5 className="font-medium text-lg mb-2">Microsoft Teams Form</h5>
-                        <p className="text-sm text-slate-500 mb-4">
+                        <p className="text-sm text-grid-muted mb-4">
                           Complete the training module form in Microsoft Teams before proceeding to the videos.
                         </p>
                         <a
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-grid-blue text-white rounded-md hover:bg-[var(--grid-blue-dark)] transition-colors"
                         >
                           Open Form
                           <ExternalLink className="w-4 h-4" />
@@ -262,7 +262,7 @@ export function TrainingForm() {
                   {item.type === 'video' && item.youtubeId && (
                     <>
                       {/* YouTube Embed */}
-                      <div className="aspect-video bg-slate-900">
+                      <div className="aspect-video bg-grid-navy">
                         <iframe
                           src={`https://www.youtube.com/embed/${item.youtubeId}?enablejsapi=1&rel=0&modestbranding=1`}
                           title={item.title}
@@ -275,12 +275,12 @@ export function TrainingForm() {
                   )}
 
                   {/* Topics */}
-                  <div className="p-4 bg-slate-50">
+                  <div className="p-4 bg-grid-storm-50">
                     <h5 className="font-medium text-sm mb-3">This covers:</h5>
                     <ul className="space-y-2">
                       {item.topics.map((topic: string, topicIndex: number) => (
-                        <li key={topicIndex} className="flex items-center gap-2 text-sm text-slate-600">
-                          <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                        <li key={topicIndex} className="flex items-center gap-2 text-sm text-grid-body">
+                          <CheckCircle className="w-4 h-4 text-grid-success shrink-0" />
                           {topic}
                         </li>
                       ))}
@@ -306,9 +306,9 @@ export function TrainingForm() {
               {/* Locked State */}
               {!isUnlocked && (
                 <div className="px-4 pb-4">
-                  <div className="bg-slate-100 rounded-lg p-4 text-center">
-                    <Lock className="w-6 h-6 text-slate-400 mx-auto mb-2" />
-                    <p className="text-sm text-slate-500">
+                  <div className="bg-[var(--grid-gray-100)] rounded-lg p-4 text-center">
+                    <Lock className="w-6 h-6 text-grid-subtle mx-auto mb-2" />
+                    <p className="text-sm text-grid-muted">
                       Complete Step {index} to unlock
                     </p>
                   </div>
@@ -336,14 +336,14 @@ export function TrainingForm() {
           <Label htmlFor="training-ack" className="font-medium cursor-pointer">
             I have completed all training requirements
           </Label>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-grid-muted">
             I have completed the training form and watched all videos. I understand the safety protocols, administrative requirements, and field procedures, and will follow all guidelines when conducting damage assessments.
           </p>
         </div>
       </div>
 
       {!allItemsCompleted && (
-        <p className="text-sm text-amber-600">Please complete all training items before continuing.</p>
+        <p className="text-sm text-grid-warning">Please complete all training items before continuing.</p>
       )}
 
       <div className="flex flex-col sm:flex-row gap-4 pt-4">

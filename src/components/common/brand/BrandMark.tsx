@@ -49,7 +49,7 @@ export function BrandMark({
           Grid Electric Services
         </p>
         {portalLabel ? (
-          <p className={cn('truncate text-xs', tone === 'light' ? 'text-blue-200' : 'text-slate-500')}>{portalLabel}</p>
+          <p className={cn('truncate text-xs', tone === 'light' ? 'text-blue-200' : 'text-grid-muted')}>{portalLabel}</p>
         ) : null}
       </div>
     </div>

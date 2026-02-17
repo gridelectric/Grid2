@@ -79,7 +79,7 @@ export function TopBar({
               <Button className="relative text-white hover:bg-white/15 hover:text-white" size="icon" variant="ghost">
                 <Bell className="h-5 w-5" />
                 {signals.notificationCount > 0 ? (
-                  <span className="absolute right-1.5 top-1.5 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-grid-lightning px-1 text-[10px] font-semibold text-slate-900">
+                  <span className="absolute right-1.5 top-1.5 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-grid-lightning px-1 text-[10px] font-semibold text-grid-navy">
                     {signals.notificationCount > 99 ? '99+' : signals.notificationCount}
                   </span>
                 ) : null}
@@ -174,7 +174,7 @@ export function TopBar({
                 </DropdownMenuItem>
               ) : null}
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600" onClick={onSignOut}>
+              <DropdownMenuItem className="text-grid-danger" onClick={onSignOut}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign out
               </DropdownMenuItem>

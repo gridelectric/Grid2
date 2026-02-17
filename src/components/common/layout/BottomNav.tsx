@@ -59,7 +59,7 @@ function renderBottomBadge(item: NavLinkItem, signals: NavigationSignals) {
         aria-hidden
         className={cn(
           'absolute right-4 top-2 h-2 w-2 rounded-full',
-          count > 0 ? 'bg-grid-lightning' : 'bg-slate-300'
+          count > 0 ? 'bg-grid-lightning' : 'bg-[var(--grid-gray-300)]'
         )}
       />
     );
@@ -70,7 +70,7 @@ function renderBottomBadge(item: NavLinkItem, signals: NavigationSignals) {
   }
 
   return (
-    <span className="absolute right-3 top-1.5 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-grid-lightning px-1 text-[10px] font-semibold text-slate-900">
+    <span className="absolute right-3 top-1.5 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-grid-lightning px-1 text-[10px] font-semibold text-grid-navy">
       {count > 99 ? '99+' : count}
     </span>
   );
@@ -97,7 +97,7 @@ export function BottomNav({ userRole, signals }: BottomNavProps) {
                 'transition-grid relative flex min-h-11 flex-col items-center justify-center rounded-xl px-2 text-[11px] font-medium',
                 isActive
                   ? 'bg-grid-storm-100 text-grid-navy'
-                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                  : 'text-grid-muted hover:bg-grid-storm-50 hover:text-grid-navy'
               )}
               href={item.href}
               key={item.href}

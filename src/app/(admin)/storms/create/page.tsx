@@ -134,10 +134,12 @@ export default function CreateStormEventPage() {
         notes,
       });
 
-      toast.success('Storm event created. Continue with ticket entry.');
-      router.push(
-        `/tickets/create?storm_event_id=${encodeURIComponent(createdEvent.id)}&utility_client=${encodeURIComponent(createdEvent.utilityClient)}`,
-      );
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('active_storm_event_id', createdEvent.id);
+      }
+
+      toast.success('Storm event created. Environment is now active on the dashboard.');
+      router.push(`/admin/dashboard?storm_event_id=${encodeURIComponent(createdEvent.id)}`);
       router.refresh();
     } catch (error) {
       toast.error(getErrorMessage(error, 'Failed to create storm event.'));
@@ -147,7 +149,7 @@ export default function CreateStormEventPage() {
   }
 
   if (isLoading || !canCreateStormEvent) {
-    return <div className="storm-surface rounded-xl p-4 text-sm text-slate-500">Checking access...</div>;
+    return <div className="storm-surface rounded-xl p-4 text-sm text-grid-muted">Checking access...</div>;
   }
 
   return (

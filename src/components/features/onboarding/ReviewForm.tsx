@@ -52,7 +52,7 @@ export function ReviewForm() {
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-medium">{section.title}</h4>
-                <p className="text-sm text-slate-500">{section.data}</p>
+                <p className="text-sm text-grid-muted">{section.data}</p>
               </div>
               <Button
                 type="button"
@@ -78,7 +78,7 @@ export function ReviewForm() {
             <Label htmlFor="final-confirm" className="font-medium cursor-pointer">
               I confirm that all information is accurate
             </Label>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-grid-body">
               I understand that providing false information may result in
               termination of my contractor agreement and potential legal action.
             </p>

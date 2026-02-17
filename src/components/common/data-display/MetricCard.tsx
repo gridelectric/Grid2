@@ -19,9 +19,9 @@ interface MetricCardProps {
 const variantStyles = {
   default: 'storm-surface bg-grid-surface',
   accent: 'border-grid-surface bg-grid-storm-50',
-  success: 'border-grid-surface bg-grid-storm-100',
-  warning: 'border-amber-200 bg-amber-50',
-  danger: 'border-red-200 bg-red-50',
+  success: 'border-grid-success bg-grid-success-soft',
+  warning: 'border-grid-warning bg-grid-warning-soft',
+  danger: 'border-grid-danger bg-grid-danger-soft',
 };
 
 export function MetricCard({
@@ -38,13 +38,13 @@ export function MetricCard({
   const trendColor = trend === 'up'
     ? 'text-grid-blue'
     : trend === 'down'
-    ? 'text-red-600'
-    : 'text-slate-400';
+    ? 'text-grid-danger'
+    : 'text-grid-subtle';
 
   return (
     <Card className={cn(variantStyles[variant], className)}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-slate-600">
+        <CardTitle className="text-sm font-medium text-grid-body">
           {title}
         </CardTitle>
         {icon && (
@@ -68,7 +68,7 @@ export function MetricCard({
               </span>
             )}
             {description && (
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-grid-muted">
                 {description}
               </span>
             )}

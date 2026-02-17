@@ -70,24 +70,24 @@ export function ProfilePhotoForm() {
               <button
                 type="button"
                 onClick={handleRemovePhoto}
-                className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                className="absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-grid-danger text-white hover:opacity-90"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex items-center justify-center gap-2 text-green-600">
+            <div className="flex items-center justify-center gap-2 text-grid-success">
               <CheckCircle className="w-5 h-5" />
               <span className="text-sm font-medium">Photo uploaded successfully</span>
             </div>
           </div>
         ) : (
           <div className="text-center space-y-4">
-            <div className="w-32 h-32 bg-slate-100 rounded-full flex items-center justify-center mx-auto">
-              <Camera className="w-12 h-12 text-slate-400" />
+            <div className="w-32 h-32 bg-[var(--grid-gray-100)] rounded-full flex items-center justify-center mx-auto">
+              <Camera className="w-12 h-12 text-grid-subtle" />
             </div>
             <div>
-              <p className="text-slate-600">Upload a clear photo of yourself</p>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-grid-body">Upload a clear photo of yourself</p>
+              <p className="text-sm text-grid-subtle mt-1">
                 JPG, PNG, or GIF • Max 10MB
               </p>
             </div>
@@ -110,27 +110,27 @@ export function ProfilePhotoForm() {
         )}
       </Card>
 
-      <Card className="p-4 bg-slate-50">
+      <Card className="p-4 bg-grid-storm-50">
         <h4 className="font-medium mb-3">Photo Requirements:</h4>
-        <ul className="text-sm text-slate-600 space-y-2">
+        <ul className="text-sm text-grid-body space-y-2">
           <li className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-500" />
+            <CheckCircle className="w-4 h-4 text-grid-success" />
             Clear, well-lit photo of your face
           </li>
           <li className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-500" />
+            <CheckCircle className="w-4 h-4 text-grid-success" />
             Neutral background (white or light gray)
           </li>
           <li className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-500" />
+            <CheckCircle className="w-4 h-4 text-grid-success" />
             No hats, sunglasses, or face coverings
           </li>
           <li className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-500" />
+            <CheckCircle className="w-4 h-4 text-grid-success" />
             Professional appearance
           </li>
           <li className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-500" />
+            <CheckCircle className="w-4 h-4 text-grid-success" />
             Square or circular crop preferred
           </li>
         </ul>

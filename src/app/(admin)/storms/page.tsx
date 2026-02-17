@@ -72,16 +72,16 @@ export default function StormEventsPage() {
       </PageHeader>
 
       {!canManageStormEvents && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+        <div className="rounded-xl border border-grid-warning bg-grid-warning-soft p-3 text-sm text-grid-navy">
           Admin users can view storm events, but create/edit actions are restricted to Super Admin.
         </div>
       )}
 
       <div className="grid gap-4">
         {isLoading ? (
-          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">Loading storm events...</div>
+          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-grid-muted">Loading storm events...</div>
         ) : stormEvents.length === 0 ? (
-          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">
+          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-grid-muted">
             No storm events found. Create a storm event to begin the operational workflow.
           </div>
         ) : (
@@ -89,12 +89,12 @@ export default function StormEventsPage() {
             <Card key={stormEvent.id} className="storm-surface">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg text-grid-navy">
-                  <CloudRain className="h-5 w-5 text-blue-600" />
+                  <CloudRain className="h-5 w-5 text-grid-blue" />
                   {stormEvent.name}
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-sm text-slate-600">
+                <div className="text-sm text-grid-muted">
                   <p>Utility Client: {stormEvent.utilityClient}</p>
                   <p>Status: {stormEvent.status}</p>
                   <p>Region: {stormEvent.region ?? 'Unspecified Region'}</p>

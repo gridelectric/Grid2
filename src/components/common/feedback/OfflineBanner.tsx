@@ -52,7 +52,7 @@ export function OfflineBanner() {
   return (
     <div
       aria-live="polite"
-      className="safe-area-pt fixed top-0 left-0 right-0 z-[60] border-b border-amber-300 bg-amber-100 px-4 py-2 text-sm font-medium text-amber-950 shadow-sm"
+      className="safe-area-pt fixed top-0 left-0 right-0 z-[60] border-b border-grid-warning bg-grid-warning-soft px-4 py-2 text-sm font-medium text-grid-navy shadow-sm"
       role="status"
     >
       You are offline. Changes will be queued and synced when connection is restored.

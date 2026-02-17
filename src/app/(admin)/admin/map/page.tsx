@@ -153,7 +153,7 @@ export default function AdminMapPage() {
       </PageHeader>
 
       {isLoading ? (
-        <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">Loading map data...</div>
+        <div className="storm-surface rounded-xl px-4 py-6 text-sm text-grid-muted">Loading map data...</div>
       ) : (
         <MapView
           className="h-[60vh]"
@@ -181,7 +181,7 @@ export default function AdminMapPage() {
               <p>Last Updated: {formatDate(tickets.find((ticket) => ticket.id === selectedTicket.id)?.updated_at ?? null)}</p>
             </>
           ) : (
-            <p className="text-slate-500">No ticket with valid coordinates is currently selected.</p>
+            <p className="text-grid-muted">No ticket with valid coordinates is currently selected.</p>
           )}
         </CardContent>
       </Card>
@@ -192,11 +192,11 @@ export default function AdminMapPage() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           {optimizedRoute.orderedStops.length < 2 ? (
-            <p className="text-slate-500">
+            <p className="text-grid-muted">
               At least two geocoded tickets are required to generate an optimized route.
             </p>
           ) : !routeEnabled ? (
-            <p className="text-slate-500">
+            <p className="text-grid-muted">
               Route optimization is available. Click <span className="font-medium">Optimize Route</span> to render sequence.
             </p>
           ) : (

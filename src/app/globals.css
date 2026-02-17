@@ -209,8 +209,29 @@
   .text-grid-blue {
     color: #2ea3f2;
   }
+  .text-grid-blue-dark {
+    color: #1a8fd9;
+  }
   .text-grid-navy {
     color: #002168;
+  }
+  .text-grid-body {
+    color: var(--grid-gray-700);
+  }
+  .text-grid-muted {
+    color: var(--grid-gray-500);
+  }
+  .text-grid-subtle {
+    color: var(--grid-gray-400);
+  }
+  .text-grid-success {
+    color: var(--grid-success);
+  }
+  .text-grid-warning {
+    color: var(--grid-warning);
+  }
+  .text-grid-danger {
+    color: var(--grid-danger);
   }
   .bg-grid-blue {
     background-color: #2ea3f2;
@@ -218,8 +239,26 @@
   .bg-grid-navy {
     background-color: #002168;
   }
+  .bg-grid-success-soft {
+    background-color: color-mix(in srgb, var(--grid-success) 14%, white);
+  }
+  .bg-grid-warning-soft {
+    background-color: color-mix(in srgb, var(--grid-warning) 16%, white);
+  }
+  .bg-grid-danger-soft {
+    background-color: color-mix(in srgb, var(--grid-danger) 14%, white);
+  }
   .border-grid-blue {
     border-color: #2ea3f2;
+  }
+  .border-grid-success {
+    border-color: color-mix(in srgb, var(--grid-success) 42%, white);
+  }
+  .border-grid-warning {
+    border-color: color-mix(in srgb, var(--grid-warning) 48%, white);
+  }
+  .border-grid-danger {
+    border-color: color-mix(in srgb, var(--grid-danger) 38%, white);
   }
   .text-grid-lightning {
     color: var(--grid-lightning);

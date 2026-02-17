@@ -28,9 +28,9 @@ const STATUS_LABELS: Record<DocumentStatus, string> = {
 };
 
 const STATUS_STYLES: Record<DocumentStatus, string> = {
-  pending: 'bg-slate-100 text-slate-700',
-  uploaded: 'bg-emerald-100 text-emerald-700',
-  failed: 'bg-red-100 text-red-700',
+  pending: 'bg-[var(--grid-gray-100)] text-grid-body',
+  uploaded: 'bg-grid-success-soft text-grid-success',
+  failed: 'bg-grid-danger-soft text-grid-danger',
 };
 
 export function InsuranceUploadForm() {
@@ -176,18 +176,18 @@ export function InsuranceUploadForm() {
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <Label>
-            {label} <span className="text-[#cf2e2e]">*</span>
+            {label} <span className="text-grid-danger">*</span>
           </Label>
           <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusStyle}`}>
             {statusLabel}
           </span>
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-grid-muted">
           {description}
         </p>
         {documentState.file ? (
-          <div className="flex items-center gap-2 rounded-lg bg-slate-50 p-3">
-            <File className="h-5 w-5 text-blue-600" />
+          <div className="flex items-center gap-2 rounded-lg bg-grid-storm-50 p-3">
+            <File className="h-5 w-5 text-grid-blue" />
             <span className="flex-1 truncate text-sm">{documentState.file.name}</span>
             <Button
               type="button"
@@ -206,8 +206,8 @@ export function InsuranceUploadForm() {
               onChange={(event) => handleFileChange(documentType, event)}
               className="cursor-pointer"
             />
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-slate-50 border rounded-md">
-              <div className="flex items-center gap-2 text-slate-500">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-grid-storm-50 border rounded-md">
+              <div className="flex items-center gap-2 text-grid-muted">
                 <Upload className="w-4 h-4" />
                 <span className="text-sm">Upload {label}</span>
               </div>
@@ -216,7 +216,7 @@ export function InsuranceUploadForm() {
         )}
 
         {documentState.error && (
-          <p className="text-sm text-[#cf2e2e]">{documentState.error}</p>
+          <p className="text-sm text-grid-danger">{documentState.error}</p>
         )}
       </div>
     );
@@ -232,8 +232,8 @@ export function InsuranceUploadForm() {
         </Alert>
       )}
 
-      <Alert className="border-blue-100 bg-blue-50">
-        <AlertDescription className="text-gray-600">
+      <Alert className="border-grid-storm-100 bg-grid-storm-50">
+        <AlertDescription className="text-grid-muted">
           Required documents: W-9 and insurance proof. Accepted formats: PDF, JPEG, PNG, WEBP. Maximum size: 10MB per file.
         </AlertDescription>
       </Alert>

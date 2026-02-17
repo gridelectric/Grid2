@@ -47,17 +47,17 @@ export default function WelcomePage() {
       <div className="text-center space-y-6">
         {/* Logo */}
         <div className="flex justify-center">
-          <div className="w-24 h-24 rounded-2xl flex items-center justify-center bg-gradient-to-br from-[#002168] to-[#2ea3f2] shadow-xl shadow-blue-200">
+          <div className="w-24 h-24 rounded-2xl flex items-center justify-center bg-gradient-to-br from-grid-navy to-grid-blue shadow-xl shadow-[rgba(46,163,242,0.28)]">
             <Zap className="w-12 h-12 text-white" fill="white" />
           </div>
         </div>
         
         {/* Title */}
         <div className="space-y-3">
-          <h1 className="text-4xl font-bold text-[#002168] tracking-tight">
+          <h1 className="text-4xl font-bold text-grid-navy tracking-tight">
             Welcome to Grid Electric
           </h1>
-          <p className="text-lg text-gray-600 max-w-md mx-auto">
+          <p className="text-lg text-grid-muted max-w-md mx-auto">
             Join our network of damage assessment professionals and help restore power to communities in need
           </p>
         </div>
@@ -67,10 +67,10 @@ export default function WelcomePage() {
           {values.map((value, index) => (
             <div 
               key={index}
-              className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-gray-100 shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-grid-storm-100 shadow-sm"
             >
-              <value.icon className="w-4 h-4 text-[#2ea3f2]" />
-              <span className="text-sm text-gray-600">{value.text}</span>
+              <value.icon className="w-4 h-4 text-grid-blue" />
+              <span className="text-sm text-grid-muted">{value.text}</span>
             </div>
           ))}
         </div>
@@ -81,7 +81,7 @@ export default function WelcomePage() {
         {benefits.map((benefit, index) => (
           <Card 
             key={index}
-            className="group hover:shadow-lg hover:border-blue-100 transition-all duration-300 border-gray-100"
+            className="group hover:shadow-lg hover:border-grid-storm-100 transition-all duration-300 border-grid-storm-100"
           >
             <CardContent className="pt-6">
               <div className="flex items-start gap-4">
@@ -89,18 +89,18 @@ export default function WelcomePage() {
                   className={`
                     w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0
                     ${benefit.color === 'green' && 'bg-emerald-50 text-emerald-600'}
-                    ${benefit.color === 'blue' && 'bg-blue-50 text-[#2ea3f2]'}
-                    ${benefit.color === 'purple' && 'bg-purple-50 text-purple-600'}
-                    ${benefit.color === 'orange' && 'bg-amber-50 text-amber-600'}
+                    ${benefit.color === 'blue' && 'bg-grid-storm-50 text-grid-blue'}
+                    ${benefit.color === 'purple' && 'bg-grid-storm-50 text-grid-blue'}
+                    ${benefit.color === 'orange' && 'bg-grid-warning-soft text-grid-warning'}
                   `}
                 >
                   <benefit.icon className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 group-hover:text-[#002168] transition-colors">
+                  <h3 className="font-semibold text-grid-navy group-hover:text-grid-navy transition-colors">
                     {benefit.title}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-grid-muted mt-1">
                     {benefit.description}
                   </p>
                 </div>
@@ -111,9 +111,9 @@ export default function WelcomePage() {
       </div>
 
       {/* What to Expect */}
-      <Card className="border-gray-100 shadow-sm">
+      <Card className="border-grid-storm-100 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-[#002168]">What to Expect</CardTitle>
+          <CardTitle className="text-grid-navy">What to Expect</CardTitle>
           <CardDescription>
             The onboarding process takes about 15-20 minutes to complete
           </CardDescription>
@@ -130,12 +130,12 @@ export default function WelcomePage() {
             ].map((item) => (
               <div 
                 key={item.step}
-                className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-blue-50 transition-colors group"
+                className="flex items-center gap-3 p-3 rounded-lg bg-grid-storm-50 hover:bg-grid-storm-50 transition-colors group"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2ea3f2] to-[#0693e3] text-white text-sm font-semibold flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-grid-blue to-[var(--grid-info)] text-white text-sm font-semibold flex items-center justify-center shadow-sm">
                   {item.step}
                 </div>
-                <span className="text-gray-700 text-sm group-hover:text-gray-900">{item.text}</span>
+                <span className="text-grid-body text-sm group-hover:text-grid-navy">{item.text}</span>
               </div>
             ))}
           </div>
@@ -146,7 +146,7 @@ export default function WelcomePage() {
       <div className="flex flex-col sm:flex-row gap-4 pt-4">
         <Button 
           size="lg" 
-          className="w-full sm:w-auto sm:flex-1 h-12 text-base font-semibold bg-gradient-to-r from-[#002168] to-[#2ea3f2] hover:from-[#001545] hover:to-[#1a8fd9] shadow-lg shadow-blue-200 transition-all"
+          className="w-full sm:w-auto sm:flex-1 h-12 text-base font-semibold bg-gradient-to-r from-grid-navy to-grid-blue hover:from-[var(--grid-navy-dark)] hover:to-[var(--grid-blue-dark)] shadow-lg shadow-[rgba(46,163,242,0.28)] transition-all"
           onClick={() => router.push('/personal-info')}
         >
           Get Started
@@ -155,7 +155,7 @@ export default function WelcomePage() {
         <Button 
           variant="outline" 
           size="lg" 
-          className="w-full sm:w-auto h-12 text-base border-gray-300 hover:bg-gray-50 hover:border-gray-400"
+          className="w-full sm:w-auto h-12 text-base border-[var(--grid-gray-300)] hover:bg-grid-storm-50 hover:border-[var(--grid-gray-400)]"
           onClick={() => router.push('/login')}
         >
           Already have an account? Sign in

@@ -10,17 +10,17 @@ export default function RatesPage() {
     <div className="space-y-6">
       <OnboardingStepIndicator />
       
-      <Card className="border-gray-100 shadow-sm">
+      <Card className="border-grid-storm-100 shadow-sm">
         <CardHeader className="space-y-1">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-[#2ea3f2]" />
+            <div className="w-10 h-10 rounded-lg bg-grid-storm-50 flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-grid-blue" />
             </div>
             <div>
-              <CardTitle className="text-xl text-[#002168]">Rate Agreement</CardTitle>
+              <CardTitle className="text-xl text-grid-navy">Rate Agreement</CardTitle>
             </div>
           </div>
-          <CardDescription className="text-gray-500">
+          <CardDescription className="text-grid-muted">
             Review our standard rates for different types of work assignments.
           </CardDescription>
         </CardHeader>

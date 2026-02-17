@@ -81,7 +81,7 @@ export default function ContractorDetailPage() {
   }, [contractorId]);
 
   if (isLoading) {
-    return <div className="storm-surface rounded-xl p-4 text-sm text-slate-500">Loading contractor details...</div>;
+    return <div className="storm-surface rounded-xl p-4 text-sm text-grid-muted">Loading contractor details...</div>;
   }
 
   if (!contractor) {
@@ -131,21 +131,21 @@ export default function ContractorDetailPage() {
               <h2 className="text-xl font-bold">
                 {contractor.fullName}
               </h2>
-              <p className="text-slate-500">{contractor.businessName}</p>
+              <p className="text-grid-muted">{contractor.businessName}</p>
               <div className="mt-4">
                 <StatusBadge status={toDisplayStatus(contractor)} />
               </div>
               <div className="mt-6 space-y-2 w-full text-left">
                 <div className="flex items-center gap-2 text-sm">
-                  <Mail className="w-4 h-4 text-slate-400" />
+                  <Mail className="w-4 h-4 text-grid-subtle" />
                   <span>{contractor.email || 'No email on file'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <Phone className="w-4 h-4 text-slate-400" />
+                  <Phone className="w-4 h-4 text-grid-subtle" />
                   <span>{contractor.phone ?? contractor.businessPhone ?? 'No phone on file'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="w-4 h-4 text-slate-400" />
+                  <MapPin className="w-4 h-4 text-grid-subtle" />
                   <span>{[contractor.city, contractor.state].filter(Boolean).join(', ') || 'Location unavailable'}</span>
                 </div>
               </div>
@@ -158,26 +158,26 @@ export default function ContractorDetailPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <Card className="storm-surface">
               <CardContent className="pt-6">
-                <p className="text-sm text-slate-500">YTD Earnings</p>
+                <p className="text-sm text-grid-muted">YTD Earnings</p>
                 <p className="text-2xl font-bold">{formatCurrency(contractor.ytdEarnings)}</p>
               </CardContent>
             </Card>
             <Card className="storm-surface">
               <CardContent className="pt-6">
-                <p className="text-sm text-slate-500">Active Tickets</p>
+                <p className="text-sm text-grid-muted">Active Tickets</p>
                 <p className="text-2xl font-bold">{contractor.activeTicketCount}</p>
               </CardContent>
             </Card>
             <Card className="storm-surface">
               <CardContent className="pt-6">
-                <p className="text-sm text-slate-500">Total Tickets</p>
+                <p className="text-sm text-grid-muted">Total Tickets</p>
                 <p className="text-2xl font-bold">{contractor.totalTicketCount}</p>
               </CardContent>
             </Card>
             <Card className="storm-surface">
               <CardContent className="pt-6">
-                <p className="text-sm text-slate-500">Eligible</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-sm text-grid-muted">Eligible</p>
+                <p className="text-2xl font-bold text-grid-success">
                   {contractor.eligibleForAssignment ? 'Yes' : 'No'}
                 </p>
               </CardContent>
@@ -200,12 +200,12 @@ export default function ContractorDetailPage() {
                 {contractor.eligibleForAssignment ? 'Eligible' : 'Not Eligible'}
               </p>
               {!contractor.eligibleForAssignment && contractor.eligibilityReason ? (
-                <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-amber-900">
+                <p className="rounded-md border border-grid-warning bg-grid-warning-soft p-2 text-grid-navy">
                   {contractor.eligibilityReason}
                 </p>
               ) : null}
               <p className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-slate-400" />
+                <CalendarDays className="h-4 w-4 text-grid-subtle" />
                 Added {formatDate(contractor.createdAt)}
               </p>
             </CardContent>
@@ -220,7 +220,7 @@ export default function ContractorDetailPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               {contractor.recentTickets.length === 0 ? (
-                <p className="text-sm text-slate-500">No assigned tickets found.</p>
+                <p className="text-sm text-grid-muted">No assigned tickets found.</p>
               ) : (
                 contractor.recentTickets.map((ticket) => (
                   <Link
@@ -232,7 +232,7 @@ export default function ContractorDetailPage() {
                       <p className="text-sm font-semibold">{ticket.ticketNumber}</p>
                       <StatusBadge status={ticket.status} size="sm" />
                     </div>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-grid-muted">
                       {ticket.utilityClient} • Priority {ticket.priority} • Updated {formatDate(ticket.updatedAt)}
                     </p>
                   </Link>

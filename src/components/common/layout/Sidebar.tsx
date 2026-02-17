@@ -88,7 +88,7 @@ function renderBadge(item: NavLinkItem, signals: NavigationSignals) {
   }
 
   return (
-    <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-grid-lightning px-1 text-[11px] font-semibold text-slate-900">
+    <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-grid-lightning px-1 text-[11px] font-semibold text-grid-navy">
       {count > 99 ? '99+' : count}
     </span>
   );
@@ -110,7 +110,7 @@ export function Sidebar({ isOpen, onClose, userRole, signals }: SidebarProps) {
             return (
               <Link
                 className={cn(
-                  'transition-grid group flex min-h-11 items-center gap-3 rounded-xl border-[0.5px] px-3 py-2.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,192,56,0.7)] focus-visible:ring-offset-1 focus-visible:ring-offset-[#002168]',
+                  'transition-grid group flex min-h-11 items-center gap-3 rounded-xl border-[0.5px] px-3 py-2.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,192,56,0.7)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--grid-navy)]',
                   isActive
                     ? 'border-[rgba(255,192,56,0.62)] bg-[linear-gradient(90deg,rgba(255,192,56,0.24)_0%,rgba(255,255,255,0.16)_55%,rgba(255,255,255,0.12)_100%)] text-white shadow-[inset_0_0_0_0.5px_rgba(255,192,56,0.46)]'
                     : 'border-transparent text-blue-100 hover:border-[rgba(255,192,56,0.5)] hover:bg-[linear-gradient(90deg,rgba(255,192,56,0.14)_0%,rgba(255,255,255,0.08)_72%,rgba(255,255,255,0.07)_100%)] hover:text-white'

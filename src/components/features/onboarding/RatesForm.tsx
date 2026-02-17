@@ -52,22 +52,22 @@ export function RatesForm() {
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-medium">{rate.type}</h4>
-                <p className="text-sm text-slate-500">{rate.description}</p>
+                <p className="text-sm text-grid-muted">{rate.description}</p>
               </div>
               <div className="text-right">
-                <p className="text-xl font-bold text-blue-600">
+                <p className="text-xl font-bold text-grid-blue">
                   ${rate.rate.toFixed(2)}
                 </p>
-                <p className="text-xs text-slate-400">per hour</p>
+                <p className="text-xs text-grid-subtle">per hour</p>
               </div>
             </div>
           </Card>
         ))}
       </div>
 
-      <Card className="p-4 bg-slate-50">
+      <Card className="p-4 bg-grid-storm-50">
         <h4 className="font-medium mb-2">Expense Reimbursement</h4>
-        <ul className="text-sm text-slate-600 space-y-1">
+        <ul className="text-sm text-grid-body space-y-1">
           <li>• Mileage: $0.655/mile (current IRS rate)</li>
           <li>• Tolls and parking: Full reimbursement with receipt</li>
           <li>• Lodging: Up to $150/night when pre-approved</li>
@@ -85,7 +85,7 @@ export function RatesForm() {
           <Label htmlFor="rates-agreement" className="font-medium cursor-pointer">
             I agree to the compensation rates
           </Label>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-grid-muted">
             I understand these rates are for new contractors and may be adjusted
             based on performance after 90 days.
           </p>

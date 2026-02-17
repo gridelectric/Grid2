@@ -90,7 +90,7 @@ export function AgreementsForm() {
               />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-slate-400" />
+                  <FileText className="w-4 h-4 text-grid-subtle" />
                   <Label
                     htmlFor={agreement.id}
                     className="font-medium cursor-pointer"
@@ -98,7 +98,7 @@ export function AgreementsForm() {
                     {agreement.title}
                   </Label>
                 </div>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-grid-muted mt-1">
                   {agreement.description}
                 </p>
                 <Button
