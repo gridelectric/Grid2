@@ -6,9 +6,10 @@ const MAP: Record<string, UtilityClient> = {
   DUKE: 'DUKE',
   CENTERPOINT: 'CENTERPOINT',
   ONCOR: 'ONCOR',
+  ENCORE: 'ONCOR',
   'FLORIDA POWER & LIGHT': 'FPL',
   FPL: 'FPL',
-  TECO: 'FPL',
+  TECO: 'TECO',
 };
 
 export function normalizeUtilityClient(value: string | null | undefined): UtilityClient {

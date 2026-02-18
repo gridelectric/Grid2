@@ -105,7 +105,6 @@ export const ticketService = {
         if (sessionError || !sessionData.session) {
             return [];
         }
-
         const { data, error } = await supabase
             .from('tickets')
             .select('*')
@@ -117,6 +116,32 @@ export const ticketService = {
             }
             throw error;
         }
+        return data as Ticket[];
+    },
+
+    async getTicketsByStormEvent(stormEventId: string) {
+        if (!stormEventId) {
+            return [];
+        }
+
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !sessionData.session) {
+            return [];
+        }
+
+        const { data, error } = await supabase
+            .from('tickets')
+            .select('*')
+            .eq('storm_event_id', stormEventId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            if (isAuthOrPermissionError(error)) {
+                return [];
+            }
+            throw error;
+        }
+
         return data as Ticket[];
     },
 
@@ -168,7 +193,7 @@ export const ticketService = {
         return data as Ticket;
     },
 
-    async getTicketsByAssignee(assigneeId: string) {
+    async getTicketsByAssignee(assigneeId: string, stormEventId?: string) {
         if (!assigneeId) {
             return [];
         }
@@ -179,11 +204,17 @@ export const ticketService = {
         }
 
         // Try direct match first to support existing records regardless of ID shape.
-        const { data: directData, error: directError } = await supabase
+        let directQuery = supabase
             .from('tickets')
             .select('*')
             .eq('assigned_to', assigneeId)
             .order('created_at', { ascending: false });
+
+        if (stormEventId) {
+            directQuery = directQuery.eq('storm_event_id', stormEventId);
+        }
+
+        const { data: directData, error: directError } = await directQuery;
 
         if (directError && !isAuthOrPermissionError(directError)) {
             throw directError;
@@ -208,11 +239,17 @@ export const ticketService = {
             return Array.isArray(directData) ? (directData as Ticket[]) : [];
         }
 
-        const { data, error } = await supabase
+        let contractorQuery = supabase
             .from('tickets')
             .select('*')
             .eq('assigned_to', contractorId)
             .order('created_at', { ascending: false });
+
+        if (stormEventId) {
+            contractorQuery = contractorQuery.eq('storm_event_id', stormEventId);
+        }
+
+        const { data, error } = await contractorQuery;
 
         if (error && !isAuthOrPermissionError(error)) {
             throw error;

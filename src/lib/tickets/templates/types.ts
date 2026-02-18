@@ -1,13 +1,14 @@
 import { z } from 'zod';
 
-export type UtilityClient = 'ENTERGY' | 'DUKE' | 'CENTERPOINT' | 'ONCOR' | 'FPL';
+export type UtilityClient = 'ENTERGY' | 'DUKE' | 'CENTERPOINT' | 'ONCOR' | 'FPL' | 'TECO';
 
 export type TicketTemplateKey =
   | 'ENTERGY_TROUBLE_TICKET_V1'
   | 'DUKE_TROUBLE_TICKET_V1'
   | 'CENTERPOINT_TROUBLE_TICKET_V1'
   | 'ONCOR_TROUBLE_TICKET_V1'
-  | 'FPL_TROUBLE_TICKET_V1';
+  | 'FPL_TROUBLE_TICKET_V1'
+  | 'TECO_TROUBLE_TICKET_V1';
 
 export type TicketFormSection =
   | 'Header'

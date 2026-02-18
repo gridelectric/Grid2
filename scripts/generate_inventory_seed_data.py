@@ -111,7 +111,7 @@ for line in lines:
         elif any(word in item_lower for word in ['cord', 'cable', 'charger', 'inverter', 'walkie talkie']):
             category = "Electronics"
         elif any(word in item_lower for word in ['vest', 'hard hat', 'glasses', 'gloves', 'mask', 'cleats', 'binder', 'folder', 'notepad', 'tape', 'cone']):
-            category = "Safety & PPE"
+            category = "PPE"
         elif any(word in item_lower for word in ['water', 'gatorade', 'drink', 'trailmix', 'granola', 'heet', 'supplement']):
             category = "Supplies & Consumables"
         elif any(word in item_lower for word in ['trailer', 'wheel', 'chock', 'ball', 'hose', 'compressor', 'extinguisher', 'triangle']):
@@ -121,13 +121,13 @@ for line in lines:
         
         inventory_items.append({
             "id": len(inventory_items) + 1,
-            "item_name": item_name,
-            "slug": slug,
+            "asset_type": item_name,
+            "asset_tag": slug,
             "quantity": quantity,
-            "category": category,
-            "unit": "each",
+            "category_name": category,
+            "asset_class": "each",
             "min_stock_level": 1,
-            "location": "Trailer",
+            "location": "TR001",
             "status": "available",
             "created_at": "2026-02-10T00:00:00Z",
             "updated_at": "2026-02-10T00:00:00Z"

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client';
+import { normalizeUtilityClient } from '@/lib/tickets/templates';
 import { isAuthOrPermissionError, isMissingDatabaseObjectError } from '@/lib/utils/errorHandling';
 
 const CLOSED_TICKET_STATUSES = new Set(['CLOSED', 'ARCHIVED', 'EXPIRED']);
@@ -14,7 +15,13 @@ interface RemoteStormEventRow {
   start_date: string | null;
   end_date: string | null;
   notes: string | null;
+  ticket_template_key?: string | null;
+  config_snapshot?: Record<string, unknown> | null;
   created_at: string;
+}
+
+function normalizeUtilityClientValue(value: string | null | undefined): string {
+  return normalizeUtilityClient(value);
 }
 
 interface RemoteTicketCountRow {
@@ -29,6 +36,8 @@ export interface StormEventSummary {
   eventCode: string;
   name: string;
   utilityClient: string;
+  ticketTemplateKey: string | null;
+  configSnapshot: Record<string, unknown> | null;
   status: StormEventStatus;
   region: string | null;
   contractReference: string | null;
@@ -119,6 +128,8 @@ function mapStormEventRow(
     eventCode: row.event_code,
     name: row.name,
     utilityClient: row.utility_client,
+    ticketTemplateKey: row.ticket_template_key ?? null,
+    configSnapshot: row.config_snapshot ?? null,
     status: normalizeStormEventStatus(row.status),
     region: row.region,
     contractReference: row.contract_reference,
@@ -170,12 +181,33 @@ export const stormEventService = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase.from('storm_events') as any)
       .select(
-        'id, event_code, name, utility_client, status, region, contract_reference, start_date, end_date, notes, created_at',
+        'id, event_code, name, utility_client, ticket_template_key, config_snapshot, status, region, contract_reference, start_date, end_date, notes, created_at',
       )
       .eq('is_deleted', false)
       .order('created_at', { ascending: false });
 
     if (error) {
+      if (isMissingDatabaseObjectError(error)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const legacyResult = await (supabase.from('storm_events') as any)
+          .select(
+            'id, event_code, name, utility_client, status, region, contract_reference, start_date, end_date, notes, created_at',
+          )
+          .eq('is_deleted', false)
+          .order('created_at', { ascending: false });
+
+        if (legacyResult.error) {
+          if (isAuthOrPermissionError(legacyResult.error) || isMissingDatabaseObjectError(legacyResult.error)) {
+            return [];
+          }
+          throw legacyResult.error;
+        }
+
+        const legacyRows = (legacyResult.data ?? []) as RemoteStormEventRow[];
+        const eventIds = legacyRows.map((row) => row.id);
+        const activeTicketCountByEventId = await getActiveTicketCountByEventId(eventIds);
+        return legacyRows.map((row) => mapStormEventRow(row, activeTicketCountByEventId));
+      }
       if (isAuthOrPermissionError(error) || isMissingDatabaseObjectError(error)) {
         return [];
       }
@@ -201,13 +233,37 @@ export const stormEventService = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase.from('storm_events') as any)
       .select(
-        'id, event_code, name, utility_client, status, region, contract_reference, start_date, end_date, notes, created_at',
+        'id, event_code, name, utility_client, ticket_template_key, config_snapshot, status, region, contract_reference, start_date, end_date, notes, created_at',
       )
       .eq('id', id)
       .eq('is_deleted', false)
       .maybeSingle();
 
     if (error) {
+      if (isMissingDatabaseObjectError(error)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const legacyResult = await (supabase.from('storm_events') as any)
+          .select(
+            'id, event_code, name, utility_client, status, region, contract_reference, start_date, end_date, notes, created_at',
+          )
+          .eq('id', id)
+          .eq('is_deleted', false)
+          .maybeSingle();
+
+        if (legacyResult.error) {
+          if (isAuthOrPermissionError(legacyResult.error) || isMissingDatabaseObjectError(legacyResult.error)) {
+            return null;
+          }
+          throw legacyResult.error;
+        }
+
+        if (!legacyResult.data) {
+          return null;
+        }
+
+        const activeTicketCountByEventId = await getActiveTicketCountByEventId([id]);
+        return mapStormEventRow(legacyResult.data as RemoteStormEventRow, activeTicketCountByEventId);
+      }
       if (isAuthOrPermissionError(error) || isMissingDatabaseObjectError(error)) {
         return null;
       }
@@ -227,14 +283,15 @@ export const stormEventService = {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const eventCode = normalizeOptional(input.eventCode) ?? buildEventCode(input.utilityClient);
+    const normalizedUtilityClient = normalizeUtilityClientValue(input.utilityClient);
+    const eventCode = normalizeOptional(input.eventCode) ?? buildEventCode(normalizedUtilityClient);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase.from('storm_events') as any)
       .insert({
         event_code: eventCode,
         name: input.name.trim(),
-        utility_client: input.utilityClient.trim(),
+        utility_client: normalizedUtilityClient,
         status: normalizeStormEventStatus(input.status ?? 'MOB'),
         region: normalizeOptional(input.region),
         contract_reference: normalizeOptional(input.contractReference),
@@ -245,7 +302,7 @@ export const stormEventService = {
         updated_by: user?.id ?? null,
       })
       .select(
-        'id, event_code, name, utility_client, status, region, contract_reference, start_date, end_date, notes, created_at',
+        'id, event_code, name, utility_client, ticket_template_key, config_snapshot, status, region, contract_reference, start_date, end_date, notes, created_at',
       )
       .single();
 

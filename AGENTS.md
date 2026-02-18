@@ -499,3 +499,132 @@ All actions logged with:
 ---
 
 *Use project documentation that best fits the task at hand.*
+
+
+---
+
+## Skill Selection Rule (Use the Most Relevant Skill)
+
+When assigned a task, **choose the most applicable built-in skill/workflow first** (e.g., docs, pdfs, spreadsheets, web research, code generation, image editing).  
+If multiple skills apply, **use the one that best reduces risk and increases correctness** (example: for a DB schema change, prioritize schema-first reasoning + migration output + type updates, then UI).
+
+**Default skill selection by task type:**
+- **UI work (screens/components/layout/styling):** docs + code review workflow + design system tokens
+- **Database / RLS / migrations:** schema-first workflow + migration + relationship audit
+- **Offline/sync/Dexie:** offline-first workflow + queue/engine invariants review
+- **PDF/form extraction:** pdf workflow (tables/fields) + form modeling
+- **Exports (CSV/Excel/PDF):** spreadsheets/pdfs workflow
+- **Architecture / refactors:** docs + dependency/impact mapping
+
+---
+
+## Mandatory Recursive Impact Review (Two-Pass)
+
+Every change must include a **recursive impact review** so we don’t break hidden dependencies.
+
+### Pass A — Primary Implementation (Do the work)
+Implement the requested change using existing patterns, existing components, and the correct architectural boundary:
+- **Admin portal:** Server Actions
+- **Contractor app:** Local-first (Dexie) + `useSyncMutation` (never direct inserts in UI)
+
+### Pass B — Verifier Review (Second Agent / Self-Review)
+After implementation, run a **Verifier pass** (can be a sub-agent or a second pass by you) that answers:
+
+1. **What else could this change affect?** (UI, types, DB, sync, policies, tests, docs)
+2. **What must be updated to keep consistency?**
+3. **What might silently break?** (RLS, foreign keys, indexes, offline queue, form validation, exports)
+
+**Deliverable:** a short “Impact Report” section in your response/PR notes:
+- **Touched:** files, tables, endpoints/actions
+- **Also checked:** related screens/components, types/schemas, RLS, tests
+- **Risks:** what to watch
+- **Backout:** how to revert safely
+
+---
+
+## Change Impact Map (Use This Checklist Every Time)
+
+### 1) UI / UX Changes (Screens, Components, Styling)
+If you change **anything on screen**, confirm:
+- **Component reuse:** does a shared component affect other screens?
+- **Design system tokens:** are colors, radius, borders, shadows, spacing consistent with `04-DESIGN-SYSTEM.md`?
+- **Global styles:** if adding a border/radius/spacing rule, should it be a **token** or shared class utility?
+- **Mobile + desktop:** verify breakpoints and touch targets (44px+).
+- **Accessibility:** focus states, contrast, aria labels, error messages.
+
+**Styling consistency rule:**  
+If you add a new visual rule (e.g., border around cards), decide whether it is:
+- a) **Local to one screen**, or  
+- b) a **system rule** → then update the shared component (or design token) and apply consistently across all screens that use that component.
+
+### 2) Data Model / Database Changes (Supabase Postgres)
+If you add/rename/remove a field or entity, confirm:
+- **Supabase migration:** SQL file updated (new columns, FKs, indexes).
+- **Relationships:** foreign keys, join tables, cascades, uniqueness constraints.
+- **RLS policies:** read/write policies still correct for all roles.
+- **Audit logging:** action/changes still captured if applicable.
+- **Storm event scoping:** ensure records are scoped by `storm_event_id` (use **“storm event”** terminology only).
+
+### 3) Shared Types & Validation (Zod + TypeScript)
+If schema changes:
+- Update **Zod schemas** in `src/lib/schemas` (or feature schema files).
+- Update inferred **TypeScript types** used by components/actions.
+- Update **form defaults** + validation messages.
+- Update any **transform/mapping** logic (imports/exports, adapters).
+
+### 4) API / Server Actions / Services
+If mutation/query changes:
+- Update server actions signatures and return types.
+- Confirm error handling format `{ data, error }`.
+- Update any client hooks calling these actions.
+
+### 5) Offline / Dexie / Sync Engine (Contractor Portal)
+If it touches offline-capable data:
+- Update Dexie schema + version bump + migration path.
+- Confirm queue payload compatibility (old queued items must not brick sync).
+- Confirm `useSyncMutation` path still writes to Dexie first.
+- Confirm conflict rules (last-write-wins MVP) still hold.
+
+### 6) Reporting / Exports / PDFs
+If a data field changes:
+- Update exports (CSV/Excel/PDF templates).
+- Update any “print” views or invoice generation.
+
+### 7) Tests
+If behavior changes:
+- Update/extend unit tests (schemas, services).
+- Update/extend integration/E2E tests for critical paths (tickets, assessments, time/expenses).
+
+### 8) Docs / Wireframes / Roadmap (When Relevant)
+If it changes user flow or data meaning:
+- Update docs references in `grid-electric-docs/` as needed.
+- Note any roadmap shifts.
+
+---
+
+## “Do Not Break” Invariants (Hard Rules)
+
+1. **Everything is scoped under `storm_event_id`.** The storm event is the environment.  
+2. **Contractor writes are local-first.** No direct `supabase.from().insert()` inside contractor UI components. Use `useSyncMutation`.  
+3. **Naming convention is mandatory** where applicable: `YYMMDD + [Customer(3)][Utility(3)][City(3)]`.  
+4. **RLS is not optional.** Any new table/column must be reviewed for policies.  
+5. **Design system consistency.** Prefer tokens/shared components over one-off styling hacks.
+
+---
+
+## PR / Task Output Template (Always Use)
+
+When you complete a task, end with:
+
+### Implementation Notes
+- What you changed (1–5 bullets)
+
+### Impact Report (Verifier Pass)
+- **UI:** screens/components impacted
+- **DB:** tables/columns/policies impacted
+- **Types:** schemas/types updated
+- **Offline/Sync:** queue/Dexie changes (if any)
+- **Tests:** added/updated
+- **Docs:** updated (if any)
+- **Risks & Backout:** quick notes
+

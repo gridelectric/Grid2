@@ -7,7 +7,12 @@ import { TicketFormRenderer } from '@/components/features/tickets/TicketFormRend
 import { useAuth } from '@/components/providers/AuthProvider';
 import { canPerformManagementAction } from '@/lib/auth/authorization';
 import { runUtilityOcrExtraction } from '@/lib/tickets/ocr';
-import { getTicketTemplateByUtilityClient, normalizeUtilityClient } from '@/lib/tickets/templates';
+import {
+  getTicketTemplateByTemplateKey,
+  getTicketTemplateByUtilityClient,
+  normalizeUtilityClient,
+  type TicketTemplateKey,
+} from '@/lib/tickets/templates';
 import { stormEventService } from '@/lib/services/stormEventService';
 import { ticketIntakeService } from '@/lib/services/ticketIntakeService';
 import { getErrorMessage } from '@/lib/utils/errorHandling';
@@ -24,6 +29,7 @@ export function TicketNewClientPage({ stormId }: TicketNewClientPageProps) {
 
   const [stormName, setStormName] = useState('');
   const [stormUtility, setStormUtility] = useState('Entergy');
+  const [stormTemplateKey, setStormTemplateKey] = useState<TicketTemplateKey | null>(null);
   const [stormState, setStormState] = useState('Unknown');
   const [ready, setReady] = useState(false);
   const [initialValues, setInitialValues] = useState<Record<string, unknown>>({});
@@ -43,6 +49,7 @@ export function TicketNewClientPage({ stormId }: TicketNewClientPageProps) {
 
         setStormName(stormEvent.name);
         setStormUtility(stormEvent.utilityClient);
+        setStormTemplateKey(stormEvent.ticketTemplateKey as TicketTemplateKey | null);
         setStormState(stormEvent.region ?? 'Unknown');
         setReady(true);
       })
@@ -53,9 +60,12 @@ export function TicketNewClientPage({ stormId }: TicketNewClientPageProps) {
   }, [router, stormId]);
 
   const template = useMemo(() => {
+    if (stormTemplateKey) {
+      return getTicketTemplateByTemplateKey(stormTemplateKey);
+    }
     const utility = normalizeUtilityClient(stormUtility);
     return getTicketTemplateByUtilityClient(utility);
-  }, [stormUtility]);
+  }, [stormTemplateKey, stormUtility]);
 
   if (!canCreate) {
     return <div className="storm-surface rounded-xl p-4 text-sm text-slate-500">Only authorized users can create tickets.</div>;

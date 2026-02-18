@@ -10,6 +10,7 @@ const EXTRACTORS: Record<TicketTemplateKey, (ocrText: string) => TicketOcrExtrac
   CENTERPOINT_TROUBLE_TICKET_V1: stubUtilityExtractor,
   ONCOR_TROUBLE_TICKET_V1: stubUtilityExtractor,
   FPL_TROUBLE_TICKET_V1: stubUtilityExtractor,
+  TECO_TROUBLE_TICKET_V1: stubUtilityExtractor,
 };
 
 export function runUtilityOcrExtraction(templateKey: TicketTemplateKey, ocrText: string): TicketOcrExtractionResult {

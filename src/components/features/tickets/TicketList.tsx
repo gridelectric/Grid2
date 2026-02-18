@@ -29,6 +29,7 @@ interface TicketListProps {
 export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [activeStormEventId, setActiveStormEventId] = useState<string | null>(null);
     const [filters, setFilters] = useState<TicketFiltersState>({
         search: "",
         status: "ALL",
@@ -38,6 +39,13 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
     const router = useRouter();
     const canCreateTicket = canPerformManagementAction(profileRole, 'ticket_entry_write');
     const canAssignContractor = canPerformManagementAction(profileRole, 'contractor_assignment_write');
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const fromQuery = searchParams.get('storm_event_id')?.trim();
+        const fromStorage = window.localStorage.getItem('active_storm_event_id')?.trim();
+        const stormEventId = fromQuery || fromStorage;
+        setActiveStormEventId(stormEventId || null);
+    }, []);
 
     const loadTickets = useCallback(async () => {
         if (userRole === 'contractor' && !userId) {
@@ -50,7 +58,9 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
         try {
             let data: Ticket[];
             if (userRole === 'contractor' && userId) {
-                data = await ticketService.getTicketsByAssignee(userId);
+                data = await ticketService.getTicketsByAssignee(userId, activeStormEventId ?? undefined);
+            } else if (activeStormEventId) {
+                data = await ticketService.getTicketsByStormEvent(activeStormEventId);
             } else {
                 data = await ticketService.getTickets();
             }
@@ -62,7 +72,7 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
         } finally {
             setIsLoading(false);
         }
-    }, [userRole, userId]);
+    }, [activeStormEventId, userRole, userId]);
 
     useEffect(() => {
         loadTickets();
@@ -195,7 +205,7 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
                 </div>
                 {userRole === 'admin' && canCreateTicket && (
                     <Button asChild>
-                        <Link href="/tickets/create">
+                        <Link href={activeStormEventId ? `/storms/${encodeURIComponent(activeStormEventId)}/tickets/new` : '/tickets/create'}>
                             <Plus className="mr-2 h-4 w-4" /> Create Ticket
                         </Link>
                     </Button>

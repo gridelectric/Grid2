@@ -476,7 +476,7 @@ Content-Type: application/json
 
 {
   "expense_report_id": "990e8400-e29b-41d4-a716-446655440004",
-  "category": "MILEAGE",
+  "category_name": "MILEAGE",
   "description": "Travel to assessment site",
   "amount": 24.24,
   "expense_date": "2026-02-04",

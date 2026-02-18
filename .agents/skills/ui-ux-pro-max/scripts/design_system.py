@@ -196,7 +196,7 @@ class DesignSystemGenerator:
 
         return {
             "project_name": project_name or query.upper(),
-            "category": category,
+            "category_name": category,
             "pattern": {
                 "name": best_landing.get("Pattern Name", reasoning.get("pattern", "Hero + Features + CTA")),
                 "sections": best_landing.get("Section Order", "Hero > Features > CTA"),
