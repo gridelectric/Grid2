@@ -90,6 +90,7 @@ export function DashboardMetrics({ className }: DashboardMetricsProps) {
     <div className={cn('space-y-4', className)}>
       <div className="flex items-center justify-end">
         <Button
+          className="storm-contrast-button border-white text-[#0a1733]"
           size="sm"
           variant="outline"
           disabled={isRefreshing || isLoading}
@@ -112,14 +113,14 @@ export function DashboardMetrics({ className }: DashboardMetricsProps) {
         <MetricCard
           title="Active Tickets"
           value={activeTicketsValue}
-          icon={<Ticket className="h-4 w-4 text-grid-navy" />}
+          icon={<Ticket className="h-4 w-4 text-grid-lightning" />}
           description="Open lifecycle workload"
         />
 
         <MetricCard
           title="Field Crews"
           value={fieldCrewsValue}
-          icon={<Users className="h-4 w-4 text-grid-blue" />}
+          icon={<Users className="h-4 w-4 text-grid-lightning" />}
           description={metrics ? `${metrics.on_site_crews} currently on site` : 'Active assignments'}
           variant="accent"
         />
@@ -139,7 +140,7 @@ export function DashboardMetrics({ className }: DashboardMetricsProps) {
         <MetricCard
           title="Revenue (MTD)"
           value={revenueValue}
-          icon={<DollarSign className="h-4 w-4 text-grid-blue" />}
+          icon={<DollarSign className="h-4 w-4 text-grid-lightning" />}
           trend={revenueTrendDirection}
           trendValue={metrics ? formatSignedTrend(metrics.revenue_trend_percent) : undefined}
           description="vs previous month-to-date"
@@ -149,23 +150,23 @@ export function DashboardMetrics({ className }: DashboardMetricsProps) {
 
       <Card className="storm-surface">
         <CardContent className="grid grid-cols-2 gap-3 pt-6 text-sm md:grid-cols-4">
-          <div className="rounded-md border border-grid-surface bg-grid-surface p-3">
-            <p className="text-xs text-slate-500">In Route</p>
-            <p className="text-lg font-semibold text-grid-navy">{metrics?.status_breakdown.in_route ?? (isLoading ? '...' : 0)}</p>
+          <div className="storm-mini-stat rounded-md p-3">
+            <p className="text-xs font-semibold tracking-wide text-[#14213d]">In Route</p>
+            <p className="text-lg font-bold text-[#0a1733]">{metrics?.status_breakdown.in_route ?? (isLoading ? '...' : 0)}</p>
           </div>
-          <div className="rounded-md border border-grid-surface bg-grid-surface p-3">
-            <p className="text-xs text-slate-500">On Site</p>
-            <p className="text-lg font-semibold text-grid-navy">{metrics?.status_breakdown.on_site ?? (isLoading ? '...' : 0)}</p>
+          <div className="storm-mini-stat rounded-md p-3">
+            <p className="text-xs font-semibold tracking-wide text-[#14213d]">On Site</p>
+            <p className="text-lg font-bold text-[#0a1733]">{metrics?.status_breakdown.on_site ?? (isLoading ? '...' : 0)}</p>
           </div>
-          <div className="rounded-md border border-grid-surface bg-grid-surface p-3">
-            <p className="text-xs text-slate-500">Pending Review</p>
-            <p className="text-lg font-semibold text-grid-navy">
+          <div className="storm-mini-stat rounded-md p-3">
+            <p className="text-xs font-semibold tracking-wide text-[#14213d]">Pending Review</p>
+            <p className="text-lg font-bold text-[#0a1733]">
               {metrics?.status_breakdown.pending_review ?? (isLoading ? '...' : 0)}
             </p>
           </div>
-          <div className="rounded-md border border-grid-surface bg-grid-surface p-3">
-            <p className="text-xs text-slate-500">Unassigned</p>
-            <p className="text-lg font-semibold text-grid-navy">{metrics?.status_breakdown.unassigned ?? (isLoading ? '...' : 0)}</p>
+          <div className="storm-mini-stat rounded-md p-3">
+            <p className="text-xs font-semibold tracking-wide text-[#14213d]">Unassigned</p>
+            <p className="text-lg font-bold text-[#0a1733]">{metrics?.status_breakdown.unassigned ?? (isLoading ? '...' : 0)}</p>
           </div>
         </CardContent>
       </Card>

@@ -155,8 +155,8 @@ export function Sidebar({ isOpen, onClose, userRole, signals }: SidebarProps) {
       <aside
         className="hidden w-72 border-r-[0.5px] border-r-[rgba(255,192,56,0.55)] lg:block"
         style={{
-          top: 'calc(var(--top-bar-height) + var(--offline-banner-height))',
-          height: 'calc(100vh - var(--top-bar-height) - var(--offline-banner-height))',
+          top: 'calc(var(--top-bar-height) + var(--offline-banner-height) - 1px)',
+          height: 'calc(100vh - var(--top-bar-height) - var(--offline-banner-height) + 1px)',
           position: 'fixed',
           left: 0,
           zIndex: 20,

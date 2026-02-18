@@ -129,6 +129,7 @@ export default function AdminDashboardPage() {
   const createTicketHref = activeStormEvent
     ? `/tickets/create?storm_event_id=${encodeURIComponent(activeStormEvent.id)}&utility_client=${encodeURIComponent(activeStormEvent.utilityClient)}`
     : '/tickets/create';
+  const dashboardButtonClass = 'storm-contrast-button border-white text-[#0a1733]';
 
   return (
     <div className="space-y-6">
@@ -145,7 +146,7 @@ export default function AdminDashboardPage() {
             <p><span className="font-semibold text-grid-navy">Storm ID:</span> <span className="font-mono text-xs">{activeStormEvent.id}</span></p>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_auto_auto]">
               <Select value={selectedStormEventId} onValueChange={setSelectedStormEventId}>
-                <SelectTrigger>
+                <SelectTrigger className="storm-contrast-field">
                   <SelectValue placeholder="Select another storm environment" />
                 </SelectTrigger>
                 <SelectContent>
@@ -156,10 +157,10 @@ export default function AdminDashboardPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button type="button" variant="outline" onClick={switchActiveStormEnvironment} disabled={!selectedStormEventId}>
+              <Button className={dashboardButtonClass} type="button" variant="outline" onClick={switchActiveStormEnvironment} disabled={!selectedStormEventId}>
                 Set Active
               </Button>
-              <Button type="button" variant="outline" onClick={clearActiveStormEnvironment}>
+              <Button className={dashboardButtonClass} type="button" variant="outline" onClick={clearActiveStormEnvironment}>
                 Clear
               </Button>
             </div>
@@ -174,7 +175,7 @@ export default function AdminDashboardPage() {
             <p>No active storm environment selected.</p>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_auto]">
               <Select value={selectedStormEventId} onValueChange={setSelectedStormEventId}>
-                <SelectTrigger>
+                <SelectTrigger className="storm-contrast-field">
                   <SelectValue placeholder="Select storm environment" />
                 </SelectTrigger>
                 <SelectContent>
@@ -185,7 +186,7 @@ export default function AdminDashboardPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button type="button" variant="outline" onClick={switchActiveStormEnvironment} disabled={!selectedStormEventId}>
+              <Button className={dashboardButtonClass} type="button" variant="outline" onClick={switchActiveStormEnvironment} disabled={!selectedStormEventId}>
                 Set Active
               </Button>
             </div>
@@ -200,28 +201,28 @@ export default function AdminDashboardPage() {
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {canCreateTickets ? (
-              <Button asChild size="sm">
+              <Button asChild className={dashboardButtonClass} size="sm">
                 <Link href={createTicketHref}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Ticket Entry
                 </Link>
               </Button>
             ) : (
-              <Button size="sm" disabled title="Only Super Admin can create tickets">
+              <Button className={dashboardButtonClass} size="sm" disabled title="Only Super Admin can create tickets">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Ticket Entry
               </Button>
             )}
 
             {canManageStormEvents ? (
-              <Button asChild variant="outline" size="sm">
+              <Button asChild className={dashboardButtonClass} variant="outline" size="sm">
                 <Link href="/admin/storms/create">
                   <Plus className="mr-2 h-4 w-4" />
                   Create Storm Event
                 </Link>
               </Button>
             ) : (
-              <Button variant="outline" size="sm" disabled title="Only Super Admin can create storm events">
+              <Button className={dashboardButtonClass} variant="outline" size="sm" disabled title="Only Super Admin can create storm events">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Storm Event
               </Button>
@@ -229,6 +230,7 @@ export default function AdminDashboardPage() {
 
             <Button
               asChild={canAssignContractors}
+              className={dashboardButtonClass}
               variant="outline"
               size="sm"
               disabled={!canAssignContractors}
@@ -247,21 +249,21 @@ export default function AdminDashboardPage() {
               )}
             </Button>
 
-            <Button asChild variant="outline" size="sm">
+            <Button asChild className={dashboardButtonClass} variant="outline" size="sm">
               <Link href="/admin/time-review">
                 <Clock className="mr-2 h-4 w-4" />
                 Review Timesheets
               </Link>
             </Button>
 
-            <Button asChild variant="outline" size="sm">
+            <Button asChild className={dashboardButtonClass} variant="outline" size="sm">
               <Link href="/admin/reports">
                 <MapPin className="mr-2 h-4 w-4" />
                 Open Reports
               </Link>
             </Button>
 
-            <Button asChild variant="outline" size="sm">
+            <Button asChild className={dashboardButtonClass} variant="outline" size="sm">
               <Link href="/admin/invoice-generation">
                 <DollarSign className="mr-2 h-4 w-4" />
                 Generate Invoices
@@ -286,7 +288,7 @@ export default function AdminDashboardPage() {
                 <p className="mt-1 text-xs text-grid-muted">
                   Use map mode to validate geofence activity and monitor route progress.
                 </p>
-                <Button asChild variant="outline" className="mt-4">
+                <Button asChild className={`${dashboardButtonClass} mt-4`} variant="outline">
                   <Link href="/admin/map">Open Map View</Link>
                 </Button>
               </div>
@@ -320,7 +322,7 @@ export default function AdminDashboardPage() {
           <CardContent className="space-y-2 text-sm text-grid-body">
             <p>Task 12.1: Invoice generation and 1099 tracking completed.</p>
             <p>Task 12.2: Dashboard metrics and report exports in progress.</p>
-            <Button asChild variant="outline" size="sm" className="mt-2">
+            <Button asChild className={`${dashboardButtonClass} mt-2`} variant="outline" size="sm">
               <Link href="/admin/reports">Continue Reporting Work</Link>
             </Button>
           </CardContent>

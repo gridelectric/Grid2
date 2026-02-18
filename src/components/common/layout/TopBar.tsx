@@ -59,7 +59,7 @@ export function TopBar({
 
   return (
     <header
-      className="fixed left-0 right-0 z-50 border-b border-white/20 bg-transparent"
+      className="fixed left-0 right-0 z-50 bg-transparent shadow-[inset_0_-0.5px_0_rgba(255,192,56,0.55)]"
       style={{ height: 'var(--top-bar-height)', top: 'var(--offline-banner-height)' }}
     >
       <div className="topbar-center-gradient flex h-full w-full items-center justify-between gap-4 px-4 text-white sm:px-6 lg:px-8">

@@ -298,6 +298,61 @@
     border: 1px solid rgba(46, 163, 242, 0.22);
     background: linear-gradient(180deg, rgba(243, 248, 255, 0.9) 0%, #ffffff 100%);
   }
+  .storm-card {
+    border: 1px solid rgba(255, 192, 56, 0.6);
+    background:
+      radial-gradient(circle at 12% 12%, rgba(255, 255, 255, 0.24) 0%, transparent 55%),
+      linear-gradient(135deg, #001a5a 0%, #00307a 55%, #0b4aa6 100%);
+    box-shadow: 0 10px 24px rgba(0, 24, 88, 0.28);
+    color: #f5f9ff;
+  }
+  .storm-card:nth-child(4n + 2) {
+    background:
+      radial-gradient(circle at 86% 18%, rgba(255, 255, 255, 0.22) 0%, transparent 55%),
+      linear-gradient(135deg, #001547 0%, #002a70 58%, #0a4498 100%);
+  }
+  .storm-card:nth-child(4n + 3) {
+    background:
+      radial-gradient(circle at 24% 82%, rgba(255, 255, 255, 0.2) 0%, transparent 55%),
+      linear-gradient(135deg, #00123d 0%, #00265f 58%, #0a3d8a 100%);
+  }
+  .storm-card:nth-child(4n + 4) {
+    background:
+      radial-gradient(circle at 78% 78%, rgba(255, 255, 255, 0.2) 0%, transparent 52%),
+      linear-gradient(135deg, #001a52 0%, #00306f 56%, #0a4e9a 100%);
+  }
+  .storm-metric-card {
+    border: 1px solid rgba(255, 192, 56, 0.7);
+    background:
+      radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.18) 0%, transparent 45%),
+      linear-gradient(135deg, #001238 0%, #001f58 46%, #062f6f 100%);
+    color: #f8fbff;
+  }
+  .storm-card [data-slot='card-title'] {
+    color: #f8fbff;
+  }
+  .storm-card [data-slot='card-description'] {
+    color: #d7e7ff;
+  }
+  .storm-card :where(
+    .text-grid-navy,
+    .text-grid-body,
+    .text-grid-muted,
+    .text-grid-subtle,
+    .text-muted-foreground,
+    .text-slate-500,
+    .text-slate-600,
+    .text-slate-700
+  ):not([class*='bg-']) {
+    color: #dce9ff !important;
+  }
+  .storm-card :where(
+    .font-semibold.text-grid-navy,
+    .font-bold.text-grid-navy,
+    .font-medium.text-grid-navy
+  ):not([class*='bg-']) {
+    color: #f7fbff !important;
+  }
   .storm-lightning-ring {
     box-shadow:
       0 0 0 1px rgba(255, 192, 56, 0.55),
@@ -314,6 +369,91 @@
     height: 0.5rem;
     border-radius: 9999px;
     background: rgba(255, 192, 56, 0.35);
+  }
+  .storm-contrast-button {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    background: linear-gradient(135deg, #ffde8e 0%, #ffc038 46%, #f4ad07 100%);
+    color: #0a1733;
+    box-shadow:
+      0 6px 14px rgba(0, 10, 35, 0.35),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+    transition:
+      transform var(--motion-duration-fast) var(--motion-ease-standard),
+      box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
+      filter var(--motion-duration-fast) var(--motion-ease-standard);
+  }
+  .storm-contrast-button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0) 72%);
+    transition: opacity var(--motion-duration-fast) var(--motion-ease-standard);
+  }
+  .storm-contrast-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03) saturate(1.02);
+    box-shadow:
+      0 10px 20px rgba(0, 10, 35, 0.42),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.24);
+    animation: storm-button-pulse 1.25s ease-in-out infinite;
+  }
+  .storm-contrast-button:hover::after {
+    opacity: 1;
+  }
+  .storm-contrast-button:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px rgba(255, 255, 255, 0.94),
+      0 0 0 5px rgba(255, 192, 56, 0.55),
+      0 8px 18px rgba(0, 10, 35, 0.34);
+  }
+  .storm-contrast-button:disabled {
+    opacity: 0.62;
+    filter: saturate(0.78);
+    box-shadow: 0 4px 8px rgba(0, 10, 35, 0.28);
+  }
+  .storm-contrast-button svg {
+    color: #0a1733;
+  }
+  .storm-contrast-field {
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 252, 255, 0.92) 100%);
+    color: #0a1733;
+    box-shadow:
+      0 6px 14px rgba(0, 10, 35, 0.22),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  }
+  .storm-contrast-field svg {
+    color: #0a1733;
+  }
+  .storm-contrast-field[data-placeholder] {
+    color: #3b4f75;
+  }
+  .storm-contrast-field [data-slot='select-value'] {
+    color: #0a1733;
+  }
+  .storm-mini-stat {
+    border: 1px solid rgba(255, 255, 255, 0.94);
+    background: linear-gradient(135deg, #ffe4a4 0%, #ffc038 50%, #efac09 100%);
+    color: #0a1733;
+    box-shadow:
+      0 4px 10px rgba(0, 10, 35, 0.28),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+    transition:
+      transform var(--motion-duration-fast) var(--motion-ease-standard),
+      box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
+      filter var(--motion-duration-fast) var(--motion-ease-standard);
+  }
+  .storm-mini-stat:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+    box-shadow:
+      0 8px 16px rgba(0, 10, 35, 0.34),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.24);
   }
   
   /* Card Shadows */
@@ -343,6 +483,33 @@
   .transition-grid {
     transition-duration: var(--motion-duration-base);
     transition-timing-function: var(--motion-ease-standard);
+  }
+}
+
+@keyframes storm-button-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 10px 20px rgba(0, 10, 35, 0.42),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.24);
+  }
+  50% {
+    box-shadow:
+      0 13px 22px rgba(0, 10, 35, 0.48),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storm-contrast-button,
+  .storm-contrast-button::after,
+  .storm-mini-stat {
+    transition: none;
+  }
+  .storm-contrast-button:hover,
+  .storm-mini-stat:hover {
+    animation: none;
+    transform: none;
   }
 }
 
