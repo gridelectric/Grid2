@@ -103,6 +103,13 @@ interface ExpenseReviewListProps {
   reviewerId?: string;
 }
 
+export const EXPENSE_REVIEW_FILTER_CONTROL_CLASS =
+  'border-[#ffc038] shadow-none focus-visible:border-[#ffc038] focus-visible:ring-[2px] focus-visible:ring-[#ffc038]';
+
+export function getExpenseReviewLayoutMode() {
+  return 'ledger';
+}
+
 export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
   const [expenses, setExpenses] = useState<ExpenseListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -384,7 +391,7 @@ export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
               ))}
             </div>
           ) : (
-            <span className="text-xs text-slate-500">None</span>
+            <span className="text-xs text-blue-100">None</span>
           ),
       },
       {
@@ -406,7 +413,7 @@ export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
             <div className="flex items-center gap-2">
               <Button
                 size="sm"
-                variant="outline"
+                variant="storm"
                 disabled={isSubmitting}
                 onClick={() => {
                   void handleSingleDecision(expense, 'APPROVED');
@@ -428,7 +435,7 @@ export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
               </Button>
             </div>
           ) : (
-            <span className="text-xs text-slate-500">Reviewed</span>
+            <span className="text-xs text-blue-100">Reviewed</span>
           ),
       },
     ],
@@ -436,108 +443,150 @@ export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
   );
 
   return (
-    <div className="space-y-4">
-      <Card>
+    <div className="space-y-4 expense-ledger-layout">
+      <Card className="border-[#ffc038]">
         <CardContent className="space-y-4 pt-6">
-          <div className="grid gap-3 lg:grid-cols-4">
-            <Input
-              placeholder="Search contractor, ticket, description"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-            />
-            <Select
-              value={statusFilter}
-              onValueChange={(value) => setStatusFilter(value as StatusFilterValue)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All statuses</SelectItem>
-                <SelectItem value="SUBMITTED">Submitted</SelectItem>
-                <SelectItem value="UNDER_REVIEW">Under Review</SelectItem>
-                <SelectItem value="APPROVED">Approved</SelectItem>
-                <SelectItem value="REJECTED">Rejected</SelectItem>
-                <SelectItem value="PAID">Paid</SelectItem>
-                <SelectItem value="DRAFT">Draft</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              type="date"
-              value={fromDate}
-              onChange={(event) => setFromDate(event.target.value)}
-            />
-            <Input
-              type="date"
-              value={toDate}
-              onChange={(event) => setToDate(event.target.value)}
-            />
+          <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+            <section className="grid gap-3 lg:grid-cols-[1.2fr_1fr]">
+              <div className="space-y-3 rounded-[1.35rem] border border-[#ffc038] bg-[linear-gradient(140deg,rgba(255,192,56,0.22)_0%,rgba(255,192,56,0.08)_100%)] p-4 shadow-[0_12px_24px_rgba(0,18,72,0.2)]">
+                <p className="text-[11px] font-semibold tracking-[0.14em] text-[#ffe39f] uppercase">Search Deck</p>
+                <Input
+                  className={EXPENSE_REVIEW_FILTER_CONTROL_CLASS}
+                  placeholder="Search contractor, ticket, description"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-md border border-white/25 bg-[#0f1e3f]/60 px-3 py-2">
+                    <p className="text-xs text-blue-100">Visible Items</p>
+                    <p className="text-lg font-semibold text-blue-50">{filteredExpenses.length}</p>
+                  </div>
+                  <div className="rounded-md border border-white/25 bg-[#0f1e3f]/60 px-3 py-2">
+                    <p className="text-xs text-blue-100">Review Queue</p>
+                    <p className="text-lg font-semibold text-blue-50">{reviewableSelectedExpenses.length}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                <div className="rounded-tr-[2rem] rounded-bl-[1rem] rounded-tl-[0.9rem] rounded-br-[0.9rem] border border-[#ffc038] bg-white/8 p-3">
+                  <p className="mb-2 text-[11px] font-semibold tracking-[0.12em] text-blue-100 uppercase">Status Filter</p>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={(value) => setStatusFilter(value as StatusFilterValue)}
+                  >
+                    <SelectTrigger className={EXPENSE_REVIEW_FILTER_CONTROL_CLASS}>
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All statuses</SelectItem>
+                      <SelectItem value="SUBMITTED">Submitted</SelectItem>
+                      <SelectItem value="UNDER_REVIEW">Under Review</SelectItem>
+                      <SelectItem value="APPROVED">Approved</SelectItem>
+                      <SelectItem value="REJECTED">Rejected</SelectItem>
+                      <SelectItem value="PAID">Paid</SelectItem>
+                      <SelectItem value="DRAFT">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-3 rounded-tl-[2rem] rounded-br-[1rem] rounded-tr-[0.9rem] rounded-bl-[0.9rem] border border-[#ffc038] bg-white/8 p-3 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-semibold tracking-[0.12em] text-blue-100 uppercase">From</p>
+                    <Input
+                      className={EXPENSE_REVIEW_FILTER_CONTROL_CLASS}
+                      type="date"
+                      value={fromDate}
+                      onChange={(event) => setFromDate(event.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-semibold tracking-[0.12em] text-blue-100 uppercase">To</p>
+                    <Input
+                      className={EXPENSE_REVIEW_FILTER_CONTROL_CLASS}
+                      type="date"
+                      value={toDate}
+                      onChange={(event) => setToDate(event.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <aside className="space-y-3 rounded-[1.25rem] border border-[#ffc038] bg-[linear-gradient(145deg,#001445_0%,#00286a_58%,#0b4ea1_100%)] p-4 shadow-[0_14px_26px_rgba(0,20,80,0.34)]">
+              <p className="text-[11px] font-semibold tracking-[0.14em] text-[#ffe39f] uppercase">Action Bay</p>
+              <Button
+                variant="storm"
+                className="w-full justify-start"
+                disabled={isLoading}
+                onClick={() => {
+                  void loadExpenses();
+                }}
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                )}
+                Refresh Queue
+              </Button>
+              <Button
+                variant="storm"
+                className="w-full justify-start"
+                disabled={isSubmitting || reviewableSelectedExpenses.length === 0}
+                onClick={() => {
+                  void handleBatchDecision('APPROVED');
+                }}
+              >
+                <CheckCheck className="mr-2 h-4 w-4" />
+                Approve Selected
+              </Button>
+              <Button
+                variant="destructive"
+                className="w-full justify-start"
+                disabled={isSubmitting || reviewableSelectedExpenses.length === 0}
+                onClick={() => {
+                  void handleBatchDecision('REJECTED');
+                }}
+              >
+                <X className="mr-2 h-4 w-4" />
+                Reject Selected
+              </Button>
+              <div className="rounded-lg border border-white/25 bg-white/10 px-3 py-2">
+                <p className="text-xs text-blue-100">Requires Approval</p>
+                <p className="text-lg font-semibold text-blue-50">{requiresApprovalCount}</p>
+              </div>
+            </aside>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              disabled={isLoading}
-              onClick={() => {
-                void loadExpenses();
-              }}
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="mr-2 h-4 w-4" />
-              )}
-              Refresh
-            </Button>
-            <Button
-              disabled={isSubmitting || reviewableSelectedExpenses.length === 0}
-              onClick={() => {
-                void handleBatchDecision('APPROVED');
-              }}
-            >
-              <CheckCheck className="mr-2 h-4 w-4" />
-              Approve Selected
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={isSubmitting || reviewableSelectedExpenses.length === 0}
-              onClick={() => {
-                void handleBatchDecision('REJECTED');
-              }}
-            >
-              <X className="mr-2 h-4 w-4" />
-              Reject Selected
-            </Button>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <Card>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+            <Card className="border-[#ffc038] rounded-[1rem] sm:col-span-2 xl:col-span-2">
               <CardContent className="p-3">
-                <p className="text-xs text-slate-500">Items</p>
+                <p className="text-xs text-blue-100">Ledger Items</p>
                 <p className="text-lg font-semibold">{summary.itemCount}</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-[#ffc038] rounded-[1rem]">
               <CardContent className="p-3">
-                <p className="text-xs text-slate-500">Total Amount</p>
+                <p className="text-xs text-blue-100">Total Amount</p>
                 <p className="text-lg font-semibold">{formatCurrency(summary.totalAmount)}</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-[#ffc038] rounded-[1rem]">
               <CardContent className="p-3">
-                <p className="text-xs text-slate-500">Pending Review</p>
+                <p className="text-xs text-blue-100">Pending Review</p>
                 <p className="text-lg font-semibold">{pendingReviewCount}</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-[#ffc038] rounded-[1rem]">
               <CardContent className="p-3">
-                <p className="text-xs text-slate-500">Requires Approval</p>
+                <p className="text-xs text-blue-100">Requires Approval</p>
                 <p className="text-lg font-semibold">{requiresApprovalCount}</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-[#ffc038] rounded-[1rem]">
               <CardContent className="p-3">
-                <p className="text-xs text-slate-500">Approved</p>
+                <p className="text-xs text-blue-100">Approved</p>
                 <p className="text-lg font-semibold">{summary.approvedCount}</p>
               </CardContent>
             </Card>
@@ -563,11 +612,11 @@ export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
 
       <div className="space-y-3 md:hidden">
         {isLoading ? (
-          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">
+          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-blue-100">
             Loading expense reports...
           </div>
         ) : filteredExpenses.length === 0 ? (
-          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">
+          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-blue-100">
             No expenses found for the selected filters.
           </div>
         ) : (
@@ -577,7 +626,7 @@ export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold">{expense.contractor_name ?? expense.contractor_id}</p>
-                    <p className="text-xs text-slate-500">{formatDate(expense.expense_date)}</p>
+                    <p className="text-xs text-blue-100">{formatDate(expense.expense_date)}</p>
                   </div>
                   <StatusBadge
                     status={expense.report_status}
@@ -587,7 +636,7 @@ export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
                 </div>
 
                 <p className="text-sm">{expense.description}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-blue-100">
                   {toCategoryLabel(expense.category)}
                   {expense.ticket_number ? ` • ${expense.ticket_number}` : ''}
                 </p>
@@ -608,7 +657,7 @@ export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="storm"
                         disabled={isSubmitting}
                         onClick={() => {
                           void handleSingleDecision(expense, 'APPROVED');
@@ -628,7 +677,7 @@ export function ExpenseReviewList({ reviewerId }: ExpenseReviewListProps) {
                       </Button>
                     </div>
                   ) : (
-                    <span className="text-xs text-slate-500">Reviewed</span>
+                    <span className="text-xs text-blue-100">Reviewed</span>
                   )}
                 </div>
               </CardContent>

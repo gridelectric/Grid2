@@ -2,19 +2,10 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Bell, Loader2, LogOut, RefreshCw, Settings, ShieldAlert, User } from 'lucide-react';
+import { Bell, Loader2, RefreshCw } from 'lucide-react';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { BrandMark } from '@/components/common/brand/BrandMark';
 import type { NavigationSignals } from '@/hooks/useNavigationSignals';
@@ -26,7 +17,6 @@ interface TopBarProps {
   userName: string;
   userRole: string;
   userPortal: 'admin' | 'contractor';
-  onSignOut: () => void;
   signals: NavigationSignals;
   isSignalsLoading: boolean;
   onRefreshSignals: () => Promise<void>;
@@ -36,13 +26,8 @@ function getPortalLabel(portal: 'admin' | 'contractor'): 'Admin Portal' | 'Contr
   return portal === 'admin' ? 'Admin Portal' : 'Contractor Portal';
 }
 
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+function toRoleLabel(role: string) {
+  return role.toLowerCase().replaceAll('_', ' ');
 }
 
 export function TopBar({
@@ -50,7 +35,6 @@ export function TopBar({
   userName,
   userRole,
   userPortal,
-  onSignOut,
   signals,
   isSignalsLoading,
   onRefreshSignals,
@@ -73,7 +57,7 @@ export function TopBar({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Popover>
             <PopoverTrigger asChild>
               <Button className="relative text-white hover:bg-white/15 hover:text-white" size="icon" variant="ghost">
@@ -142,44 +126,10 @@ export function TopBar({
             </PopoverContent>
           </Popover>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button className="flex items-center gap-2 text-white hover:bg-white/15 hover:text-white" variant="ghost">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-grid-storm-100 text-grid-navy text-sm font-medium">
-                    {getInitials(userName)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden text-left sm:block">
-                  <p className="text-sm font-medium">{userName}</p>
-                  <p className="text-xs capitalize text-blue-100">{userRole.toLowerCase().replace('_', ' ')}</p>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-              {!signals.isOnline ? (
-                <DropdownMenuItem>
-                  <ShieldAlert className="mr-2 h-4 w-4" />
-                  Offline mode enabled
-                </DropdownMenuItem>
-              ) : null}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-grid-danger" onClick={onSignOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="min-w-0 text-right">
+            <p className="truncate text-sm font-semibold text-white">{userName}</p>
+            <p className="truncate text-xs capitalize text-blue-100">{toRoleLabel(userRole)}</p>
+          </div>
         </div>
       </div>
     </header>

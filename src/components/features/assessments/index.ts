@@ -1,4 +1,5 @@
 export { AssessmentForm } from './AssessmentForm';
+export { AssessmentDecisionSheet } from './AssessmentDecisionSheet';
 export { AssessmentReviewList } from './AssessmentReviewList';
 export { DamageClassification } from './DamageClassification';
 export { EquipmentSelect } from './EquipmentSelect';

@@ -541,6 +541,28 @@
       0 8px 16px rgba(0, 10, 35, 0.34),
       inset 0 0 0 1px rgba(255, 255, 255, 0.24);
   }
+  .assessment-command-shell {
+    color: #f5f9ff;
+  }
+  .assessment-command-control {
+    border: 2px solid #ffc038;
+    box-shadow: none;
+  }
+  .assessment-command-control:focus-visible {
+    border-color: #ffc038;
+    box-shadow: 0 0 0 2px rgba(255, 192, 56, 0.42);
+  }
+  .assessment-command-card {
+    transition:
+      transform var(--motion-duration-base) var(--motion-ease-standard),
+      box-shadow var(--motion-duration-base) var(--motion-ease-standard),
+      filter var(--motion-duration-base) var(--motion-ease-standard);
+  }
+  .assessment-command-card:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.02);
+    box-shadow: 0 16px 32px rgba(0, 18, 74, 0.34);
+  }
   
   /* Card Shadows */
   .shadow-card {
@@ -589,11 +611,13 @@
 @media (prefers-reduced-motion: reduce) {
   .storm-contrast-button,
   .storm-contrast-button::after,
-  .storm-mini-stat {
+  .storm-mini-stat,
+  .assessment-command-card {
     transition: none;
   }
   .storm-contrast-button:hover,
-  .storm-mini-stat:hover {
+  .storm-mini-stat:hover,
+  .assessment-command-card:hover {
     animation: none;
     transform: none;
   }

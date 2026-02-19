@@ -1,10 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, CheckCheck, Loader2, RefreshCw, Wrench, X } from 'lucide-react';
+import { CheckCheck, RefreshCw, ShieldAlert, Wrench, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { DataTable, type Column } from '@/components/common/data-display/DataTable';
+import { AssessmentDecisionSheet } from '@/components/features/assessments/AssessmentDecisionSheet';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,13 +23,23 @@ import {
   type AssessmentReviewDecision,
   type AssessmentReviewListItem,
 } from '@/lib/services/assessmentReviewService';
+import { type AssessmentDecisionFormValues } from '@/lib/schemas/assessmentReviewDecision';
 import { formatDate } from '@/lib/utils/formatters';
 import type { PriorityLevel } from '@/types';
 
 type ReviewedFilterValue = 'ALL' | 'PENDING' | 'REVIEWED';
 type PriorityFilterValue = PriorityLevel | 'ALL';
-
 type DecisionFilterValue = AssessmentReviewDecision | 'ALL';
+
+type DecisionSheetState = {
+  mode: 'single' | 'batch';
+  targets: AssessmentReviewListItem[];
+  defaultDecision: AssessmentReviewDecision;
+};
+
+export const ASSESSMENT_REVIEW_LAYOUT_MODE = 'command-matrix';
+export const ASSESSMENT_REVIEW_FILTER_CONTROL_CLASS =
+  'assessment-command-control border-2 border-[#ffc038] bg-[#031a4a]/85 text-blue-50 placeholder:text-blue-200';
 
 function toStartOfDayIso(dateValue: string): string | undefined {
   if (!dateValue) {
@@ -135,6 +145,7 @@ export function AssessmentReviewList({ reviewerId }: AssessmentReviewListProps) 
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [selectedAssessmentIds, setSelectedAssessmentIds] = useState<string[]>([]);
+  const [decisionSheetState, setDecisionSheetState] = useState<DecisionSheetState | null>(null);
 
   const loadAssessments = useCallback(async () => {
     setIsLoading(true);
@@ -193,6 +204,17 @@ export function AssessmentReviewList({ reviewerId }: AssessmentReviewListProps) 
     };
   }, [assessments]);
 
+  const focusedAssessment = useMemo(() => {
+    if (selectedAssessmentIds.length > 0) {
+      const selected = assessments.find((item) => item.id === selectedAssessmentIds[0]);
+      if (selected) {
+        return selected;
+      }
+    }
+
+    return assessments.find((item) => item.review_state === 'PENDING') ?? assessments[0];
+  }, [assessments, selectedAssessmentIds]);
+
   const updateSelected = useCallback((assessmentId: string, checked: boolean) => {
     setSelectedAssessmentIds((current) => {
       if (checked) {
@@ -246,48 +268,30 @@ export function AssessmentReviewList({ reviewerId }: AssessmentReviewListProps) 
     [applyReviewResult, reviewerId],
   );
 
-  const handleSingleDecision = useCallback(
-    async (assessment: AssessmentReviewListItem, decision: AssessmentReviewDecision) => {
-      if (assessment.review_state !== 'PENDING') {
-        return;
-      }
-
-      const reviewNotes =
-        decision === 'NEEDS_REWORK'
-          ? window.prompt('Rework instructions (required):', assessment.review_notes ?? '')
-          : window.prompt('Approval notes (optional):', assessment.review_notes ?? '');
-
-      if (reviewNotes === null) {
-        return;
-      }
-
-      setIsSubmitting(true);
-      try {
-        await processDecision(assessment, decision, reviewNotes.trim());
-        toast.success(decision === 'APPROVED' ? 'Assessment approved.' : 'Assessment sent for rework.');
-      } catch (decisionError) {
-        toast.error(parseError(decisionError));
-      } finally {
-        setIsSubmitting(false);
-      }
-    },
-    [processDecision],
-  );
-
-  const handleBatchDecision = useCallback(
-    async (decision: AssessmentReviewDecision) => {
-      if (selectedPendingAssessments.length === 0) {
+  const openDecisionSheet = useCallback(
+    (
+      targets: AssessmentReviewListItem[],
+      defaultDecision: AssessmentReviewDecision,
+      mode: 'single' | 'batch',
+    ) => {
+      const pendingTargets = targets.filter((target) => target.review_state === 'PENDING');
+      if (pendingTargets.length === 0) {
         toast.error('Select at least one pending assessment.');
         return;
       }
 
-      const promptText =
-        decision === 'NEEDS_REWORK'
-          ? 'Rework instructions for selected assessments (required):'
-          : 'Approval notes for selected assessments (optional):';
+      setDecisionSheetState({
+        mode,
+        targets: pendingTargets,
+        defaultDecision,
+      });
+    },
+    [],
+  );
 
-      const reviewNotes = window.prompt(promptText, '');
-      if (reviewNotes === null) {
+  const handleDecisionSubmit = useCallback(
+    async (values: AssessmentDecisionFormValues) => {
+      if (!decisionSheetState) {
         return;
       }
 
@@ -295,9 +299,9 @@ export function AssessmentReviewList({ reviewerId }: AssessmentReviewListProps) 
       let successCount = 0;
       let failureCount = 0;
 
-      for (const assessment of selectedPendingAssessments) {
+      for (const assessment of decisionSheetState.targets) {
         try {
-          await processDecision(assessment, decision, reviewNotes.trim());
+          await processDecision(assessment, values.decision, values.reviewNotes);
           successCount += 1;
         } catch {
           failureCount += 1;
@@ -305,10 +309,13 @@ export function AssessmentReviewList({ reviewerId }: AssessmentReviewListProps) 
       }
 
       setIsSubmitting(false);
+      setDecisionSheetState(null);
 
       if (successCount > 0) {
         toast.success(
-          `${decision === 'APPROVED' ? 'Approved' : 'Requested rework for'} ${successCount} assessment${successCount === 1 ? '' : 's'}.`,
+          values.decision === 'APPROVED'
+            ? `Approved ${successCount} assessment${successCount === 1 ? '' : 's'}.`
+            : `Requested rework for ${successCount} assessment${successCount === 1 ? '' : 's'}.`,
         );
       }
 
@@ -316,242 +323,43 @@ export function AssessmentReviewList({ reviewerId }: AssessmentReviewListProps) 
         toast.error(`${failureCount} assessment${failureCount === 1 ? '' : 's'} failed to update.`);
       }
     },
-    [processDecision, selectedPendingAssessments],
-  );
-
-  const columns = useMemo<Column<AssessmentReviewListItem>[]>(
-    () => [
-      {
-        key: 'select',
-        header: '',
-        width: '48px',
-        cell: (assessment) =>
-          assessment.review_state === 'PENDING' ? (
-            <Checkbox
-              checked={selectedAssessmentIds.includes(assessment.id)}
-              disabled={isSubmitting}
-              onCheckedChange={(checked) => updateSelected(assessment.id, checked === true)}
-            />
-          ) : null,
-      },
-      {
-        key: 'contractor',
-        header: 'Contractor',
-        cell: (assessment) => assessment.contractor_name ?? assessment.contractor_id,
-      },
-      {
-        key: 'ticket',
-        header: 'Ticket',
-        cell: (assessment) => assessment.ticket_number ?? assessment.ticket_id,
-      },
-      {
-        key: 'priority',
-        header: 'Priority',
-        cell: (assessment) => toPriorityLabel(assessment.priority),
-      },
-      {
-        key: 'cause',
-        header: 'Cause',
-        cell: (assessment) => assessment.damage_cause ?? '-',
-      },
-      {
-        key: 'equipment',
-        header: 'Equipment',
-        cell: (assessment) => String(assessment.equipment_count),
-      },
-      {
-        key: 'flags',
-        header: 'Safety Flags',
-        cell: (assessment) =>
-          assessment.safety_flags.length > 0 ? (
-            <div className="flex flex-wrap gap-1">
-              {assessment.safety_flags.slice(0, 3).map((flag) => (
-                <Badge key={`${assessment.id}-${flag}`} variant="outline">
-                  {toSafetyFlagLabel(flag)}
-                </Badge>
-              ))}
-              {assessment.safety_flags.length > 3 ? (
-                <Badge variant="outline">+{assessment.safety_flags.length - 3}</Badge>
-              ) : null}
-            </div>
-          ) : (
-            <span className="text-xs text-slate-500">None</span>
-          ),
-      },
-      {
-        key: 'assessed',
-        header: 'Assessed',
-        cell: (assessment) => (assessment.assessed_at ? formatDate(assessment.assessed_at) : '-'),
-      },
-      {
-        key: 'state',
-        header: 'Review',
-        cell: (assessment) => (
-          <Badge variant={toReviewStateBadgeVariant(assessment)}>{toReviewStateLabel(assessment)}</Badge>
-        ),
-      },
-      {
-        key: 'actions',
-        header: 'Actions',
-        cell: (assessment) =>
-          assessment.review_state === 'PENDING' ? (
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={isSubmitting}
-                onClick={() => {
-                  void handleSingleDecision(assessment, 'APPROVED');
-                }}
-              >
-                <Check className="mr-1 h-3.5 w-3.5" />
-                Approve
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                disabled={isSubmitting}
-                onClick={() => {
-                  void handleSingleDecision(assessment, 'NEEDS_REWORK');
-                }}
-              >
-                <Wrench className="mr-1 h-3.5 w-3.5" />
-                Rework
-              </Button>
-            </div>
-          ) : (
-            <span className="text-xs text-slate-500">Reviewed</span>
-          ),
-      },
-    ],
-    [handleSingleDecision, isSubmitting, selectedAssessmentIds, updateSelected],
+    [decisionSheetState, processDecision],
   );
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardContent className="space-y-4 pt-6">
-          <div className="grid gap-3 lg:grid-cols-5">
-            <Input
-              placeholder="Search ticket, contractor, cause"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-            />
-            <Select
-              value={reviewedFilter}
-              onValueChange={(value) => setReviewedFilter(value as ReviewedFilterValue)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Review status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All review states</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="REVIEWED">Reviewed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={priorityFilter}
-              onValueChange={(value) => setPriorityFilter(value as PriorityFilterValue)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All priorities</SelectItem>
-                <SelectItem value="A">A - Critical</SelectItem>
-                <SelectItem value="B">B - Urgent</SelectItem>
-                <SelectItem value="C">C - Standard</SelectItem>
-                <SelectItem value="X">X - Hold</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} />
-            <Input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} />
-          </div>
-
-          <div className="grid gap-3 lg:grid-cols-3">
-            <Select
-              value={decisionFilter}
-              onValueChange={(value) => setDecisionFilter(value as DecisionFilterValue)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Decision" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All decisions</SelectItem>
-                <SelectItem value="APPROVED">Approved</SelectItem>
-                <SelectItem value="NEEDS_REWORK">Needs Rework</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button
-              variant="outline"
-              disabled={isLoading}
-              onClick={() => {
-                void loadAssessments();
-              }}
-            >
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-              Refresh
-            </Button>
-
-            <div className="flex items-center justify-end gap-2">
-              <Button
-                disabled={isSubmitting || selectedPendingAssessments.length === 0}
-                onClick={() => {
-                  void handleBatchDecision('APPROVED');
-                }}
-              >
-                <CheckCheck className="mr-2 h-4 w-4" />
-                Approve Selected
-              </Button>
-              <Button
-                variant="destructive"
-                disabled={isSubmitting || selectedPendingAssessments.length === 0}
-                onClick={() => {
-                  void handleBatchDecision('NEEDS_REWORK');
-                }}
-              >
-                <X className="mr-2 h-4 w-4" />
-                Rework Selected
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <Card>
-              <CardContent className="p-3">
-                <p className="text-xs text-slate-500">Assessments</p>
-                <p className="text-lg font-semibold">{summary.total}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-3">
-                <p className="text-xs text-slate-500">Pending</p>
-                <p className="text-lg font-semibold">{summary.pendingCount}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-3">
-                <p className="text-xs text-slate-500">Reviewed</p>
-                <p className="text-lg font-semibold">{summary.reviewedCount}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-3">
-                <p className="text-xs text-slate-500">Approved</p>
-                <p className="text-lg font-semibold">{summary.approvedCount}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-3">
-                <p className="text-xs text-slate-500">Needs Rework</p>
-                <p className="text-lg font-semibold">{summary.needsReworkCount}</p>
-              </CardContent>
-            </Card>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-4 assessment-command-shell">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <Card className="storm-card rounded-xl border-2 border-[#ffc038]">
+          <CardContent className="p-3">
+            <p className="text-xs text-blue-100">Assessments</p>
+            <p className="text-lg font-semibold text-blue-50">{summary.total}</p>
+          </CardContent>
+        </Card>
+        <Card className="storm-card rounded-xl border-2 border-[#ffc038]">
+          <CardContent className="p-3">
+            <p className="text-xs text-blue-100">Pending</p>
+            <p className="text-lg font-semibold text-blue-50">{summary.pendingCount}</p>
+          </CardContent>
+        </Card>
+        <Card className="storm-card rounded-xl border-2 border-[#ffc038]">
+          <CardContent className="p-3">
+            <p className="text-xs text-blue-100">Reviewed</p>
+            <p className="text-lg font-semibold text-blue-50">{summary.reviewedCount}</p>
+          </CardContent>
+        </Card>
+        <Card className="storm-card rounded-xl border-2 border-[#ffc038]">
+          <CardContent className="p-3">
+            <p className="text-xs text-blue-100">Approved</p>
+            <p className="text-lg font-semibold text-blue-50">{summary.approvedCount}</p>
+          </CardContent>
+        </Card>
+        <Card className="storm-card rounded-xl border-2 border-[#ffc038]">
+          <CardContent className="p-3">
+            <p className="text-xs text-blue-100">Needs Rework</p>
+            <p className="text-lg font-semibold text-blue-50">{summary.needsReworkCount}</p>
+          </CardContent>
+        </Card>
+      </div>
 
       {error ? (
         <Alert variant="destructive">
@@ -559,79 +367,295 @@ export function AssessmentReviewList({ reviewerId }: AssessmentReviewListProps) 
         </Alert>
       ) : null}
 
-      <div className="hidden md:block">
-        <DataTable
-          columns={columns}
-          data={assessments}
-          keyExtractor={(assessment) => assessment.id}
-          isLoading={isLoading}
-          emptyMessage="No assessments found for the selected filters."
-        />
-      </div>
+      <div className="grid gap-4 xl:grid-cols-[280px_1fr_320px]">
+        <aside className="space-y-3 self-start xl:sticky xl:top-24">
+          <Card className="storm-card rounded-xl border-2 border-[#ffc038]">
+            <CardContent className="space-y-3 p-4">
+              <p className="text-xs font-semibold tracking-[0.12em] text-[#ffe39f] uppercase">Filter Rail</p>
+              <Input
+                className={ASSESSMENT_REVIEW_FILTER_CONTROL_CLASS}
+                placeholder="Search ticket, contractor, cause"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
+              <Select
+                value={reviewedFilter}
+                onValueChange={(value) => setReviewedFilter(value as ReviewedFilterValue)}
+              >
+                <SelectTrigger className={ASSESSMENT_REVIEW_FILTER_CONTROL_CLASS}>
+                  <SelectValue placeholder="Review state" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All review states</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="REVIEWED">Reviewed</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={priorityFilter}
+                onValueChange={(value) => setPriorityFilter(value as PriorityFilterValue)}
+              >
+                <SelectTrigger className={ASSESSMENT_REVIEW_FILTER_CONTROL_CLASS}>
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All priorities</SelectItem>
+                  <SelectItem value="A">A - Critical</SelectItem>
+                  <SelectItem value="B">B - Urgent</SelectItem>
+                  <SelectItem value="C">C - Standard</SelectItem>
+                  <SelectItem value="X">X - Hold</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={decisionFilter}
+                onValueChange={(value) => setDecisionFilter(value as DecisionFilterValue)}
+              >
+                <SelectTrigger className={ASSESSMENT_REVIEW_FILTER_CONTROL_CLASS}>
+                  <SelectValue placeholder="Decision" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All decisions</SelectItem>
+                  <SelectItem value="APPROVED">Approved</SelectItem>
+                  <SelectItem value="NEEDS_REWORK">Needs Rework</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+                <Input
+                  className={ASSESSMENT_REVIEW_FILTER_CONTROL_CLASS}
+                  type="date"
+                  value={fromDate}
+                  onChange={(event) => setFromDate(event.target.value)}
+                />
+                <Input
+                  className={ASSESSMENT_REVIEW_FILTER_CONTROL_CLASS}
+                  type="date"
+                  value={toDate}
+                  onChange={(event) => setToDate(event.target.value)}
+                />
+              </div>
+              <Button
+                variant="storm"
+                disabled={isLoading}
+                onClick={() => {
+                  void loadAssessments();
+                }}
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh Queue
+              </Button>
+              <Button
+                variant="storm"
+                disabled={isSubmitting || selectedPendingAssessments.length === 0}
+                onClick={() => {
+                  openDecisionSheet(selectedPendingAssessments, 'APPROVED', 'batch');
+                }}
+              >
+                <CheckCheck className="h-4 w-4" />
+                Approve Selected ({selectedPendingAssessments.length})
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={isSubmitting || selectedPendingAssessments.length === 0}
+                onClick={() => {
+                  openDecisionSheet(selectedPendingAssessments, 'NEEDS_REWORK', 'batch');
+                }}
+              >
+                <Wrench className="h-4 w-4" />
+                Rework Selected ({selectedPendingAssessments.length})
+              </Button>
+            </CardContent>
+          </Card>
+        </aside>
 
-      <div className="space-y-3 md:hidden">
-        {isLoading ? (
-          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">
-            Loading assessments...
-          </div>
-        ) : assessments.length === 0 ? (
-          <div className="storm-surface rounded-xl px-4 py-6 text-sm text-slate-500">
-            No assessments found for the selected filters.
-          </div>
-        ) : (
-          assessments.map((assessment) => (
-            <Card key={assessment.id}>
-              <CardContent className="space-y-3 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold">
-                      {assessment.contractor_name ?? assessment.contractor_id}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {assessment.ticket_number ?? assessment.ticket_id}
-                    </p>
-                  </div>
-                  <Badge variant={toReviewStateBadgeVariant(assessment)}>{toReviewStateLabel(assessment)}</Badge>
+        <section className="space-y-3">
+          <Card className="storm-card rounded-xl border-2 border-[#ffc038]">
+            <CardContent className="p-4">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold tracking-[0.12em] text-[#ffe39f] uppercase">Queue Lane</p>
+                  <p className="text-sm text-blue-100">{assessments.length} assessments in scope</p>
                 </div>
+                <Badge variant="outline" className="border-[#ffc038] text-blue-50">
+                  {selectedAssessmentIds.length} selected
+                </Badge>
+              </div>
 
-                <p className="text-xs text-slate-600">
-                  {assessment.damage_cause ?? 'Cause not specified'} • {toPriorityLabel(assessment.priority)}
-                </p>
+              <div className="space-y-3">
+                {isLoading ? (
+                  <div className="rounded-xl border-2 border-[#ffc038] bg-[#041b4a]/70 px-4 py-6 text-sm text-blue-100">
+                    Loading assessments...
+                  </div>
+                ) : assessments.length === 0 ? (
+                  <div className="rounded-xl border-2 border-[#ffc038] bg-[#041b4a]/70 px-4 py-6 text-sm text-blue-100">
+                    No assessments found for the selected filters.
+                  </div>
+                ) : (
+                  assessments.map((assessment) => (
+                    <article
+                      key={assessment.id}
+                      className="assessment-command-card rounded-xl border-2 border-[#ffc038] bg-[#052153]/78 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(0,18,74,0.34)]"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          {assessment.review_state === 'PENDING' ? (
+                            <Checkbox
+                              checked={selectedAssessmentIds.includes(assessment.id)}
+                              disabled={isSubmitting}
+                              onCheckedChange={(checked) => updateSelected(assessment.id, checked === true)}
+                            />
+                          ) : (
+                            <span className="mt-1 inline-flex h-4 w-4 rounded-full bg-white/30" />
+                          )}
+                          <div>
+                            <p className="text-sm font-semibold text-blue-50">
+                              {assessment.contractor_name ?? assessment.contractor_id}
+                            </p>
+                            <p className="text-xs text-blue-100">
+                              {assessment.ticket_number ?? assessment.ticket_id}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge variant={toReviewStateBadgeVariant(assessment)}>
+                          {toReviewStateLabel(assessment)}
+                        </Badge>
+                      </div>
 
-                <div className="flex items-center justify-between border-t pt-2">
-                  <p className="text-xs text-slate-500">Equipment: {assessment.equipment_count}</p>
-                  {assessment.review_state === 'PENDING' ? (
-                    <div className="flex gap-2">
+                      <div className="mt-3 grid gap-2 text-xs text-blue-100 sm:grid-cols-2">
+                        <p>Priority: {toPriorityLabel(assessment.priority)}</p>
+                        <p>Assessed: {assessment.assessed_at ? formatDate(assessment.assessed_at) : '-'}</p>
+                        <p className="sm:col-span-2">Cause: {assessment.damage_cause ?? 'Not specified'}</p>
+                      </div>
+
+                      {assessment.safety_flags.length > 0 ? (
+                        <div className="mt-3 flex flex-wrap gap-1">
+                          {assessment.safety_flags.slice(0, 4).map((flag) => (
+                            <Badge key={`${assessment.id}-${flag}`} variant="outline" className="border-[#ffc038] text-blue-50">
+                              {toSafetyFlagLabel(flag)}
+                            </Badge>
+                          ))}
+                          {assessment.safety_flags.length > 4 ? (
+                            <Badge variant="outline" className="border-[#ffc038] text-blue-50">
+                              +{assessment.safety_flags.length - 4}
+                            </Badge>
+                          ) : null}
+                        </div>
+                      ) : null}
+
+                      <div className="mt-4 flex flex-wrap gap-2 border-t border-white/20 pt-3">
+                        <Button
+                          size="sm"
+                          variant="storm"
+                          disabled={isSubmitting || assessment.review_state !== 'PENDING'}
+                          onClick={() => openDecisionSheet([assessment], 'APPROVED', 'single')}
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          disabled={isSubmitting || assessment.review_state !== 'PENDING'}
+                          onClick={() => openDecisionSheet([assessment], 'NEEDS_REWORK', 'single')}
+                        >
+                          <Wrench className="h-3.5 w-3.5" />
+                          Rework
+                        </Button>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <aside className="self-start xl:sticky xl:top-24">
+          <Card className="storm-card rounded-xl border-2 border-[#ffc038]">
+            <CardContent className="space-y-3 p-4">
+              <p className="text-xs font-semibold tracking-[0.12em] text-[#ffe39f] uppercase">Context Dock</p>
+              {focusedAssessment ? (
+                <>
+                  <div className="space-y-1 rounded-lg border border-[#ffc038] bg-[#031a4a]/70 p-3">
+                    <p className="text-sm font-semibold text-blue-50">
+                      {focusedAssessment.contractor_name ?? focusedAssessment.contractor_id}
+                    </p>
+                    <p className="text-xs text-blue-100">{focusedAssessment.ticket_number ?? focusedAssessment.ticket_id}</p>
+                    <Badge variant={toReviewStateBadgeVariant(focusedAssessment)}>
+                      {toReviewStateLabel(focusedAssessment)}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-2 text-xs text-blue-100">
+                    <p>Priority: {toPriorityLabel(focusedAssessment.priority)}</p>
+                    <p>Equipment: {focusedAssessment.equipment_count}</p>
+                    <p>Cause: {focusedAssessment.damage_cause ?? 'Not specified'}</p>
+                    <p>Reviewed At: {focusedAssessment.reviewed_at ? formatDate(focusedAssessment.reviewed_at) : '-'}</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-[#ffe39f] uppercase">Safety Flags</p>
+                    {focusedAssessment.safety_flags.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {focusedAssessment.safety_flags.map((flag) => (
+                          <Badge key={`${focusedAssessment.id}-${flag}`} variant="outline" className="border-[#ffc038] text-blue-50">
+                            {toSafetyFlagLabel(flag)}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-blue-100">No safety flags.</p>
+                    )}
+                  </div>
+
+                  {focusedAssessment.review_state === 'PENDING' ? (
+                    <div className="space-y-2 border-t border-white/20 pt-3">
                       <Button
-                        size="sm"
-                        variant="outline"
+                        variant="storm"
+                        className="w-full justify-start"
                         disabled={isSubmitting}
-                        onClick={() => {
-                          void handleSingleDecision(assessment, 'APPROVED');
-                        }}
+                        onClick={() => openDecisionSheet([focusedAssessment], 'APPROVED', 'single')}
                       >
-                        Approve
+                        <Check className="h-4 w-4" />
+                        Approve Focused
                       </Button>
                       <Button
-                        size="sm"
                         variant="destructive"
+                        className="w-full justify-start"
                         disabled={isSubmitting}
-                        onClick={() => {
-                          void handleSingleDecision(assessment, 'NEEDS_REWORK');
-                        }}
+                        onClick={() => openDecisionSheet([focusedAssessment], 'NEEDS_REWORK', 'single')}
                       >
-                        Rework
+                        <Wrench className="h-4 w-4" />
+                        Rework Focused
                       </Button>
                     </div>
-                  ) : (
-                    <span className="text-xs text-slate-500">Reviewed</span>
-                  )}
+                  ) : null}
+                </>
+              ) : (
+                <div className="rounded-lg border border-[#ffc038] bg-[#031a4a]/70 p-3 text-sm text-blue-100">
+                  <div className="flex items-start gap-2">
+                    <ShieldAlert className="mt-0.5 h-4 w-4 text-[#ffe39f]" />
+                    <p>Select or load an assessment to view context details.</p>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
+              )}
+            </CardContent>
+          </Card>
+        </aside>
       </div>
+
+      <AssessmentDecisionSheet
+        open={Boolean(decisionSheetState)}
+        mode={decisionSheetState?.mode ?? 'single'}
+        targetCount={decisionSheetState?.targets.length ?? 0}
+        defaultDecision={decisionSheetState?.defaultDecision ?? 'APPROVED'}
+        busy={isSubmitting}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDecisionSheetState(null);
+          }
+        }}
+        onConfirm={handleDecisionSubmit}
+      />
     </div>
   );
 }

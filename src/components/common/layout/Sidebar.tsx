@@ -12,6 +12,7 @@ import {
   Menu,
   Receipt,
   Ticket,
+  User,
   Users,
 } from 'lucide-react';
 
@@ -40,12 +41,14 @@ const iconByHref = {
   '/admin/assessment-review': FileText,
   '/admin/invoice-generation': FileText,
   '/admin/reports': BarChart3,
+  '/admin/account': User,
   '/admin/map': Map,
   '/contractor/map': Map,
   '/contractor/time': Clock,
   '/contractor/expenses': Receipt,
   '/contractor/assessments/create': FileText,
   '/contractor/invoices': FileText,
+  '/contractor/account': User,
 } as const;
 
 function getNavIcon(href: string) {
@@ -94,7 +97,12 @@ function renderBadge(item: NavLinkItem, signals: NavigationSignals) {
   );
 }
 
-export function Sidebar({ isOpen, onClose, userRole, signals }: SidebarProps) {
+export function Sidebar({
+  isOpen,
+  onClose,
+  userRole,
+  signals,
+}: SidebarProps) {
   const pathname = usePathname();
   const navItems: NavLinkItem[] =
     userRole === 'admin' ? ADMIN_SIDEBAR_NAV_ITEMS : CONTRACTOR_SIDEBAR_NAV_ITEMS;

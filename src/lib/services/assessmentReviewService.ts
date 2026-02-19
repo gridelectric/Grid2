@@ -452,7 +452,7 @@ async function listLocalAssessments(filters: AssessmentReviewFilters): Promise<A
   return applyFilters(mapped, filters);
 }
 
-function composeReviewNotes(decision: AssessmentReviewDecision, reviewNotes?: string): string {
+export function composeReviewNotes(decision: AssessmentReviewDecision, reviewNotes?: string): string {
   const prefix = `[${decision}]`;
   const trimmed = reviewNotes?.trim();
   return trimmed ? `${prefix} ${trimmed}` : prefix;

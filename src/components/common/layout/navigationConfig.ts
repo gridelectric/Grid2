@@ -27,12 +27,19 @@ export const ADMIN_SIDEBAR_NAV_ITEMS: NavLinkItem[] = [
     href: '/admin/storms',
     label: 'Storm Events',
     matchPaths: ['/admin/admin/storms'],
+    signalKey: 'storms',
+    badgeStyle: 'count',
   },
   { href: '/admin/time-review', label: 'Time Review', signalKey: 'reviews', badgeStyle: 'count' },
   { href: '/admin/expense-review', label: 'Expenses', signalKey: 'reviews', badgeStyle: 'count' },
   { href: '/admin/assessment-review', label: 'Assessments', signalKey: 'reviews', badgeStyle: 'count' },
   { href: '/admin/invoice-generation', label: 'Invoices' },
   { href: '/admin/reports', label: 'Reports' },
+  {
+    href: '/admin/account',
+    label: 'Account',
+    matchPaths: ['/admin/admin/account'],
+  },
   { href: '/admin/map', label: 'Map View' },
 ];
 
@@ -43,6 +50,7 @@ export const CONTRACTOR_SIDEBAR_NAV_ITEMS: NavLinkItem[] = [
   { href: '/contractor/expenses', label: 'Expenses', signalKey: 'sync', badgeStyle: 'dot' },
   { href: '/contractor/assessments/create', label: 'Assessments', signalKey: 'reviews', badgeStyle: 'dot' },
   { href: '/contractor/invoices', label: 'Invoices' },
+  { href: '/contractor/account', label: 'Account' },
 ];
 
 export const ADMIN_BOTTOM_NAV_ITEMS: NavLinkItem[] = [

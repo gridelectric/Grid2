@@ -17,20 +17,20 @@ interface AppShellProps {
 
 export function AppShell({ children, userRole = 'admin' }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { profile, signOut } = useAuth();
+  const { profile } = useAuth();
   const { contractorId } = useContractorId(userRole === 'contractor' ? profile?.id : undefined);
   const { signals, isLoading: isSignalsLoading, refresh } = useNavigationSignals({
     userRole,
     contractorId: userRole === 'contractor' ? contractorId : undefined,
   });
+  const fullName = profile ? `${profile.first_name} ${profile.last_name}` : 'User';
 
   return (
     <div className="min-h-screen bg-grid-shell">
       <TopBar
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-        userName={profile ? `${profile.first_name} ${profile.last_name}` : 'User'}
+        userName={fullName}
         userRole={profile?.role || 'USER'}
-        onSignOut={signOut}
         onRefreshSignals={refresh}
         signals={signals}
         userPortal={userRole}

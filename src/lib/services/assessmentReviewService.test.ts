@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  composeReviewNotes,
   createAssessmentReviewService,
   type AssessmentReviewListItem,
   type ReviewedAssessment,
@@ -38,6 +39,16 @@ function buildReviewedAssessment(overrides: Partial<ReviewedAssessment> = {}): R
 }
 
 describe('createAssessmentReviewService', () => {
+  it('prefixes approved notes for storage compatibility', () => {
+    expect(composeReviewNotes('APPROVED', 'Looks good.')).toBe('[APPROVED] Looks good.');
+    expect(composeReviewNotes('APPROVED')).toBe('[APPROVED]');
+  });
+
+  it('prefixes needs rework notes for storage compatibility', () => {
+    expect(composeReviewNotes('NEEDS_REWORK', 'Fix photo labels.')).toBe('[NEEDS_REWORK] Fix photo labels.');
+    expect(composeReviewNotes('NEEDS_REWORK')).toBe('[NEEDS_REWORK]');
+  });
+
   it('lists remote assessments when online', async () => {
     const listRemoteAssessments = vi.fn().mockResolvedValue([buildAssessmentItem()]);
     const service = createAssessmentReviewService({
