@@ -186,7 +186,7 @@ export function TicketFormRenderer({
               </Button>
             </div>
             {extractionWarnings?.length ? (
-              <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-amber-700">
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-amber-200">
                 {extractionWarnings.map((warning) => (<li key={warning}>{warning}</li>))}
               </ul>
             ) : null}
@@ -244,7 +244,7 @@ export function TicketFormRenderer({
                                 <Input {...field} value={String(currentValue ?? '')} />
                               ) : null}
                             </FormControl>
-                            {isLowConfidence ? <p className="text-xs text-amber-700">Low OCR confidence. Verify this value.</p> : null}
+                            {isLowConfidence ? <p className="text-xs text-amber-200">Low OCR confidence. Verify this value.</p> : null}
                             <FormMessage />
                           </FormItem>
                         );

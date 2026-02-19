@@ -31,7 +31,7 @@ export function PageHeader({
   };
 
   return (
-    <div className="storm-surface mb-6 rounded-2xl p-4 sm:p-5">
+    <div className="storm-surface mb-6 rounded-2xl border-[rgba(255,192,56,0.78)] p-4 shadow-[0_12px_30px_rgba(0,20,80,0.34)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(0,16,68,0.4)] sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           {showBackButton && (
@@ -45,11 +45,11 @@ export function PageHeader({
               Back
             </Button>
           )}
-          <h1 className="text-2xl font-bold text-grid-navy">
+          <h1 className="text-2xl font-bold text-blue-50">
             {title}
           </h1>
           {description && (
-            <p className="mt-1 text-grid-muted">
+            <p className="mt-1 text-blue-100">
               {description}
             </p>
           )}

@@ -87,6 +87,8 @@ function toWorkTypeLabel(workType: string): string {
 }
 
 export function TimeEntryList({ mode, contractorId, reviewerId }: TimeEntryListProps) {
+  const filterControlClassName = 'border-[#ffc038] shadow-none focus-visible:border-[#ffc038] focus-visible:ring-[2px] focus-visible:ring-[#ffc038]';
+
   const [entries, setEntries] = useState<TimeEntryListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -397,6 +399,7 @@ export function TimeEntryList({ mode, contractorId, reviewerId }: TimeEntryListP
         <CardContent className="space-y-4 pt-6">
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <Input
+              className={filterControlClassName}
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Search contractor, ticket, work type"
@@ -406,7 +409,7 @@ export function TimeEntryList({ mode, contractorId, reviewerId }: TimeEntryListP
               value={statusFilter}
               onValueChange={(value) => setStatusFilter(value as StatusFilterValue)}
             >
-              <SelectTrigger>
+              <SelectTrigger className={filterControlClassName}>
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -418,12 +421,14 @@ export function TimeEntryList({ mode, contractorId, reviewerId }: TimeEntryListP
             </Select>
 
             <Input
+              className={filterControlClassName}
               type="date"
               value={fromDate}
               onChange={(event) => setFromDate(event.target.value)}
             />
 
             <Input
+              className={filterControlClassName}
               type="date"
               value={toDate}
               onChange={(event) => setToDate(event.target.value)}

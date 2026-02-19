@@ -71,36 +71,38 @@ export default function CreateTicketPage() {
     };
 
     if (isLoading || !canCreateTicket) {
-        return <div className="storm-surface rounded-xl p-4 text-sm text-slate-500">Checking access...</div>;
+        return <div className="storm-surface rounded-xl border-[rgba(255,192,56,0.75)] p-4 text-sm text-blue-100 shadow-[0_12px_28px_rgba(0,20,80,0.3)]">Checking access...</div>;
     }
 
     return (
-        <div className="space-y-6 max-w-2xl mx-auto">
-            <PageHeader
-                title="Create New Ticket"
-                description="Select a storm event to begin creating a ticket."
-                backHref="/tickets"
-            />
-            <div className="storm-surface rounded-xl p-6 space-y-4">
-                <div className="space-y-2">
-                    <Label>Select Storm Event</Label>
-                    <Select onValueChange={handleStormSelect} disabled={isStormEventsLoading}>
-                        <SelectTrigger className="storm-contrast-field">
-                            <SelectValue placeholder={isStormEventsLoading ? "Loading storm events..." : "Select Storm Event"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {stormEvents.map((stormEvent) => (
-                                <SelectItem key={stormEvent.id} value={stormEvent.id}>
-                                    {stormEvent.eventCode} - {stormEvent.name} ({stormEvent.utilityClient})
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    {!isStormEventsLoading && stormEvents.length === 0 && (
-                        <p className="text-xs text-amber-700">
-                            No active storm events found. Please create a storm event first.
-                        </p>
-                    )}
+        <div className="storm-surface mx-auto max-w-2xl rounded-2xl border-[rgba(255,192,56,0.78)] p-4 shadow-[0_16px_36px_rgba(0,18,74,0.35)] sm:p-5">
+            <div className="space-y-6">
+                <PageHeader
+                    title="Create New Ticket"
+                    description="Select a storm event to begin creating a ticket."
+                    backHref="/tickets"
+                />
+                <div className="storm-surface space-y-4 rounded-xl border-[rgba(255,192,56,0.75)] p-6 shadow-[0_12px_28px_rgba(0,20,80,0.3)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(0,18,72,0.38)]">
+                    <div className="space-y-2">
+                        <Label>Select Storm Event</Label>
+                        <Select onValueChange={handleStormSelect} disabled={isStormEventsLoading}>
+                            <SelectTrigger className="storm-contrast-field">
+                                <SelectValue placeholder={isStormEventsLoading ? "Loading storm events..." : "Select Storm Event"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {stormEvents.map((stormEvent) => (
+                                    <SelectItem key={stormEvent.id} value={stormEvent.id}>
+                                        {stormEvent.eventCode} - {stormEvent.name} ({stormEvent.utilityClient})
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {!isStormEventsLoading && stormEvents.length === 0 && (
+                            <p className="text-xs text-amber-200">
+                                No active storm events found. Please create a storm event first.
+                            </p>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

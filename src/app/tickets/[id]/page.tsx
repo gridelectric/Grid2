@@ -61,39 +61,40 @@ export default function TicketDetailPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <PageHeader
-                title={`Ticket ${ticket.ticket_number}`}
-                description={ticket.utility_client}
-                backHref="/tickets"
-                showBackButton={true}
-            >
-                <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
-                    <div className="flex gap-2">
-                        <TicketPriorityBadge priority={ticket.priority} />
-                        <StatusBadge status={ticket.status} />
+        <div className="storm-surface rounded-2xl border-[rgba(255,192,56,0.78)] p-4 shadow-[0_16px_36px_rgba(0,18,74,0.35)] sm:p-5">
+            <div className="space-y-6">
+                <PageHeader
+                    title={`Ticket ${ticket.ticket_number}`}
+                    description={ticket.utility_client}
+                    backHref="/tickets"
+                    showBackButton={true}
+                >
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                        <div className="flex gap-2">
+                            <TicketPriorityBadge priority={ticket.priority} />
+                            <StatusBadge status={ticket.status} />
+                        </div>
+                        {profile && !requiresGPSStatusFlow && (
+                            <StatusUpdater
+                                ticket={ticket}
+                                userRole={profile.role}
+                                userId={profile.id}
+                                onStatusUpdated={handleStatusUpdated}
+                            />
+                        )}
+                        {profile && requiresGPSStatusFlow && (
+                            <span className="text-xs text-blue-100">
+                                Status updates require GPS verification in Map view.
+                            </span>
+                        )}
                     </div>
-                    {profile && !requiresGPSStatusFlow && (
-                        <StatusUpdater
-                            ticket={ticket}
-                            userRole={profile.role}
-                            userId={profile.id}
-                            onStatusUpdated={handleStatusUpdated}
-                        />
-                    )}
-                    {profile && requiresGPSStatusFlow && (
-                        <span className="text-xs text-muted-foreground">
-                            Status updates require GPS verification in Map view.
-                        </span>
-                    )}
-                </div>
-            </PageHeader>
+                </PageHeader>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 <div className="md:col-span-2 space-y-6">
-                    <Card className="storm-surface">
+                    <Card className="storm-surface border-[rgba(255,192,56,0.75)] shadow-[0_12px_28px_rgba(0,20,80,0.3)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(0,18,72,0.38)]">
                         <CardHeader>
-                            <CardTitle className="text-grid-navy">Work Description</CardTitle>
+                            <CardTitle className="text-blue-50">Work Description</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <p className="whitespace-pre-wrap">{ticket.work_description}</p>
@@ -101,24 +102,39 @@ export default function TicketDetailPage() {
                     </Card>
 
                     <Tabs defaultValue="details">
-                        <TabsList>
-                            <TabsTrigger value="details">Details</TabsTrigger>
-                            <TabsTrigger value="assessments">Assessments</TabsTrigger>
-                            <TabsTrigger value="history">History</TabsTrigger>
+                        <TabsList className="h-10 border border-white/25 bg-white/10 p-1 text-blue-100">
+                            <TabsTrigger
+                                className="data-[state=active]:bg-[linear-gradient(135deg,#ffde8e_0%,#ffc038_46%,#f4ad07_100%)] data-[state=active]:text-[#0a1733]"
+                                value="details"
+                            >
+                                Details
+                            </TabsTrigger>
+                            <TabsTrigger
+                                className="data-[state=active]:bg-[linear-gradient(135deg,#ffde8e_0%,#ffc038_46%,#f4ad07_100%)] data-[state=active]:text-[#0a1733]"
+                                value="assessments"
+                            >
+                                Assessments
+                            </TabsTrigger>
+                            <TabsTrigger
+                                className="data-[state=active]:bg-[linear-gradient(135deg,#ffde8e_0%,#ffc038_46%,#f4ad07_100%)] data-[state=active]:text-[#0a1733]"
+                                value="history"
+                            >
+                                History
+                            </TabsTrigger>
                         </TabsList>
                         <TabsContent value="details" className="space-y-4 mt-4">
-                            <Card className="storm-surface">
+                            <Card className="storm-surface border-[rgba(255,192,56,0.75)] shadow-[0_12px_28px_rgba(0,20,80,0.3)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(0,18,72,0.38)]">
                                 <CardHeader>
-                                    <CardTitle className="text-grid-navy">Location & Contact</CardTitle>
+                                    <CardTitle className="text-blue-50">Location & Contact</CardTitle>
                                 </CardHeader>
                                 <CardContent className="grid gap-4">
                                     <div>
-                                        <h4 className="font-semibold text-sm text-muted-foreground">Address</h4>
+                                        <h4 className="text-sm font-semibold text-blue-100">Address</h4>
                                         <p className="text-lg">{formatAddress(ticket.address, ticket.city ?? null, ticket.state ?? null, ticket.zip_code ?? null)}</p>
                                     </div>
                                     {ticket.client_contact_name && (
                                         <div>
-                                            <h4 className="font-semibold text-sm text-muted-foreground">Client Contact</h4>
+                                            <h4 className="text-sm font-semibold text-blue-100">Client Contact</h4>
                                             <p>{ticket.client_contact_name} {ticket.client_contact_phone && `• ${ticket.client_contact_phone}`}</p>
                                         </div>
                                     )}
@@ -127,7 +143,7 @@ export default function TicketDetailPage() {
                         </TabsContent>
                         <TabsContent value="assessments">
                             {userRole === 'contractor' ? (
-                                <div className="rounded-lg border-2 border-dashed border-grid-storm-200 bg-grid-storm-50 p-4 text-center text-muted-foreground">
+                                <div className="storm-surface rounded-lg border-2 border-dashed border-[rgba(255,192,56,0.65)] p-4 text-center text-blue-100 shadow-[0_8px_18px_rgba(0,20,80,0.24)]">
                                     <p>No assessment submitted yet.</p>
                                     {(ticket.status === 'ON_SITE' || ticket.status === 'IN_PROGRESS' || ticket.status === 'NEEDS_REWORK') && (
                                         <Button asChild className="mt-3" variant="storm">
@@ -138,7 +154,7 @@ export default function TicketDetailPage() {
                                     )}
                                 </div>
                             ) : (
-                                <div className="rounded-lg border border-grid-surface bg-grid-surface p-4 text-muted-foreground">No assessments yet.</div>
+                                <div className="storm-surface rounded-lg border-[rgba(255,192,56,0.65)] p-4 text-blue-100 shadow-[0_8px_18px_rgba(0,20,80,0.24)]">No assessments yet.</div>
                             )}
                         </TabsContent>
                         <TabsContent value="history">
@@ -150,13 +166,13 @@ export default function TicketDetailPage() {
                 </div>
 
                 <div className="space-y-6">
-                    <Card className="storm-surface">
+                    <Card className="storm-surface border-[rgba(255,192,56,0.75)] shadow-[0_12px_28px_rgba(0,20,80,0.3)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(0,18,72,0.38)]">
                         <CardHeader>
-                            <CardTitle className="text-grid-navy">{userRole === 'contractor' ? 'Metadata' : 'Info'}</CardTitle>
+                            <CardTitle className="text-blue-50">{userRole === 'contractor' ? 'Metadata' : 'Info'}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
-                                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Assigned To</span>
+                                <span className="text-sm font-medium uppercase tracking-wider text-blue-100">Assigned To</span>
                                 <p className="font-semibold">
                                     {userRole === 'contractor'
                                         ? 'You'
@@ -164,16 +180,17 @@ export default function TicketDetailPage() {
                                 </p>
                             </div>
                             <div>
-                                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Created</span>
+                                <span className="text-sm font-medium uppercase tracking-wider text-blue-100">Created</span>
                                 <p>{formatDate(ticket.created_at)}</p>
                             </div>
                             <div>
-                                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Geofence</span>
+                                <span className="text-sm font-medium uppercase tracking-wider text-blue-100">Geofence</span>
                                 <p>{ticket.geofence_radius_meters}m</p>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
+            </div>
             </div>
         </div >
     );

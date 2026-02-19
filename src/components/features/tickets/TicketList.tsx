@@ -128,7 +128,7 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
             cell: (ticket) => (
                 <div className="flex flex-col">
                     <span className="font-medium">{ticket.utility_client}</span>
-                    <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                    <span className="max-w-[200px] truncate text-xs text-blue-100">
                         {ticket.work_description || 'No description'}
                     </span>
                 </div>
@@ -196,10 +196,10 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
 
     return (
         <div className="space-y-4">
-            <div className="storm-surface flex items-center justify-between rounded-xl p-4">
+            <div className="storm-surface flex items-center justify-between rounded-xl border-[rgba(255,192,56,0.75)] p-4 shadow-[0_12px_28px_rgba(0,20,80,0.32)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(0,18,72,0.4)]">
                 <div>
-                    <h2 className="text-xl font-bold tracking-tight text-grid-navy">Tickets</h2>
-                    <p className="text-sm text-slate-500">
+                    <h2 className="text-xl font-bold tracking-tight text-blue-50">Tickets</h2>
+                    <p className="text-sm text-blue-100">
                         {isLoading ? 'Loading...' : `${filteredTickets.length} visible ticket${filteredTickets.length === 1 ? '' : 's'}`}
                     </p>
                 </div>
@@ -212,7 +212,7 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
                 )}
             </div>
 
-            <div className="storm-surface rounded-xl p-4">
+            <div className="storm-surface rounded-xl border-[rgba(255,192,56,0.75)] p-4 shadow-[0_12px_28px_rgba(0,20,80,0.3)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(0,18,72,0.38)]">
                 <TicketFilters onFilterChange={setFilters} />
             </div>
 
@@ -231,9 +231,9 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
             {/* Mobile View */}
             <div className="md:hidden space-y-4">
                 {isLoading ? (
-                    <div className="text-center py-8 text-muted-foreground">Loading tickets...</div>
+                    <div className="text-center py-8 text-blue-100">Loading tickets...</div>
                 ) : filteredTickets.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">No tickets found matching your filters.</div>
+                    <div className="text-center py-8 text-blue-100">No tickets found matching your filters.</div>
                 ) : (
                     filteredTickets.map(ticket => (
                         <TicketCard

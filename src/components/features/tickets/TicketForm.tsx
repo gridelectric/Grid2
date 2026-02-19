@@ -388,7 +388,7 @@ export function TicketForm({
                     {lockStormEvent ? (
                         <div className="space-y-2">
                             <FormLabel>Storm</FormLabel>
-                            <p className="text-base font-bold text-grid-navy">
+                            <p className="text-base font-bold text-blue-50">
                                 {selectedStormEvent?.name ?? (isStormEventsLoading ? "Loading..." : selectedStormEventId)}
                             </p>
                         </div>
@@ -418,7 +418,7 @@ export function TicketForm({
                                         </SelectContent>
                                     </Select>
                                     {!isStormEventsLoading && stormEvents.length === 0 ? (
-                                        <p className="text-xs text-amber-700">
+                                        <p className="text-xs text-amber-200">
                                             No storm events found. Create a storm event before adding ticket entries.
                                         </p>
                                     ) : null}
@@ -443,7 +443,7 @@ export function TicketForm({
                                     />
                                 </FormControl>
                                 {isEntergyFormat ? (
-                                    <p className="text-xs text-blue-800">Enter exactly 10 numeric digits.</p>
+                                    <p className="text-xs text-blue-100">Enter exactly 10 numeric digits.</p>
                                 ) : null}
                                 <FormMessage />
                             </FormItem>
@@ -452,7 +452,7 @@ export function TicketForm({
                     {lockUtilityClient || Boolean(selectedStormEvent) ? (
                         <div className="space-y-2">
                             <FormLabel>Utility Client</FormLabel>
-                            <p className="text-base font-bold text-grid-navy">
+                            <p className="text-base font-bold text-blue-50">
                                 {selectedStormEvent?.utilityClient ?? selectedUtilityClient}
                             </p>
                         </div>
@@ -488,13 +488,13 @@ export function TicketForm({
                 </div>
 
                 {isEntergyFormat ? (
-                    <div className="space-y-6 rounded-md border border-blue-200 bg-blue-50/50 p-4">
-                        <div className="text-sm text-blue-900">
+                    <div className="storm-surface space-y-6 rounded-md border-[rgba(255,192,56,0.72)] p-4 shadow-[0_12px_26px_rgba(0,18,72,0.32)]">
+                        <div className="text-sm text-blue-100">
                             Entergy format is enforced for this ticket. Fields are based on the OCR extraction from your
                             Entergy incident report.
                         </div>
                         <div className="space-y-3">
-                            <h3 className="text-sm font-semibold text-blue-900">Incident Summary Report</h3>
+                            <h3 className="text-sm font-semibold text-blue-50">Incident Summary Report</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 <FormField
                                     control={form.control}
@@ -538,7 +538,7 @@ export function TicketForm({
                             </div>
                         </div>
                         <div className="space-y-3">
-                            <h3 className="text-sm font-semibold text-blue-900">Address / Timing</h3>
+                            <h3 className="text-sm font-semibold text-blue-50">Address / Timing</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 <FormField
                                     control={form.control}
@@ -608,7 +608,7 @@ export function TicketForm({
                             </div>
                         </div>
                         <div className="space-y-3">
-                            <h3 className="text-sm font-semibold text-blue-900">Device</h3>
+                            <h3 className="text-sm font-semibold text-blue-50">Device</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <FormField
                                     control={form.control}
@@ -704,7 +704,7 @@ export function TicketForm({
                             </div>
                         </div>
                         <div className="space-y-3">
-                            <h3 className="text-sm font-semibold text-blue-900">Damage Assessment</h3>
+                            <h3 className="text-sm font-semibold text-blue-50">Damage Assessment</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <FormField
                                     control={form.control}
@@ -787,7 +787,7 @@ export function TicketForm({
                             </div>
                         </div>
                         <div className="space-y-3">
-                            <h3 className="text-sm font-semibold text-blue-900">Comments</h3>
+                            <h3 className="text-sm font-semibold text-blue-50">Comments</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <FormField
                                     control={form.control}
@@ -819,7 +819,7 @@ export function TicketForm({
                                     control={form.control}
                                     name="entergy_need_scout"
                                     render={({ field }) => (
-                                        <FormItem className="flex flex-row items-center gap-3 rounded-md border border-blue-200 bg-white p-3">
+                                        <FormItem className="flex flex-row items-center gap-3 rounded-md border border-white/25 bg-white/10 p-3 text-blue-50">
                                             <FormControl>
                                                 <Checkbox checked={field.value} onCheckedChange={(checked) => field.onChange(checked === true)} />
                                             </FormControl>

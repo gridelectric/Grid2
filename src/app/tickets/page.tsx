@@ -16,7 +16,7 @@ export default function TicketsPage() {
       : 'contractor';
 
   if (isLoading) {
-    return <div className="storm-surface rounded-xl p-4 text-sm text-slate-500">Loading tickets...</div>;
+    return <div className="storm-surface rounded-xl border-[rgba(255,192,56,0.75)] p-4 text-sm text-blue-100 shadow-[0_12px_28px_rgba(0,20,80,0.3)]">Loading tickets...</div>;
   }
 
   return (
@@ -31,7 +31,7 @@ export default function TicketsPage() {
           userRole={userRole}
         />
       ) : (
-        <div className="storm-surface rounded-xl p-4 text-sm">Please log in to view tickets.</div>
+        <div className="storm-surface rounded-xl border-[rgba(255,192,56,0.75)] p-4 text-sm text-blue-100 shadow-[0_12px_28px_rgba(0,20,80,0.3)]">Please log in to view tickets.</div>
       )}
     </div>
   );

@@ -25,6 +25,19 @@ type LoginProfile = {
   must_reset_password?: boolean;
 };
 
+async function readJsonSafe<T>(response: Response): Promise<T | null> {
+  const raw = await response.text();
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
 export function LoginForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -69,7 +82,12 @@ export function LoginForm() {
         return;
       }
 
-      const profilePayload = (await profileResponse.json()) as { profile?: LoginProfile };
+      const profilePayload = await readJsonSafe<{ profile?: LoginProfile }>(profileResponse);
+      if (!profilePayload) {
+        await supabase.auth.signOut();
+        setError('Unable to sign in. Please contact your administrator.');
+        return;
+      }
       const profile = profilePayload.profile;
 
       if (!profile?.is_active) {

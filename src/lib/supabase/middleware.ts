@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import type { CookieOptions } from '@supabase/ssr';
 import { createClient as createAdminSupabaseClient } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
 import { canPerformManagementAction, getManagementActionForPath } from '@/lib/auth/authorization';
 import { shouldEnforcePasswordReset } from '@/lib/auth/passwordResetGate';
@@ -133,39 +134,48 @@ export async function updateSession(request: NextRequest) {
         request,
     });
 
-    const supabase = createServerClient<Database>(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-            cookies: {
-                get(name: string) {
-                    return request.cookies.get(name)?.value;
+    let user: User | null = null;
+    try {
+        const supabase = createServerClient<Database>(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+                cookies: {
+                    get(name: string) {
+                        return request.cookies.get(name)?.value;
+                    },
+                    set(name: string, value: string, options: CookieOptions) {
+                        request.cookies.set(name, value);
+                        supabaseResponse = NextResponse.next({
+                            request,
+                        });
+                        supabaseResponse.cookies.set(name, value, options);
+                    },
+                    remove(name: string, options: CookieOptions) {
+                        request.cookies.set(name, '');
+                        supabaseResponse = NextResponse.next({
+                            request,
+                        });
+                        supabaseResponse.cookies.set(name, '', options);
+                    },
                 },
-                set(name: string, value: string, options: CookieOptions) {
-                    request.cookies.set(name, value);
-                    supabaseResponse = NextResponse.next({
-                        request,
-                    });
-                    supabaseResponse.cookies.set(name, value, options);
-                },
-                remove(name: string, options: CookieOptions) {
-                    request.cookies.set(name, '');
-                    supabaseResponse = NextResponse.next({
-                        request,
-                    });
-                    supabaseResponse.cookies.set(name, '', options);
-                },
-            },
+            }
+        );
+
+        // IMPORTANT: Avoid writing any logic between createServerClient and
+        // supabase.auth.getUser(). A simple mistake can make it very difficult to debug
+        // issues with users being logged out.
+        const authResult = await supabase.auth.getUser();
+        user = authResult.data.user;
+    } catch {
+        // Recover from malformed/partial auth cookie payloads (ex: truncated JSON in sb-* cookie).
+        clearSupabaseAuthCookies(request, supabaseResponse);
+        supabaseResponse.cookies.delete(SESSION_ACTIVITY_COOKIE);
+        if (isPublicRoute(pathname)) {
+            return supabaseResponse;
         }
-    );
-
-    // IMPORTANT: Avoid writing any logic between createServerClient and
-    // supabase.auth.getUser(). A simple mistake can make it very difficult to debug
-    // issues with users being logged out.
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+        return getLoginRedirectResponse(request);
+    }
 
     const managementAction = getManagementActionForPath(pathname);
 

@@ -54,19 +54,19 @@ export function TicketFilters({ onFilterChange }: TicketFiltersProps) {
     }
 
     return (
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex flex-col gap-4 sm:flex-row">
             <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-blue-300" />
                 <Input
                     placeholder="Search tickets..."
-                    className="pl-8"
+                    className="storm-contrast-field pl-8"
                     value={filters.search}
                     onChange={handleSearchChange}
                 />
             </div>
             <div className="flex gap-2">
                 <Select value={filters.status} onValueChange={handleStatusChange}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="storm-contrast-field w-[140px]">
                         <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -88,7 +88,7 @@ export function TicketFilters({ onFilterChange }: TicketFiltersProps) {
                 </Select>
 
                 <Select value={filters.priority} onValueChange={handlePriorityChange}>
-                    <SelectTrigger className="w-[130px]">
+                    <SelectTrigger className="storm-contrast-field w-[130px]">
                         <SelectValue placeholder="Priority" />
                     </SelectTrigger>
                     <SelectContent>
@@ -101,7 +101,7 @@ export function TicketFilters({ onFilterChange }: TicketFiltersProps) {
                 </Select>
 
                 {(filters.search || filters.status !== "ALL" || filters.priority !== "ALL") && (
-                    <Button variant="ghost" size="icon" onClick={clearFilters} title="Clear filters">
+                    <Button variant="storm" size="icon" onClick={clearFilters} title="Clear filters">
                         <X className="h-4 w-4" />
                     </Button>
                 )}

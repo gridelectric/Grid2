@@ -28,6 +28,19 @@ const PUBLIC_ROUTES = [
   '/forbidden',
 ];
 
+async function readJsonSafe<T>(response: Response): Promise<T | null> {
+  const raw = await response.text();
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -70,8 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const payload = (await response.json()) as { profile?: AppUser };
-      if (payload.profile) {
+      const payload = await readJsonSafe<{ profile?: AppUser }>(response);
+      if (payload?.profile) {
         setProfile(payload.profile);
       }
     } catch (error) {

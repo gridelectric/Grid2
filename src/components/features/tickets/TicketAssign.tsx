@@ -87,10 +87,10 @@ export function TicketAssign({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="storm-surface border-[rgba(255,192,56,0.75)] text-blue-50 shadow-[0_20px_42px_rgba(0,14,62,0.5)] sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Assign Ticket {ticketNumber}</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-blue-100">
             Select an eligible contractor for this ticket.
           </DialogDescription>
         </DialogHeader>
@@ -100,7 +100,7 @@ export function TicketAssign({
               Assign To
             </Label>
             <Select value={assigneeId} onValueChange={setAssigneeId} disabled={isLoading}>
-              <SelectTrigger className="col-span-3" id="contractor">
+              <SelectTrigger className="storm-contrast-field col-span-3" id="contractor">
                 <SelectValue placeholder={isLoading ? 'Loading...' : 'Select contractor'} />
               </SelectTrigger>
               <SelectContent>
@@ -114,10 +114,10 @@ export function TicketAssign({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <Button variant="storm" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={!assigneeId || isSubmitting}>
+          <Button variant="storm" onClick={handleSubmit} disabled={!assigneeId || isSubmitting}>
             {isSubmitting ? 'Assigning...' : 'Assign Ticket'}
           </Button>
         </DialogFooter>
