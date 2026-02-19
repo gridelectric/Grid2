@@ -36,7 +36,7 @@ const AGREEMENTS = [
 ];
 
 export function AgreementsForm() {
-  const { data, updateData, nextStep, prevStep, saveDraft } = useOnboarding();
+  const { updateData, nextStep, prevStep, saveDraft } = useOnboarding();
   const [signedAgreements, setSignedAgreements] = useState<Record<string, boolean>>(
     () => {
       const initial: Record<string, boolean> = {};
@@ -120,8 +120,8 @@ export function AgreementsForm() {
         ))}
       </div>
 
-      <Card className="p-4 bg-yellow-50 border-yellow-200">
-        <p className="text-sm text-yellow-800">
+      <Card className="p-4">
+        <p className="text-sm text-yellow-100">
           <strong>Important:</strong> These are legally binding agreements. By
           checking each box, you acknowledge that you have read, understood, and
           agree to the terms. Electronic signatures are legally valid under the

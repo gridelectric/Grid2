@@ -90,9 +90,8 @@ export function DashboardMetrics({ className }: DashboardMetricsProps) {
     <div className={cn('space-y-4', className)}>
       <div className="flex items-center justify-end">
         <Button
-          className="storm-contrast-button border-white text-[#0a1733]"
+          variant="storm"
           size="sm"
-          variant="outline"
           disabled={isRefreshing || isLoading}
           onClick={() => {
             void loadMetrics('refresh');

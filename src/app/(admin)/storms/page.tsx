@@ -57,14 +57,14 @@ export default function StormEventsPage() {
         description="Create and manage storm events as the root umbrella for tickets, crews, time, expenses, and billing."
       >
         {canManageStormEvents ? (
-          <Button asChild title="Create a new storm event umbrella">
+          <Button asChild title="Create a new storm event umbrella" variant="storm">
             <Link href="/admin/storms/create">
               <Plus className="h-4 w-4 mr-2" />
               Create Storm Event
             </Link>
           </Button>
         ) : (
-          <Button disabled title="Only Super Admin can create storm events">
+          <Button disabled title="Only Super Admin can create storm events" variant="storm">
             <Plus className="h-4 w-4 mr-2" />
             Create Storm Event
           </Button>
@@ -101,7 +101,7 @@ export default function StormEventsPage() {
                   <p>Active Tickets: {stormEvent.activeTickets}</p>
                 </div>
                 {canCreateTicketEntries ? (
-                  <Button asChild variant="outline" size="sm" title="Create ticket entry within this storm event">
+                  <Button asChild variant="storm" size="sm" title="Create ticket entry within this storm event">
                     <Link
                       href={`/tickets/create?storm_event_id=${encodeURIComponent(stormEvent.id)}&utility_client=${encodeURIComponent(stormEvent.utilityClient)}`}
                     >
@@ -111,7 +111,7 @@ export default function StormEventsPage() {
                   </Button>
                 ) : (
                   <Button
-                    variant="outline"
+                    variant="storm"
                     size="sm"
                     disabled
                     title="Only Super Admin can create ticket entries"

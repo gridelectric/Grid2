@@ -40,7 +40,7 @@ export function SyncStatus() {
   }, [snapshot.failedCount, snapshot.pendingCount]);
 
   return (
-    <Card className="fixed right-4 bottom-4 z-40 w-[320px] border border-border/70 bg-card/95 shadow-card backdrop-blur">
+    <Card className="fixed right-4 bottom-4 z-40 w-[320px] border-[rgba(255,192,56,0.7)] shadow-[0_12px_26px_rgba(0,24,88,0.36)] backdrop-blur">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-sm">
           <span>Sync Status</span>

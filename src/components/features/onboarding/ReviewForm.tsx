@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Loader2, CheckCircle, Edit } from 'lucide-react';
+import { Loader2, Edit } from 'lucide-react';
 
 export function ReviewForm() {
   const { data, submitApplication, prevStep, saveDraft, goToStep } = useOnboarding();
@@ -67,7 +67,7 @@ export function ReviewForm() {
         ))}
       </div>
 
-      <Card className="p-4 bg-yellow-50 border-yellow-200">
+      <Card className="p-4">
         <div className="flex items-start gap-3">
           <Checkbox
             id="final-confirm"

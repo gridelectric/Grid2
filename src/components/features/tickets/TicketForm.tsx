@@ -383,7 +383,7 @@ export function TicketForm({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 storm-contrast-form">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {lockStormEvent ? (
                         <div className="space-y-2">
@@ -405,7 +405,7 @@ export function TicketForm({
                                         disabled={isStormEventsLoading}
                                     >
                                         <FormControl>
-                                            <SelectTrigger>
+                                            <SelectTrigger className="storm-contrast-field">
                                                 <SelectValue placeholder={isStormEventsLoading ? "Loading storm events..." : "Select Storm Event"} />
                                             </SelectTrigger>
                                         </FormControl>
@@ -468,7 +468,7 @@ export function TicketForm({
                                         value={field.value}
                                     >
                                         <FormControl>
-                                            <SelectTrigger>
+                                            <SelectTrigger className="storm-contrast-field">
                                                 <SelectValue placeholder="Select Client" />
                                             </SelectTrigger>
                                         </FormControl>
@@ -631,7 +631,7 @@ export function TicketForm({
                                             <FormLabel>Device Type *</FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
-                                                    <SelectTrigger>
+                                                    <SelectTrigger className="storm-contrast-field">
                                                         <SelectValue placeholder="Service Point" />
                                                     </SelectTrigger>
                                                 </FormControl>
@@ -897,7 +897,7 @@ export function TicketForm({
                                 <FormLabel>Priority *</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="storm-contrast-field">
                                             <SelectValue placeholder="Select" />
                                         </SelectTrigger>
                                     </FormControl>
@@ -922,7 +922,7 @@ export function TicketForm({
                                         <FormLabel>Initial Equipment Type</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="storm-contrast-field">
                                                     <SelectValue placeholder="Select" />
                                                 </SelectTrigger>
                                             </FormControl>
@@ -1075,10 +1075,10 @@ export function TicketForm({
                 </div>
 
                 <div className="flex justify-end gap-4">
-                    <Button variant="outline" type="button" onClick={() => router.back()}>
+                    <Button variant="storm" type="button" onClick={() => router.back()}>
                         Cancel
                     </Button>
-                    <Button type="submit">Create Ticket</Button>
+                    <Button type="submit" variant="storm">Create Ticket</Button>
                 </div>
             </form>
         </Form>

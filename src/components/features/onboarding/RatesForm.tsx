@@ -65,7 +65,7 @@ export function RatesForm() {
         ))}
       </div>
 
-      <Card className="p-4 bg-grid-storm-50">
+      <Card className="p-4">
         <h4 className="font-medium mb-2">Expense Reimbursement</h4>
         <ul className="text-sm text-grid-body space-y-1">
           <li>• Mileage: $0.655/mile (current IRS rate)</li>

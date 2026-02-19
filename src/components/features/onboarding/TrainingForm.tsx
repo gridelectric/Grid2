@@ -141,14 +141,14 @@ export function TrainingForm() {
   return (
     <div className="space-y-6">
       {/* Overall Progress */}
-      <Card className="p-4 bg-grid-storm-50 border-[var(--grid-storm-200)]">
+      <Card className="p-4 border-[rgba(255,192,56,0.68)]">
         <div className="flex items-center justify-between mb-2">
           <span className="font-medium text-grid-navy">Training Progress</span>
           <span className="text-sm font-medium text-grid-blue-dark">
             {completedItems} of {TRAINING_ITEMS.length} items completed
           </span>
         </div>
-        <Progress value={overallProgress} className="h-3 bg-[var(--grid-storm-200)]" />
+        <Progress value={overallProgress} className="h-3 bg-white/20" />
         <p className="text-sm text-grid-blue-dark mt-2">
           Complete all items in sequence to finish your training.
         </p>
@@ -167,7 +167,7 @@ export function TrainingForm() {
               className={cn(
                 'overflow-hidden transition-all duration-200',
                 !isUnlocked && 'opacity-60',
-                isCompleted && 'border-grid-success bg-grid-success-soft/70'
+                isCompleted && 'border-grid-success'
               )}
             >
               {/* Item Header */}

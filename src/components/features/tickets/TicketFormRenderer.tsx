@@ -93,7 +93,7 @@ export function TicketFormRenderer({
   }, [template.fieldConfig]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 storm-contrast-form">
       <div className="storm-surface rounded-xl border p-4 text-sm">
         <div className="grid gap-2 md:grid-cols-2">
           <p><span className="font-semibold">Storm:</span> {storm.name}</p>
@@ -105,7 +105,7 @@ export function TicketFormRenderer({
 
       <Form {...form}>
         <form
-          className="space-y-6"
+          className="space-y-6 storm-contrast-form"
           onSubmit={form.handleSubmit(async (values) => {
             await onSubmitTicket(values);
           })}
@@ -118,7 +118,7 @@ export function TicketFormRenderer({
                 <FormItem>
                   <FormLabel>Status</FormLabel>
                   <Select value={String(field.value ?? '')} onValueChange={field.onChange}>
-                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                    <FormControl><SelectTrigger className="storm-contrast-field"><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                       {COMMON_TICKET_STATUS.map((item) => (<SelectItem key={item} value={item}>{item}</SelectItem>))}
                     </SelectContent>
@@ -134,7 +134,7 @@ export function TicketFormRenderer({
                 <FormItem>
                   <FormLabel>Priority</FormLabel>
                   <Select value={String(field.value ?? '')} onValueChange={field.onChange}>
-                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                    <FormControl><SelectTrigger className="storm-contrast-field"><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                       {COMMON_TICKET_PRIORITY.map((item) => (<SelectItem key={item} value={item}>{item}</SelectItem>))}
                     </SelectContent>
@@ -150,7 +150,7 @@ export function TicketFormRenderer({
                 <FormItem>
                   <FormLabel>Source Type</FormLabel>
                   <Select value={String(field.value ?? '')} onValueChange={field.onChange}>
-                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                    <FormControl><SelectTrigger className="storm-contrast-field"><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                       {COMMON_SOURCE_TYPE.map((item) => (<SelectItem key={item} value={item}>{item}</SelectItem>))}
                     </SelectContent>
@@ -179,7 +179,7 @@ export function TicketFormRenderer({
             <div className="mt-3 flex justify-end">
               <Button
                 type="button"
-                variant="outline"
+                variant="storm"
                 onClick={() => onRunOcr(String(form.getValues('raw_ocr_text') ?? ''))}
               >
                 Extract Fields
@@ -218,7 +218,7 @@ export function TicketFormRenderer({
                               ) : null}
                               {fieldConfig.controlType === 'select' ? (
                                 <Select value={String(currentValue ?? '')} onValueChange={field.onChange}>
-                                  <SelectTrigger><SelectValue placeholder={`Select ${fieldConfig.label}`} /></SelectTrigger>
+                                  <SelectTrigger className="storm-contrast-field"><SelectValue placeholder={`Select ${fieldConfig.label}`} /></SelectTrigger>
                                   <SelectContent>
                                     {(fieldConfig.enumValues ?? []).map((item) => (<SelectItem key={item} value={item}>{item}</SelectItem>))}
                                   </SelectContent>
@@ -257,7 +257,7 @@ export function TicketFormRenderer({
           ))}
 
           <div className="flex justify-end">
-            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Create Ticket'}</Button>
+            <Button type="submit" variant="storm" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Create Ticket'}</Button>
           </div>
         </form>
       </Form>

@@ -61,24 +61,24 @@ export function StatusHistoryTimeline({ ticketId, refreshKey }: StatusHistoryTim
   }
 
   return (
-    <Card className="border-none shadow-none bg-transparent">
+    <Card>
       <CardHeader className="px-0 pt-0">
         <CardTitle className="text-lg font-semibold">Status Timeline</CardTitle>
       </CardHeader>
       <CardContent className="px-0">
-        <div className="relative space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
+        <div className="relative space-y-6 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/35 before:to-transparent">
           {history.map((item) => (
             <div key={item.id} className="relative flex items-start group">
               {/* Dot */}
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-background border-2 border-primary z-10 shrink-0 mt-0.5">
-                <div className="w-2 h-2 rounded-full bg-primary" />
+              <div className="z-10 mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-[rgba(255,192,56,0.82)] bg-[#001a52]">
+                <div className="h-2 w-2 rounded-full bg-[rgba(255,192,56,0.96)]" />
               </div>
               
               <div className="ml-4 flex-grow">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <div className="flex items-center gap-2">
                     <StatusBadge status={item.to_status} size="sm" />
-                    <span className="text-sm font-medium text-foreground">
+                    <span className="text-sm font-medium text-blue-50">
                       by {item.profiles?.first_name} {item.profiles?.last_name}
                     </span>
                   </div>
@@ -89,9 +89,9 @@ export function StatusHistoryTimeline({ ticketId, refreshKey }: StatusHistoryTim
                 </div>
 
                 {item.change_reason && (
-                  <div className="mt-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex gap-2 items-start">
+                  <div className="mt-2 flex items-start gap-2 rounded-lg border border-white/20 bg-white/10 p-3">
                     <MessageSquare className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-wrap">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-blue-100">
                       {item.change_reason}
                     </p>
                   </div>

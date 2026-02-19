@@ -144,7 +144,7 @@ export default function AdminMapPage() {
         description="Visualize tickets, route overlays, and geofence boundaries."
       >
         <Button
-          variant={routeEnabled ? 'outline' : 'default'}
+          variant="storm"
           onClick={() => setRouteEnabled((current) => !current)}
           disabled={optimizedRoute.orderedStops.length < 2}
         >

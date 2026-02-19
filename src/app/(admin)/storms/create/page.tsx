@@ -186,7 +186,7 @@ export default function CreateStormEventPage() {
               <div className="space-y-2">
                 <Label>Utility Client *</Label>
                 <Select value={utilityClient} onValueChange={setUtilityClient}>
-                  <SelectTrigger>
+                  <SelectTrigger className="storm-contrast-field">
                     <SelectValue placeholder="Select utility client" />
                   </SelectTrigger>
                   <SelectContent>
@@ -202,7 +202,7 @@ export default function CreateStormEventPage() {
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select value={status} onValueChange={(value) => setStatus(value as StormEventStatus)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="storm-contrast-field">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -218,7 +218,7 @@ export default function CreateStormEventPage() {
               <div className="space-y-2">
                 <Label>State</Label>
                 <Select value={region} onValueChange={setRegion}>
-                  <SelectTrigger id="storm-event-region">
+                  <SelectTrigger className="storm-contrast-field" id="storm-event-region">
                     <SelectValue placeholder="Select state" />
                   </SelectTrigger>
                   <SelectContent>
@@ -243,7 +243,7 @@ export default function CreateStormEventPage() {
             </div>
 
             <div className="flex justify-end">
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} variant="storm">
                 <Plus className="mr-2 h-4 w-4" />
                 {isSubmitting ? 'Creating Storm Event...' : 'Create Storm Event'}
               </Button>

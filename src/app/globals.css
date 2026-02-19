@@ -295,8 +295,12 @@
     border-color: #dbe7f8;
   }
   .storm-surface {
-    border: 1px solid rgba(46, 163, 242, 0.22);
-    background: linear-gradient(180deg, rgba(243, 248, 255, 0.9) 0%, #ffffff 100%);
+    border: 1px solid rgba(255, 192, 56, 0.62);
+    background:
+      radial-gradient(circle at 88% 16%, rgba(255, 255, 255, 0.18) 0%, transparent 52%),
+      linear-gradient(135deg, #001445 0%, #002a6d 56%, #0a4e9a 100%);
+    box-shadow: 0 10px 24px rgba(0, 24, 88, 0.22);
+    color: #f5f9ff;
   }
   .storm-card {
     border: 1px solid rgba(255, 192, 56, 0.6);
@@ -343,6 +347,16 @@
     .text-slate-500,
     .text-slate-600,
     .text-slate-700
+  ):not([class*='bg-']),
+  .storm-surface :where(
+    .text-grid-navy,
+    .text-grid-body,
+    .text-grid-muted,
+    .text-grid-subtle,
+    .text-muted-foreground,
+    .text-slate-500,
+    .text-slate-600,
+    .text-slate-700
   ):not([class*='bg-']) {
     color: #dce9ff !important;
   }
@@ -350,8 +364,80 @@
     .font-semibold.text-grid-navy,
     .font-bold.text-grid-navy,
     .font-medium.text-grid-navy
+  ):not([class*='bg-']),
+  .storm-surface :where(
+    .font-semibold.text-grid-navy,
+    .font-bold.text-grid-navy,
+    .font-medium.text-grid-navy
   ):not([class*='bg-']) {
     color: #f7fbff !important;
+  }
+  .storm-card :where(input:not([type='checkbox']):not([type='radio']), textarea, [data-slot='select-trigger']),
+  .storm-surface :where(input:not([type='checkbox']):not([type='radio']), textarea, [data-slot='select-trigger']) {
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 252, 255, 0.92) 100%);
+    color: #0a1733;
+    box-shadow:
+      0 6px 14px rgba(0, 10, 35, 0.22),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  }
+  .storm-card :where(input:not([type='checkbox']):not([type='radio']), textarea)::placeholder,
+  .storm-surface :where(input:not([type='checkbox']):not([type='radio']), textarea)::placeholder {
+    color: #5a6f95;
+  }
+  .storm-card [data-slot='select-trigger'][data-placeholder],
+  .storm-surface [data-slot='select-trigger'][data-placeholder] {
+    color: #3b4f75;
+  }
+  .storm-card [data-slot='select-trigger'] [data-slot='select-value'],
+  .storm-surface [data-slot='select-trigger'] [data-slot='select-value'] {
+    color: #0a1733;
+  }
+  .storm-contrast-form :where(input:not([type='checkbox']):not([type='radio']), textarea, [data-slot='select-trigger']) {
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 252, 255, 0.92) 100%);
+    color: #0a1733;
+    box-shadow:
+      0 6px 14px rgba(0, 10, 35, 0.22),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  }
+  .storm-contrast-form :where(input:not([type='checkbox']):not([type='radio']), textarea)::placeholder {
+    color: #5a6f95;
+  }
+  .storm-contrast-form [data-slot='select-trigger'][data-placeholder] {
+    color: #3b4f75;
+  }
+  .storm-contrast-form [data-slot='select-trigger'] [data-slot='select-value'] {
+    color: #0a1733;
+  }
+  .storm-card [data-slot='button']:not([data-variant='destructive']):not([data-variant='link']),
+  .storm-surface [data-slot='button']:not([data-variant='destructive']):not([data-variant='link']) {
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    background: linear-gradient(135deg, #ffde8e 0%, #ffc038 46%, #f4ad07 100%);
+    color: #0a1733;
+    box-shadow:
+      0 6px 14px rgba(0, 10, 35, 0.35),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+  }
+  .storm-card [data-slot='button']:not([data-variant='destructive']):not([data-variant='link']):hover,
+  .storm-surface [data-slot='button']:not([data-variant='destructive']):not([data-variant='link']):hover {
+    color: #0a1733;
+    filter: brightness(1.03) saturate(1.02);
+    box-shadow:
+      0 10px 20px rgba(0, 10, 35, 0.42),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.24);
+  }
+  .storm-card [data-slot='button']:not([data-variant='destructive']):not([data-variant='link']) svg,
+  .storm-surface [data-slot='button']:not([data-variant='destructive']):not([data-variant='link']) svg {
+    color: #0a1733;
+  }
+  .storm-card [data-slot='button'][data-variant='link'],
+  .storm-surface [data-slot='button'][data-variant='link'] {
+    color: #ffe08f;
+  }
+  .storm-card [data-slot='button'][data-variant='link']:hover,
+  .storm-surface [data-slot='button'][data-variant='link']:hover {
+    color: #fff1bf;
   }
   .storm-lightning-ring {
     box-shadow:

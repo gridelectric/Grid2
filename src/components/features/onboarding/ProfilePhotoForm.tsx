@@ -110,7 +110,7 @@ export function ProfilePhotoForm() {
         )}
       </Card>
 
-      <Card className="p-4 bg-grid-storm-50">
+      <Card className="p-4">
         <h4 className="font-medium mb-3">Photo Requirements:</h4>
         <ul className="text-sm text-grid-body space-y-2">
           <li className="flex items-center gap-2">

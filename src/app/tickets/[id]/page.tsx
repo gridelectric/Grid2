@@ -130,7 +130,7 @@ export default function TicketDetailPage() {
                                 <div className="rounded-lg border-2 border-dashed border-grid-storm-200 bg-grid-storm-50 p-4 text-center text-muted-foreground">
                                     <p>No assessment submitted yet.</p>
                                     {(ticket.status === 'ON_SITE' || ticket.status === 'IN_PROGRESS' || ticket.status === 'NEEDS_REWORK') && (
-                                        <Button asChild className="mt-3">
+                                        <Button asChild className="mt-3" variant="storm">
                                             <Link href={`/contractor/assessments/create?ticketId=${encodeURIComponent(ticket.id)}`}>
                                                 Start Assessment Form
                                             </Link>

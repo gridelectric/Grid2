@@ -145,7 +145,7 @@ export default function ContractorsListPage() {
         title="Contractors"
         description="Manage your workforce and view performance metrics"
       >
-        <Button asChild>
+        <Button asChild variant="storm">
           <Link href="/admin/contractors/invite">
             <UserPlus className="w-4 h-4 mr-2" />
             Invite Contractor
@@ -191,10 +191,10 @@ export default function ContractorsListPage() {
           placeholder="Search by name..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="sm:max-w-xs"
+          className="storm-contrast-field sm:max-w-xs"
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="sm:max-w-xs">
+          <SelectTrigger className="storm-contrast-field sm:max-w-xs">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -205,7 +205,7 @@ export default function ContractorsListPage() {
             <SelectItem value="inactive">Inactive</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline" className="sm:ml-auto">
+        <Button variant="storm" className="sm:ml-auto">
           Export
         </Button>
       </div>

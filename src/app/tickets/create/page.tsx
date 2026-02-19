@@ -85,7 +85,7 @@ export default function CreateTicketPage() {
                 <div className="space-y-2">
                     <Label>Select Storm Event</Label>
                     <Select onValueChange={handleStormSelect} disabled={isStormEventsLoading}>
-                        <SelectTrigger>
+                        <SelectTrigger className="storm-contrast-field">
                             <SelectValue placeholder={isStormEventsLoading ? "Loading storm events..." : "Select Storm Event"} />
                         </SelectTrigger>
                         <SelectContent>

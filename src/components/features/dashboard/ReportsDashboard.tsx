@@ -171,6 +171,7 @@ export function ReportsDashboard() {
             <div className="space-y-2">
               <Label htmlFor="report-start-date">Start date</Label>
               <Input
+                className="storm-contrast-field"
                 id="report-start-date"
                 type="date"
                 value={startDate}
@@ -181,6 +182,7 @@ export function ReportsDashboard() {
             <div className="space-y-2">
               <Label htmlFor="report-end-date">End date</Label>
               <Input
+                className="storm-contrast-field"
                 id="report-end-date"
                 type="date"
                 value={endDate}
@@ -191,7 +193,7 @@ export function ReportsDashboard() {
             <div className="space-y-2">
               <Label htmlFor="report-group-by">Group by</Label>
               <Select value={groupBy} onValueChange={(value) => setGroupBy(value as DashboardReportInput['groupBy'])}>
-                <SelectTrigger id="report-group-by">
+                <SelectTrigger className="storm-contrast-field" id="report-group-by">
                   <SelectValue placeholder="Grouping" />
                 </SelectTrigger>
                 <SelectContent>
@@ -205,7 +207,7 @@ export function ReportsDashboard() {
             <div className="flex items-end gap-2">
               <Button
                 className="flex-1"
-                variant="outline"
+                variant="storm"
                 disabled={isRefreshing || isLoading}
                 onClick={() => {
                   void loadReport('refresh');
@@ -223,7 +225,7 @@ export function ReportsDashboard() {
 
           <div className="flex flex-wrap gap-2">
             <Button
-              variant="outline"
+              variant="storm"
               disabled={!report || isExporting !== null}
               onClick={() => {
                 void handleExport('CSV');
@@ -237,7 +239,7 @@ export function ReportsDashboard() {
               Export CSV
             </Button>
             <Button
-              variant="outline"
+              variant="storm"
               disabled={!report || isExporting !== null}
               onClick={() => {
                 void handleExport('EXCEL');
@@ -251,7 +253,7 @@ export function ReportsDashboard() {
               Export Excel
             </Button>
             <Button
-              variant="outline"
+              variant="storm"
               disabled={!report || isExporting !== null}
               onClick={() => {
                 void handleExport('PDF');

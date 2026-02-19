@@ -163,14 +163,14 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
             header: '',
             cell: (ticket) => (
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" asChild>
+                    <Button variant="storm" size="sm" asChild>
                         <Link href={`/tickets/${ticket.id}`}>
                             View
                         </Link>
                     </Button>
                     {userRole === 'admin' && canAssignContractor && (
                         <Button
-                            variant="ghost"
+                            variant="storm"
                             size="icon"
                             title="Assign Ticket"
                             onClick={(e) => {
@@ -204,7 +204,7 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
                     </p>
                 </div>
                 {userRole === 'admin' && canCreateTicket && (
-                    <Button asChild>
+                    <Button asChild variant="storm">
                         <Link href={activeStormEventId ? `/storms/${encodeURIComponent(activeStormEventId)}/tickets/new` : '/tickets/create'}>
                             <Plus className="mr-2 h-4 w-4" /> Create Ticket
                         </Link>
