@@ -3,7 +3,7 @@
 
 -- 1. Create User Roles Enum
 DO $$ BEGIN
-    CREATE TYPE user_role AS ENUM ('SUPER_ADMIN', 'ADMIN', 'CONTRACTOR');
+    CREATE TYPE user_role AS ENUM ('CEO', 'SUPER_ADMIN', 'ADMIN', 'CONTRACTOR');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
@@ -30,6 +30,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_single_super_admin
   ON public.profiles(role)
   WHERE role = 'SUPER_ADMIN';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_single_ceo
+  ON public.profiles(role)
+  WHERE role = 'CEO';
 
 -- 3. Enable RLS
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -45,7 +48,7 @@ BEGIN
   RETURN EXISTS (
     SELECT 1 FROM public.profiles 
     WHERE id = auth.uid() 
-    AND role IN ('SUPER_ADMIN', 'ADMIN')
+    AND role IN ('CEO', 'SUPER_ADMIN', 'ADMIN')
   );
 END;
 $$;
@@ -60,7 +63,7 @@ BEGIN
   RETURN EXISTS (
     SELECT 1 FROM public.profiles
     WHERE id = auth.uid()
-    AND role = 'SUPER_ADMIN'
+    AND role IN ('CEO', 'SUPER_ADMIN')
   );
 END;
 $$;
@@ -110,7 +113,7 @@ DO $$ BEGIN
       WITH CHECK (
         id = auth.uid()
         AND (
-          public.current_user_role() = 'SUPER_ADMIN'
+          public.current_user_role() IN ('CEO', 'SUPER_ADMIN')
           OR role::text = public.current_user_role()
         )
       );
@@ -121,7 +124,7 @@ DO $$ BEGIN
       FOR INSERT WITH CHECK (
         public.is_admin()
         AND (
-          role <> 'SUPER_ADMIN'
+          role::text NOT IN ('CEO', 'SUPER_ADMIN')
           OR public.is_super_admin()
         )
       );

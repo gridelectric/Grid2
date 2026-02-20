@@ -5,7 +5,7 @@ import { getLandingPathForRole } from './roleLanding';
 
 describe('getLandingPathForRole', () => {
   it('routes admin-class roles to /admin/dashboard', () => {
-    const adminRoles: UserRole[] = ['SUPER_ADMIN', 'ADMIN'];
+    const adminRoles: UserRole[] = ['CEO', 'SUPER_ADMIN', 'ADMIN'];
 
     for (const role of adminRoles) {
       expect(getLandingPathForRole(role)).toBe('/admin/dashboard');

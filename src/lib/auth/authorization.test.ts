@@ -14,9 +14,11 @@ describe('canPerformManagementAction', () => {
     'contractor_assignment_write',
   ];
 
-  it('allows super admin for all management actions', () => {
-    for (const action of superAdminActions) {
-      expect(canPerformManagementAction('SUPER_ADMIN', action)).toBe(true);
+  it('allows CEO and super admin for all management actions', () => {
+    for (const role of ['CEO', 'SUPER_ADMIN'] as const) {
+      for (const action of superAdminActions) {
+        expect(canPerformManagementAction(role, action)).toBe(true);
+      }
     }
   });
 

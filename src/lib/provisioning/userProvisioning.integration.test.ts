@@ -58,7 +58,7 @@ describe('runProvisioning', () => {
     expect(adapter.upsertContractor).not.toHaveBeenCalled();
   });
 
-  it('allows a second super admin when one already exists', async () => {
+  it('blocks super admin creation when one super admin already exists', async () => {
     const adapter = buildAdapter({
       listSuperAdmins: vi.fn(async () => [{ id: 'sa-1', email: 'founder@grid.com' }]),
     });
@@ -69,10 +69,10 @@ describe('runProvisioning', () => {
       { apply: true },
     );
 
-    expect(result.createdUsers).toBe(1);
+    expect(result.createdUsers).toBe(0);
     expect(result.updatedUsers).toBe(0);
-    expect(result.failedRows).toBe(0);
-    expect(result.outcomes[0].status).toBe('created');
+    expect(result.failedRows).toBe(1);
+    expect(result.outcomes[0].reason).toContain('SUPER_ADMIN limit reached');
   });
 
   it('blocks super admin creation when max super admin count is already reached', async () => {

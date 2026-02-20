@@ -37,6 +37,25 @@ describe('parseProvisioningCsv', () => {
 });
 
 describe('validateProvisioningRows', () => {
+  it('accepts CEO as a valid role', () => {
+    const rows = [
+      {
+        lineNumber: 2,
+        first_name: 'Jeanie',
+        last_name: 'Campbell',
+        email: 'jcampbell@example.com',
+        role: 'CEO',
+        temp_password: 'Temp1234!Temp',
+      },
+    ];
+
+    const result = validateProvisioningRows(rows);
+
+    expect(result.rowIssues).toEqual([]);
+    expect(result.validRows).toHaveLength(1);
+    expect(result.validRows[0].role).toBe('CEO');
+  });
+
   it('normalizes supported legacy roles and emits warnings', () => {
     const rows = [
       {

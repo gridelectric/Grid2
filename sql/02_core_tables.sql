@@ -36,6 +36,9 @@ CREATE INDEX idx_profiles_active ON profiles(is_active);
 CREATE UNIQUE INDEX idx_profiles_single_super_admin
   ON profiles(role)
   WHERE role = 'SUPER_ADMIN';
+CREATE UNIQUE INDEX idx_profiles_single_ceo
+  ON profiles(role)
+  WHERE role = 'CEO';
 
 -- Contractors table
 CREATE TABLE contractors (

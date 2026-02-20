@@ -116,7 +116,7 @@ export function TicketFormRenderer({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
+                  <FormLabel className="font-normal">Status</FormLabel>
                   <Select value={String(field.value ?? '')} onValueChange={field.onChange}>
                     <FormControl><SelectTrigger className="storm-contrast-field"><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
@@ -132,7 +132,7 @@ export function TicketFormRenderer({
               name="priority"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Priority</FormLabel>
+                  <FormLabel className="font-normal">Priority</FormLabel>
                   <Select value={String(field.value ?? '')} onValueChange={field.onChange}>
                     <FormControl><SelectTrigger className="storm-contrast-field"><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
@@ -148,7 +148,7 @@ export function TicketFormRenderer({
               name="source_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Source Type</FormLabel>
+                  <FormLabel className="font-normal">Source Type</FormLabel>
                   <Select value={String(field.value ?? '')} onValueChange={field.onChange}>
                     <FormControl><SelectTrigger className="storm-contrast-field"><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
@@ -161,14 +161,14 @@ export function TicketFormRenderer({
             />
           </div>
 
-          <div className="rounded-xl border p-4">
-            <p className="mb-3 text-sm font-semibold">OCR Intake</p>
+          <div className="storm-surface rounded-xl border border-[rgba(255,192,56,0.75)] p-4">
+            <p className="mb-3 text-sm font-bold text-white">OCR Intake</p>
             <FormField
               control={form.control}
               name="raw_ocr_text"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>OCR Text</FormLabel>
+                  <FormLabel className="font-normal">OCR Text</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Paste OCR output here, then click Extract" {...field} value={String(field.value ?? '')} />
                   </FormControl>
@@ -193,8 +193,8 @@ export function TicketFormRenderer({
           </div>
 
           {sections.map(([section, fields]) => (
-            <div key={section} className="rounded-xl border p-4">
-              <h3 className="mb-3 text-sm font-semibold">{section}</h3>
+            <div key={section} className="storm-surface rounded-xl border border-[rgba(255,192,56,0.75)] p-4">
+              <h3 className="mb-3 text-sm font-bold text-white">{section}</h3>
               <div className="grid gap-4 md:grid-cols-2">
                 {fields.map((fieldConfig) => {
                   const isLowConfidence = (confidenceByField?.[fieldConfig.fieldKey] ?? 1) < 0.8;
@@ -205,45 +205,57 @@ export function TicketFormRenderer({
                       name={toFieldName(fieldConfig.fieldKey)}
                       render={({ field }) => {
                         const currentValue = field.value;
+                        const controlType = fieldConfig.controlType;
 
                         return (
                           <FormItem>
-                            <FormLabel>
+                            <FormLabel className="font-normal">
                               {fieldConfig.label}
                               {fieldConfig.required ? ' *' : ''}
                             </FormLabel>
-                            <FormControl>
-                              {fieldConfig.controlType === 'textarea' ? (
-                                <Textarea {...field} value={String(currentValue ?? '')} />
-                              ) : null}
-                              {fieldConfig.controlType === 'select' ? (
-                                <Select value={String(currentValue ?? '')} onValueChange={field.onChange}>
-                                  <SelectTrigger className="storm-contrast-field"><SelectValue placeholder={`Select ${fieldConfig.label}`} /></SelectTrigger>
-                                  <SelectContent>
-                                    {(fieldConfig.enumValues ?? []).map((item) => (<SelectItem key={item} value={item}>{item}</SelectItem>))}
-                                  </SelectContent>
-                                </Select>
-                              ) : null}
-                              {fieldConfig.controlType === 'toggle' ? (
-                                <div className="flex items-center gap-2 rounded-md border p-2">
+                            {controlType === 'select' ? (
+                              <Select value={String(currentValue ?? '')} onValueChange={field.onChange}>
+                                <FormControl>
+                                  <SelectTrigger className="storm-contrast-field">
+                                    <SelectValue placeholder={`Select ${fieldConfig.label}`} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {(fieldConfig.enumValues ?? []).map((item) => (
+                                    <SelectItem key={item} value={item}>
+                                      {item}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : controlType === 'toggle' ? (
+                              <FormControl>
+                                <div className="flex items-center gap-2 rounded-md border border-[rgba(255,192,56,0.75)] p-2">
                                   <Checkbox checked={Boolean(currentValue)} onCheckedChange={(checked) => field.onChange(checked === true)} />
                                   <span className="text-sm">{fieldConfig.helpText ?? fieldConfig.label}</span>
                                 </div>
-                              ) : null}
-                              {fieldConfig.controlType === 'number' ? (
+                              </FormControl>
+                            ) : controlType === 'textarea' ? (
+                              <FormControl>
+                                <Textarea {...field} value={String(currentValue ?? '')} />
+                              </FormControl>
+                            ) : controlType === 'number' ? (
+                              <FormControl>
                                 <Input
                                   type="number"
                                   value={typeof currentValue === 'number' ? currentValue : String(currentValue ?? '')}
                                   onChange={(event) => field.onChange(event.target.value === '' ? undefined : Number(event.target.value))}
                                 />
-                              ) : null}
-                              {fieldConfig.controlType === 'datetime' ? (
+                              </FormControl>
+                            ) : controlType === 'datetime' ? (
+                              <FormControl>
                                 <Input type="datetime-local" {...field} value={String(currentValue ?? '')} />
-                              ) : null}
-                              {fieldConfig.controlType === 'text' ? (
+                              </FormControl>
+                            ) : (
+                              <FormControl>
                                 <Input {...field} value={String(currentValue ?? '')} />
-                              ) : null}
-                            </FormControl>
+                              </FormControl>
+                            )}
                             {isLowConfidence ? <p className="text-xs text-amber-200">Low OCR confidence. Verify this value.</p> : null}
                             <FormMessage />
                           </FormItem>

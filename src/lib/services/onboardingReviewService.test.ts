@@ -10,7 +10,7 @@ import {
 
 interface MockOptions {
   userId?: string | null;
-  role?: 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
+  role?: 'CEO' | 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
   pendingRows?: Array<{
     id: string;
     profile_id: string;
@@ -175,6 +175,11 @@ describe('getPendingOnboardingPackages', () => {
     await expect(getPendingOnboardingPackages(client as never)).rejects.toThrow(
       ONBOARDING_REVIEW_PERMISSION_ERROR
     );
+  });
+
+  it('allows CEO callers', async () => {
+    const { client } = createMockClient({ role: 'CEO' });
+    await expect(getPendingOnboardingPackages(client as never)).resolves.toHaveLength(1);
   });
 
   it('returns pending packages with required document statuses', async () => {

@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, UserRole } from '@/types';
+import { isAdminClassRole } from '@/lib/auth/roleGuards';
 
 interface AuthState {
   // State
@@ -55,7 +56,7 @@ export const useAuthStore = create<AuthState>()(
       // Computed helpers
       isAdmin: () => {
         const { user } = get();
-        return user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
+        return isAdminClassRole(user?.role);
       },
       
       isContractor: () => {

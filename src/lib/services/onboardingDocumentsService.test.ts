@@ -16,7 +16,7 @@ function createFile(name: string, type: string, size = 1024): File {
 
 interface MockOptions {
   userId?: string | null;
-  role?: 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
+  role?: 'CEO' | 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
   contractorId?: string | null;
   failInsuranceUpload?: boolean;
 }

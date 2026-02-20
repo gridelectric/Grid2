@@ -1,5 +1,6 @@
 import type { OnboardingStatus, UserRole } from '../../types';
 import type { Database } from '../../types/database';
+import { isSuperAdminClassRole } from '../auth/roleGuards';
 import { finalizeOnboardingComplianceArtifacts } from './onboardingComplianceArtifactService';
 
 type ProfileRole = Pick<Database['public']['Tables']['profiles']['Row'], 'role'>;
@@ -37,7 +38,7 @@ type ContractorVerificationUpdate = Pick<
 >;
 
 export const ONBOARDING_REVIEW_AUTH_REQUIRED_ERROR = 'You must be signed in to review onboarding.';
-export const ONBOARDING_REVIEW_PERMISSION_ERROR = 'Only Super Admin can review onboarding submissions.';
+export const ONBOARDING_REVIEW_PERMISSION_ERROR = 'Only CEO or Super Admin can review onboarding submissions.';
 export const ONBOARDING_REVIEW_NOT_FOUND_ERROR = 'Onboarding package not found.';
 
 type RequiredDocumentType = 'w9' | 'insurance';
@@ -172,7 +173,7 @@ async function requireSuperAdmin(client: OnboardingReviewSupabaseClient): Promis
   }
 
   const role = profile.role as UserRole;
-  if (role !== 'SUPER_ADMIN') {
+  if (!isSuperAdminClassRole(role)) {
     throw new Error(ONBOARDING_REVIEW_PERMISSION_ERROR);
   }
 

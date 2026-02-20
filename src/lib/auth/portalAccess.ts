@@ -1,8 +1,7 @@
 import type { UserRole } from '../../types';
+import { isAdminClassRole } from './roleGuards';
 
 export type PortalRole = 'admin' | 'contractor';
-
-const ADMIN_PORTAL_ROLES: UserRole[] = ['SUPER_ADMIN', 'ADMIN'];
 
 function normalizePath(pathname: string): string {
   if (!pathname.startsWith('/')) {
@@ -36,7 +35,7 @@ export function getPortalRole(role: UserRole | string | null | undefined): Porta
     return 'contractor';
   }
 
-  if (ADMIN_PORTAL_ROLES.includes(role as UserRole)) {
+  if (isAdminClassRole(role)) {
     return 'admin';
   }
 

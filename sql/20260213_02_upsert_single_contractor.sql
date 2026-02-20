@@ -10,7 +10,7 @@ DECLARE
   v_first_name TEXT := 'Jeanie';
   v_last_name TEXT := 'Campbell';
   v_email TEXT := 'jcampbell@gridelectriccorp.com';
-  v_role TEXT := 'SUPER_ADMIN';
+  v_role TEXT := 'CEO';
   v_contractor_id TEXT := 'JC01';
   v_username TEXT := split_part(lower(v_email), '@', 1);
   v_hash TEXT := md5('contractor:' || upper(v_contractor_id));

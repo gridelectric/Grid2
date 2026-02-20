@@ -44,6 +44,7 @@ export const APP_CONFIG = {
 
 // Role definitions
 export const USER_ROLES = {
+  CEO: 'CEO',
   SUPER_ADMIN: 'SUPER_ADMIN',
   ADMIN: 'ADMIN',
   CONTRACTOR: 'CONTRACTOR',

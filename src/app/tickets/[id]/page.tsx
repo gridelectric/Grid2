@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { StatusUpdater } from '@/components/features/tickets/StatusUpdater';
 import { StatusHistoryTimeline } from '@/components/features/tickets/StatusHistoryTimeline';
+import { isAdminClassRole } from '@/lib/auth/roleGuards';
 
 export default function TicketDetailPage() {
     const params = useParams();
@@ -26,7 +27,7 @@ export default function TicketDetailPage() {
     const [refreshKey, setRefreshKey] = useState(0);
 
     const userRole: 'admin' | 'contractor' =
-        profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN'
+        isAdminClassRole(profile?.role)
             ? 'admin'
             : 'contractor';
     const requiresGPSStatusFlow = profile?.role === 'CONTRACTOR';

@@ -3,12 +3,13 @@
 import { ReactNode } from 'react';
 import { AppShell } from '@/components/common/layout/AppShell';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { isAdminClassRole } from '@/lib/auth/roleGuards';
 
 export default function TicketsLayout({ children }: { children: ReactNode }) {
     const { profile } = useAuth();
 
     const userRole: 'admin' | 'contractor' =
-        profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN'
+        isAdminClassRole(profile?.role)
             ? 'admin'
             : 'contractor';
 

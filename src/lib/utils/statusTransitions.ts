@@ -1,4 +1,5 @@
 import { TicketStatus, UserRole } from "@/types";
+import { isAdminClassRole } from "@/lib/auth/roleGuards";
 
 /**
  * Validates if a status transition is allowed based on the user's role.
@@ -17,7 +18,7 @@ export function isValidTransition(
   if (current === next) return true;
 
   // Admin Transitions
-  if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+  if (isAdminClassRole(role)) {
     switch (current) {
       case 'DRAFT':
         return ['ASSIGNED', 'CLOSED'].includes(next);

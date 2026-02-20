@@ -1,6 +1,6 @@
 -- Auth and role migration for onboarding decommission + contractor terminology rollout
 -- 1) Add first-login password reset flag
--- 2) Migrate roles to SUPER_ADMIN / ADMIN / CONTRACTOR
+-- 2) Migrate roles to CEO / SUPER_ADMIN / ADMIN / CONTRACTOR
 -- 3) Enforce single SUPER_ADMIN profile
 -- 4) Add contractor compatibility aliases
 
@@ -23,7 +23,7 @@ BEGIN
     DROP TYPE user_role_new;
   END IF;
 
-  CREATE TYPE user_role_new AS ENUM ('SUPER_ADMIN', 'ADMIN', 'CONTRACTOR');
+  CREATE TYPE user_role_new AS ENUM ('CEO', 'SUPER_ADMIN', 'ADMIN', 'CONTRACTOR');
 
   FOR role_column IN
     SELECT
@@ -83,7 +83,7 @@ BEGIN
     SELECT 1
     FROM public.profiles
     WHERE id = auth.uid()
-      AND role = 'SUPER_ADMIN'
+      AND role IN ('CEO', 'SUPER_ADMIN')
   );
 END;
 $$;
@@ -120,7 +120,7 @@ CREATE POLICY profiles_update_own ON public.profiles
   WITH CHECK (
     id = auth.uid()
     AND (
-      public.current_user_role() = 'SUPER_ADMIN'
+      public.current_user_role() IN ('CEO', 'SUPER_ADMIN')
       OR role::text = public.current_user_role()
     )
   );
@@ -131,7 +131,7 @@ CREATE POLICY profiles_insert_admin ON public.profiles
   WITH CHECK (
     public.is_admin()
     AND (
-      role <> 'SUPER_ADMIN'
+      role::text NOT IN ('CEO', 'SUPER_ADMIN')
       OR public.is_super_admin()
     )
   );
@@ -150,6 +150,10 @@ END $$;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_single_super_admin
   ON public.profiles (role)
   WHERE role = 'SUPER_ADMIN';
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_single_ceo
+  ON public.profiles (role)
+  WHERE role = 'CEO';
 
 CREATE OR REPLACE VIEW public.contractors AS
 SELECT *

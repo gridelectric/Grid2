@@ -5,7 +5,7 @@ import { getPortalRole, isPortalPathAllowed } from './portalAccess';
 
 describe('getPortalRole', () => {
   it('maps admin-class roles to admin portal', () => {
-    const adminRoles: UserRole[] = ['SUPER_ADMIN', 'ADMIN'];
+    const adminRoles: UserRole[] = ['CEO', 'SUPER_ADMIN', 'ADMIN'];
 
     for (const role of adminRoles) {
       expect(getPortalRole(role)).toBe('admin');

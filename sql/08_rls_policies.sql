@@ -12,7 +12,7 @@ BEGIN
   RETURN EXISTS (
     SELECT 1 FROM profiles 
     WHERE id = auth.uid() 
-    AND role IN ('SUPER_ADMIN', 'ADMIN')
+    AND role IN ('CEO', 'SUPER_ADMIN', 'ADMIN')
   );
 END;
 $$;
@@ -27,7 +27,7 @@ BEGIN
   RETURN EXISTS (
     SELECT 1 FROM profiles
     WHERE id = auth.uid()
-    AND role = 'SUPER_ADMIN'
+    AND role IN ('CEO', 'SUPER_ADMIN')
   );
 END;
 $$;
@@ -75,7 +75,7 @@ CREATE POLICY profiles_update_own ON profiles
   WITH CHECK (
     id = auth.uid()
     AND (
-      public.current_user_role() = 'SUPER_ADMIN'
+      public.current_user_role() IN ('CEO', 'SUPER_ADMIN')
       OR role::text = public.current_user_role()
     )
   );
@@ -85,7 +85,7 @@ CREATE POLICY profiles_insert_admin ON profiles
   FOR INSERT WITH CHECK (
     is_admin()
     AND (
-      role <> 'SUPER_ADMIN'
+      role::text NOT IN ('CEO', 'SUPER_ADMIN')
       OR is_super_admin()
     )
   );

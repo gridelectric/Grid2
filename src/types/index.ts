@@ -17,6 +17,7 @@ export interface User {
 }
 
 export type UserRole =
+  | 'CEO'
   | 'SUPER_ADMIN'
   | 'ADMIN'
   | 'CONTRACTOR';

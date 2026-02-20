@@ -17,6 +17,7 @@ describe('access control integration', () => {
     const action = getManagementActionForPath('/tickets/create');
     expect(action).toBe('ticket_entry_write');
 
+    expect(canPerformManagementAction('CEO', action!)).toBe(true);
     expect(canPerformManagementAction('SUPER_ADMIN', action!)).toBe(true);
     expect(canPerformManagementAction('ADMIN', action!)).toBe(false);
   });

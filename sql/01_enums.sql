@@ -3,6 +3,7 @@
 
 -- User Roles
 CREATE TYPE user_role AS ENUM (
+  'CEO',
   'SUPER_ADMIN',
   'ADMIN',
   'CONTRACTOR'

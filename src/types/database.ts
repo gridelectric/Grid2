@@ -10,7 +10,7 @@ export interface Database {
           first_name: string;
           last_name: string;
           phone: string | null;
-          role: 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
+          role: 'CEO' | 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
           is_active: boolean;
           is_email_verified: boolean;
           must_reset_password: boolean;
@@ -25,7 +25,7 @@ export interface Database {
           first_name: string;
           last_name: string;
           phone?: string | null;
-          role?: 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
+          role?: 'CEO' | 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
           is_active?: boolean;
           is_email_verified?: boolean;
           must_reset_password?: boolean;
@@ -40,7 +40,7 @@ export interface Database {
           first_name?: string;
           last_name?: string;
           phone?: string | null;
-          role?: 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
+          role?: 'CEO' | 'SUPER_ADMIN' | 'ADMIN' | 'CONTRACTOR';
           is_active?: boolean;
           is_email_verified?: boolean;
           must_reset_password?: boolean;

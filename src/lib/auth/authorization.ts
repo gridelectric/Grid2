@@ -1,4 +1,5 @@
 import type { UserRole } from '../../types';
+import { isSuperAdminClassRole } from './roleGuards';
 
 export type ManagementAction =
   | 'storm_event_write'
@@ -36,20 +37,16 @@ export function canPerformManagementAction(
   role: UserRole | string | null | undefined,
   action: ManagementAction
 ): boolean {
-  if (!role) {
-    return false;
-  }
-
   if (action === 'storm_event_write') {
-    return role === 'SUPER_ADMIN';
+    return isSuperAdminClassRole(role);
   }
 
   if (action === 'ticket_entry_write') {
-    return role === 'SUPER_ADMIN';
+    return isSuperAdminClassRole(role);
   }
 
   if (action === 'contractor_assignment_write') {
-    return role === 'SUPER_ADMIN';
+    return isSuperAdminClassRole(role);
   }
 
   return false;

@@ -1,6 +1,5 @@
 import type { UserRole } from '../../types';
-
-const ADMIN_LANDING_ROLES: UserRole[] = ['SUPER_ADMIN', 'ADMIN'];
+import { isAdminClassRole } from './roleGuards';
 
 export function getLandingPathForRole(role: UserRole | string | null | undefined): string {
   if (!role) {
@@ -11,7 +10,7 @@ export function getLandingPathForRole(role: UserRole | string | null | undefined
     return '/contractor/time';
   }
 
-  if (ADMIN_LANDING_ROLES.includes(role as UserRole)) {
+  if (isAdminClassRole(role)) {
     return '/admin/dashboard';
   }
 

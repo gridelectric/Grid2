@@ -78,7 +78,7 @@ export function TicketNewClientPage({ stormId }: TicketNewClientPageProps) {
   return (
     <div className="storm-surface mx-auto max-w-5xl space-y-6 rounded-2xl border-[rgba(255,192,56,0.78)] p-4 shadow-[0_16px_36px_rgba(0,18,74,0.35)] sm:p-5">
       <h1 className="text-2xl font-semibold text-blue-50">Create Ticket</h1>
-      <div className="storm-surface rounded-xl border-[rgba(255,192,56,0.75)] p-4 shadow-[0_12px_28px_rgba(0,20,80,0.3)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(0,18,72,0.38)]">
+      <div className="rounded-xl border-[rgba(255,192,56,0.75)] bg-white p-4 shadow-[0_12px_28px_rgba(0,20,80,0.3)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(0,18,72,0.38)]">
         <TicketFormRenderer
           storm={{ id: stormId, name: stormName, utilityClient: stormUtility, state: stormState }}
           template={template}

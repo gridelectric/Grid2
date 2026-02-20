@@ -5,13 +5,14 @@ import { PageHeader } from '@/components/common/layout/PageHeader';
 import { TicketList } from '@/components/features/tickets/TicketList';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useContractorId } from '@/hooks/useContractorId';
+import { isAdminClassRole } from '@/lib/auth/roleGuards';
 
 export default function TicketsPage() {
   const { profile, isLoading } = useAuth();
   const { contractorId } = useContractorId(profile?.id);
 
   const userRole: 'admin' | 'contractor' =
-    profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN'
+    isAdminClassRole(profile?.role)
       ? 'admin'
       : 'contractor';
 
