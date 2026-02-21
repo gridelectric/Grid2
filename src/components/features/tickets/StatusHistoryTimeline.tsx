@@ -83,7 +83,7 @@ export function StatusHistoryTimeline({ ticketId, refreshKey }: StatusHistoryTim
                     </span>
                   </div>
                   <div className="text-xs text-muted-foreground flex flex-col sm:items-end">
-                    <span>{format(new Date(item.changed_at), 'MMM d, yyyy h:mm a')}</span>
+                    <span>{format(new Date(item.changed_at), 'MMM d, yyyy HH:mm')}</span>
                     <span className="italic">{formatDistanceToNow(new Date(item.changed_at), { addSuffix: true })}</span>
                   </div>
                 </div>

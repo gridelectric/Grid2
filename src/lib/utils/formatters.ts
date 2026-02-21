@@ -17,7 +17,7 @@ export function formatDateTime(date: string | Date | null): string {
   if (!date) return '-';
   try {
     const d = typeof date === 'string' ? parseISO(date) : date;
-    return format(d, 'MMM dd, yyyy h:mm a');
+    return format(d, 'MMM dd, yyyy HH:mm');
   } catch {
     return '-';
   }
@@ -27,7 +27,7 @@ export function formatTime(date: string | Date | null): string {
   if (!date) return '-';
   try {
     const d = typeof date === 'string' ? parseISO(date) : date;
-    return format(d, 'h:mm a');
+    return format(d, 'HH:mm');
   } catch {
     return '-';
   }

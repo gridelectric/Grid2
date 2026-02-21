@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { TicketFilters, TicketFiltersState } from './TicketFilters';
 import { TicketCard } from './TicketCard';
 import { TicketAssign } from './TicketAssign';
+import { GRID_TICKETS_CHANGED_EVENT, GRID_TICKETS_VERSION_KEY } from '@/lib/tickets/events';
 import { toast } from 'sonner';
 
 interface TicketListProps {
@@ -76,6 +77,26 @@ export function TicketList({ userRole, profileRole, userId }: TicketListProps) {
 
     useEffect(() => {
         loadTickets();
+    }, [loadTickets]);
+
+    useEffect(() => {
+        const handleTicketsChanged = () => {
+            void loadTickets();
+        };
+
+        const handleStorageSync = (event: StorageEvent) => {
+            if (event.key === GRID_TICKETS_VERSION_KEY) {
+                void loadTickets();
+            }
+        };
+
+        window.addEventListener(GRID_TICKETS_CHANGED_EVENT, handleTicketsChanged);
+        window.addEventListener('storage', handleStorageSync);
+
+        return () => {
+            window.removeEventListener(GRID_TICKETS_CHANGED_EVENT, handleTicketsChanged);
+            window.removeEventListener('storage', handleStorageSync);
+        };
     }, [loadTickets]);
 
 

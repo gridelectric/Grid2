@@ -2,24 +2,61 @@ import { z } from 'zod';
 import type { TicketTemplateDefinition } from './types';
 
 const incidentTypes = ['LGTS', 'WIRD', 'XFMR', 'OTHER'] as const;
+const dateTime24HourPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+
+function normalizeOptionalString(value: unknown): unknown {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+const optionalMilitaryDateTimeSchema = z.preprocess(
+  normalizeOptionalString,
+  z
+    .string()
+    .regex(dateTime24HourPattern, 'Use 24-hour format (YYYY-MM-DDTHH:mm).')
+    .optional(),
+);
+
+const optionalUppercaseSchema = z.preprocess(
+  (value) => {
+    const normalized = normalizeOptionalString(value);
+    return typeof normalized === 'string' ? normalized.toUpperCase() : normalized;
+  },
+  z.string().optional(),
+);
 
 export const entergyPayloadSchema = z
   .object({
-    incident_number: z.string().regex(/^\d{10}$/),
+    incident_number: z
+      .string({ required_error: 'Incident Number is required.' })
+      .regex(/^\d{10}$/, 'Incident Number must be exactly 10 digits.'),
     incident_type: z.enum(incidentTypes),
     affected_customers: z.number().int().min(0).optional(),
     address_line: z.string().min(1),
     calls_count: z.number().int().min(0).optional(),
-    calls_start_time: z.string().optional(),
-    ert: z.string().optional(),
+    calls_start_time: optionalMilitaryDateTimeSchema,
+    ert: optionalMilitaryDateTimeSchema,
     duration_hours: z.number().int().min(0).optional(),
     device_name: z.string().optional(),
     device_type: z.string().optional(),
     device_type_raw: z.string().optional(),
     network: z.string().optional(),
-    feeder: z.string().optional(),
-    local_office: z.string().optional(),
-    substation: z.string().optional(),
+    feeder: z.preprocess(
+      (value) => {
+        const normalized = normalizeOptionalString(value);
+        return typeof normalized === 'string' ? normalized.toUpperCase() : normalized;
+      },
+      z
+        .string()
+        .regex(/^N\d{4}$/, 'Feeder must start with "N" and 4 digits (for example: N1234).')
+        .optional(),
+    ),
+    local_office: optionalUppercaseSchema,
+    substation: optionalUppercaseSchema,
     poles_down: z.number().int().min(0).optional(),
     transformers_down: z.number().int().min(0).optional(),
     conductor_span: z.number().int().min(0).optional(),
@@ -47,20 +84,59 @@ export const ENTERGY_TEMPLATE: TicketTemplateDefinition = {
     ticket_generated_by: 'UNKNOWN',
   },
   fieldConfig: [
-    { section: 'Header', fieldKey: 'incident_number', label: 'Incident Number', controlType: 'text', required: true, helpText: '10 digits' },
+    {
+      section: 'Header',
+      fieldKey: 'incident_number',
+      label: 'Incident Number',
+      controlType: 'text',
+      required: true,
+      helpText: 'Exactly 10 digits.',
+      formattingRules: { transform: 'digits_only', maxLength: 10, regex: /^\d{10}$/ },
+    },
     { section: 'Header', fieldKey: 'incident_type', label: 'Incident Type', controlType: 'select', required: true, enumValues: [...incidentTypes] },
     { section: 'Header', fieldKey: 'affected_customers', label: 'Affected Customers', controlType: 'number', required: false },
     { section: 'Location', fieldKey: 'address_line', label: 'Address', controlType: 'text', required: true },
     { section: 'Timing', fieldKey: 'calls_count', label: 'Calls', controlType: 'number', required: false },
-    { section: 'Timing', fieldKey: 'calls_start_time', label: 'Calls Start Time', controlType: 'datetime', required: false },
-    { section: 'Timing', fieldKey: 'ert', label: 'ERT', controlType: 'datetime', required: false },
+    {
+      section: 'Timing',
+      fieldKey: 'calls_start_time',
+      label: 'Calls Start Time',
+      controlType: 'datetime',
+      required: false,
+      helpText: 'Use 24-hour time.',
+    },
+    { section: 'Timing', fieldKey: 'ert', label: 'ERT', controlType: 'datetime', required: false, helpText: 'Use 24-hour time.' },
     { section: 'Timing', fieldKey: 'duration_hours', label: 'Duration (h)', controlType: 'number', required: false },
     { section: 'Asset / Device', fieldKey: 'device_name', label: 'Device Name', controlType: 'text', required: false },
     { section: 'Asset / Device', fieldKey: 'device_type', label: 'Device Type', controlType: 'text', required: false },
     { section: 'Circuit / Feeder / Grid', fieldKey: 'network', label: 'Network', controlType: 'text', required: false },
-    { section: 'Circuit / Feeder / Grid', fieldKey: 'feeder', label: 'Feeder', controlType: 'text', required: false },
-    { section: 'Circuit / Feeder / Grid', fieldKey: 'local_office', label: 'Local Office', controlType: 'text', required: false },
-    { section: 'Circuit / Feeder / Grid', fieldKey: 'substation', label: 'Substation', controlType: 'text', required: false },
+    {
+      section: 'Circuit / Feeder / Grid',
+      fieldKey: 'feeder',
+      label: 'Feeder',
+      controlType: 'text',
+      required: false,
+      helpText: 'Format: N + 4 digits.',
+      formattingRules: { transform: 'uppercase', maxLength: 5, regex: /^N\d{4}$/ },
+    },
+    {
+      section: 'Circuit / Feeder / Grid',
+      fieldKey: 'local_office',
+      label: 'Local Office',
+      controlType: 'text',
+      required: false,
+      helpText: 'Stored as UPPERCASE.',
+      formattingRules: { transform: 'uppercase' },
+    },
+    {
+      section: 'Circuit / Feeder / Grid',
+      fieldKey: 'substation',
+      label: 'Substation',
+      controlType: 'text',
+      required: false,
+      helpText: 'Stored as UPPERCASE.',
+      formattingRules: { transform: 'uppercase' },
+    },
     { section: 'Damage Assessment', fieldKey: 'poles_down', label: 'Poles Down', controlType: 'number', required: false },
     { section: 'Damage Assessment', fieldKey: 'transformers_down', label: 'Transformers Down', controlType: 'number', required: false },
     { section: 'Damage Assessment', fieldKey: 'conductor_span', label: 'Conductor Span', controlType: 'number', required: false },

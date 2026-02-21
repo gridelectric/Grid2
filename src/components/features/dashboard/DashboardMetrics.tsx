@@ -11,6 +11,7 @@ import {
   dashboardReportingService,
   type DashboardMetricsData,
 } from '@/lib/services/dashboardReportingService';
+import { GRID_TICKETS_CHANGED_EVENT, GRID_TICKETS_VERSION_KEY } from '@/lib/tickets/events';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils/formatters';
 
@@ -63,6 +64,26 @@ export function DashboardMetrics({ className }: DashboardMetricsProps) {
 
   useEffect(() => {
     void loadMetrics('initial');
+  }, [loadMetrics]);
+
+  useEffect(() => {
+    const handleTicketsChanged = () => {
+      void loadMetrics('refresh');
+    };
+
+    const handleStorageSync = (event: StorageEvent) => {
+      if (event.key === GRID_TICKETS_VERSION_KEY) {
+        void loadMetrics('refresh');
+      }
+    };
+
+    window.addEventListener(GRID_TICKETS_CHANGED_EVENT, handleTicketsChanged);
+    window.addEventListener('storage', handleStorageSync);
+
+    return () => {
+      window.removeEventListener(GRID_TICKETS_CHANGED_EVENT, handleTicketsChanged);
+      window.removeEventListener('storage', handleStorageSync);
+    };
   }, [loadMetrics]);
 
   const revenueTrendDirection = useMemo<'up' | 'down' | 'neutral'>(() => {

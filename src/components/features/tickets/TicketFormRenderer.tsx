@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -13,12 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import {
   commonTicketCreateSchema,
-  COMMON_SOURCE_TYPE,
-  COMMON_TICKET_PRIORITY,
-  COMMON_TICKET_STATUS,
   type TicketTemplateDefinition,
   type TicketTemplateFieldConfig,
 } from '@/lib/tickets/templates';
+import { TICKET_OCR_ACCEPT_ATTRIBUTE } from '@/lib/tickets/ocr/fileIntake';
 
 interface StormHeaderSummary {
   id: string;
@@ -32,9 +30,11 @@ interface TicketFormRendererProps {
   template: TicketTemplateDefinition;
   onSubmitTicket: (values: Record<string, unknown>) => Promise<void>;
   onRunOcr: (rawText: string) => void;
+  onRunOcrFromFile?: (file: File) => Promise<void>;
   confidenceByField?: Record<string, number>;
   extractionWarnings?: string[];
   isSubmitting?: boolean;
+  isExtractingOcr?: boolean;
   initialValues?: Record<string, unknown>;
 }
 
@@ -47,16 +47,78 @@ function toFieldName(name: string): string {
   return name;
 }
 
+const stormMetaLabelClass = "font-semibold text-white";
+const stormMetaValueClass = "font-normal text-white/95 [font-family:'Segoe_UI',Arial,sans-serif]";
+const formLabelClass = "font-normal text-white [font-family:'Segoe_UI',Arial,sans-serif]";
+const dateTimeLocalPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+
+function applyFieldFormatting(
+  value: string,
+  fieldConfig: TicketTemplateFieldConfig,
+  stage: 'change' | 'blur',
+): string {
+  const rules = fieldConfig.formattingRules;
+  if (!rules) {
+    return value;
+  }
+
+  let next = value;
+  if (rules.transform === 'digits_only') {
+    next = next.replace(/\D+/g, '');
+  } else if (rules.transform === 'uppercase') {
+    next = next.toUpperCase();
+  } else if (rules.transform === 'trim') {
+    next = next.trim();
+  }
+
+  if (stage === 'blur') {
+    next = next.trim();
+  }
+
+  if (typeof rules.maxLength === 'number' && rules.maxLength > 0) {
+    next = next.slice(0, rules.maxLength);
+  }
+
+  return next;
+}
+
+function normalizeDateTimeLocalValue(value: unknown): string {
+  const raw = String(value ?? '').trim();
+  if (raw.length === 0) {
+    return '';
+  }
+
+  if (dateTimeLocalPattern.test(raw)) {
+    return raw;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(raw)) {
+    return raw.slice(0, 16);
+  }
+
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+
 export function TicketFormRenderer({
   storm,
   template,
   onSubmitTicket,
   onRunOcr,
+  onRunOcrFromFile,
   confidenceByField,
   extractionWarnings,
   isSubmitting = false,
+  isExtractingOcr = false,
   initialValues,
 }: TicketFormRendererProps) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const combinedSchema = useMemo(() => commonTicketCreateSchema.and(template.schema), [template]);
 
   const defaultValues = useMemo(() => {
@@ -68,7 +130,7 @@ export function TicketFormRenderer({
       status: 'DRAFT',
       priority: 'C',
       source_type: 'MANUAL',
-      source_file_id: '',
+      source_file_id: undefined,
       raw_ocr_text: '',
       ...templateDefaults,
       ...(template.defaultValues as Record<string, unknown>),
@@ -79,8 +141,11 @@ export function TicketFormRenderer({
   const form = useForm<Record<string, unknown>>({
     resolver: zodResolver(combinedSchema as z.ZodTypeAny),
     defaultValues,
-    values: defaultValues,
   });
+
+  useEffect(() => {
+    form.reset(defaultValues);
+  }, [defaultValues, form]);
 
   const sections = useMemo(() => {
     const map = new Map<string, TicketTemplateFieldConfig[]>();
@@ -96,10 +161,22 @@ export function TicketFormRenderer({
     <div className="space-y-6 storm-contrast-form">
       <div className="storm-surface rounded-xl border p-4 text-sm">
         <div className="grid gap-2 md:grid-cols-2">
-          <p><span className="font-semibold">Storm:</span> {storm.name}</p>
-          <p><span className="font-semibold">Utility:</span> {storm.utilityClient}</p>
-          <p><span className="font-semibold">State:</span> {storm.state}</p>
-          <p><span className="font-semibold">Storm ID:</span> <span className="font-mono text-xs">{storm.id}</span></p>
+          <p>
+            <span className={stormMetaLabelClass}>Storm:</span>{' '}
+            <span className={stormMetaValueClass}>{storm.name}</span>
+          </p>
+          <p>
+            <span className={stormMetaLabelClass}>Utility:</span>{' '}
+            <span className={stormMetaValueClass}>{storm.utilityClient}</span>
+          </p>
+          <p>
+            <span className={stormMetaLabelClass}>State:</span>{' '}
+            <span className={stormMetaValueClass}>{storm.state}</span>
+          </p>
+          <p>
+            <span className={stormMetaLabelClass}>Storm ID:</span>{' '}
+            <span className={`font-mono text-xs ${stormMetaValueClass}`}>{storm.id}</span>
+          </p>
         </div>
       </div>
 
@@ -110,65 +187,33 @@ export function TicketFormRenderer({
             await onSubmitTicket(values);
           })}
         >
-          <div className="grid gap-4 md:grid-cols-3">
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-normal">Status</FormLabel>
-                  <Select value={String(field.value ?? '')} onValueChange={field.onChange}>
-                    <FormControl><SelectTrigger className="storm-contrast-field"><SelectValue /></SelectTrigger></FormControl>
-                    <SelectContent>
-                      {COMMON_TICKET_STATUS.map((item) => (<SelectItem key={item} value={item}>{item}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-normal">Priority</FormLabel>
-                  <Select value={String(field.value ?? '')} onValueChange={field.onChange}>
-                    <FormControl><SelectTrigger className="storm-contrast-field"><SelectValue /></SelectTrigger></FormControl>
-                    <SelectContent>
-                      {COMMON_TICKET_PRIORITY.map((item) => (<SelectItem key={item} value={item}>{item}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="source_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-normal">Source Type</FormLabel>
-                  <Select value={String(field.value ?? '')} onValueChange={field.onChange}>
-                    <FormControl><SelectTrigger className="storm-contrast-field"><SelectValue /></SelectTrigger></FormControl>
-                    <SelectContent>
-                      {COMMON_SOURCE_TYPE.map((item) => (<SelectItem key={item} value={item}>{item}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
           <div className="storm-surface rounded-xl border border-[rgba(255,192,56,0.75)] p-4">
             <p className="mb-3 text-sm font-bold text-white">OCR Intake</p>
+            <div className="mb-4 space-y-2">
+              <FormLabel className="font-normal">Upload Source File</FormLabel>
+              <Input
+                type="file"
+                accept={TICKET_OCR_ACCEPT_ATTRIBUTE}
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  setSelectedFile(file);
+                }}
+              />
+              <p className="text-xs text-blue-100/90">
+                Accepted: PDF, PNG, JPG, JPEG, HEIC, HEIF (max 25MB).
+              </p>
+              {selectedFile ? (
+                <p className="text-xs text-blue-100">
+                  Selected: {selectedFile.name} ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
+                </p>
+              ) : null}
+            </div>
             <FormField
               control={form.control}
               name="raw_ocr_text"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-normal">OCR Text</FormLabel>
+                  <FormLabel className={formLabelClass}>OCR Text</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Paste OCR output here, then click Extract" {...field} value={String(field.value ?? '')} />
                   </FormControl>
@@ -176,10 +221,25 @@ export function TicketFormRenderer({
                 </FormItem>
               )}
             />
-            <div className="mt-3 flex justify-end">
+            <div className="mt-3 flex flex-wrap justify-end gap-2">
               <Button
                 type="button"
                 variant="storm"
+                disabled={!selectedFile || !onRunOcrFromFile || isExtractingOcr || isSubmitting}
+                onClick={async () => {
+                  if (!selectedFile || !onRunOcrFromFile) {
+                    return;
+                  }
+
+                  await onRunOcrFromFile(selectedFile);
+                }}
+              >
+                {isExtractingOcr ? 'Extracting...' : 'Extract From File'}
+              </Button>
+              <Button
+                type="button"
+                variant="storm"
+                disabled={isExtractingOcr || isSubmitting}
                 onClick={() => onRunOcr(String(form.getValues('raw_ocr_text') ?? ''))}
               >
                 Extract Fields
@@ -209,7 +269,7 @@ export function TicketFormRenderer({
 
                         return (
                           <FormItem>
-                            <FormLabel className="font-normal">
+                            <FormLabel className={formLabelClass}>
                               {fieldConfig.label}
                               {fieldConfig.required ? ' *' : ''}
                             </FormLabel>
@@ -249,11 +309,33 @@ export function TicketFormRenderer({
                               </FormControl>
                             ) : controlType === 'datetime' ? (
                               <FormControl>
-                                <Input type="datetime-local" {...field} value={String(currentValue ?? '')} />
+                                <Input
+                                  type="datetime-local"
+                                  lang="en-GB"
+                                  {...field}
+                                  value={normalizeDateTimeLocalValue(currentValue)}
+                                  step={60}
+                                  onChange={(event) => field.onChange(event.target.value)}
+                                />
                               </FormControl>
                             ) : (
                               <FormControl>
-                                <Input {...field} value={String(currentValue ?? '')} />
+                                <Input
+                                  {...field}
+                                  inputMode={fieldConfig.formattingRules?.transform === 'digits_only' ? 'numeric' : undefined}
+                                  maxLength={fieldConfig.formattingRules?.maxLength}
+                                  value={String(currentValue ?? '')}
+                                  onBlur={(event) => {
+                                    const normalized = applyFieldFormatting(event.target.value, fieldConfig, 'blur');
+                                    if (normalized !== event.target.value) {
+                                      field.onChange(normalized);
+                                    }
+                                    field.onBlur();
+                                  }}
+                                  onChange={(event) => {
+                                    field.onChange(applyFieldFormatting(event.target.value, fieldConfig, 'change'));
+                                  }}
+                                />
                               </FormControl>
                             )}
                             {isLowConfidence ? <p className="text-xs text-amber-200">Low OCR confidence. Verify this value.</p> : null}

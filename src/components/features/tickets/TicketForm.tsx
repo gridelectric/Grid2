@@ -586,7 +586,7 @@ export function TicketForm({
                                         <FormItem>
                                             <FormLabel>Calls Start Time *</FormLabel>
                                             <FormControl>
-                                                <Input type="datetime-local" {...field} />
+                                                <Input type="datetime-local" lang="en-GB" step={60} {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -599,7 +599,7 @@ export function TicketForm({
                                         <FormItem>
                                             <FormLabel>ERT *</FormLabel>
                                             <FormControl>
-                                                <Input type="datetime-local" {...field} />
+                                                <Input type="datetime-local" lang="en-GB" step={60} {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -945,7 +945,7 @@ export function TicketForm({
                                     <FormItem>
                                         <FormLabel>Scheduled Date *</FormLabel>
                                         <FormControl>
-                                            <Input type="datetime-local" {...field} />
+                                            <Input type="datetime-local" lang="en-GB" step={60} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -958,7 +958,7 @@ export function TicketForm({
                                     <FormItem>
                                         <FormLabel>Due Date *</FormLabel>
                                         <FormControl>
-                                            <Input type="datetime-local" {...field} />
+                                            <Input type="datetime-local" lang="en-GB" step={60} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
