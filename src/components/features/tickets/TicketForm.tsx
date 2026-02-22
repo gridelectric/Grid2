@@ -32,6 +32,7 @@ import {
 import { isEntergyUtilityClient, UTILITY_CLIENTS } from "@/lib/constants/utilityClients"
 import { stormEventService, type StormEventSummary } from "@/lib/services/stormEventService"
 import { ticketService } from "@/lib/services/ticketService"
+import { DATE_TIME_LOCAL_24H_PATTERN, normalizeDateTimeLocal24 } from "@/lib/utils/dateTime"
 import { getErrorMessage } from "@/lib/utils/errorHandling"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -49,6 +50,19 @@ const optionalNonNegativeInteger = z.preprocess((value) => {
     return parsed
 }, z.number().int().min(0).optional())
 
+const optionalDateTimeLocal24 = z.preprocess((value) => {
+    if (value === "" || value === undefined || value === null) {
+        return undefined
+    }
+
+    const normalized = normalizeDateTimeLocal24(value)
+    if (normalized) {
+        return normalized
+    }
+
+    return value
+}, z.string().regex(DATE_TIME_LOCAL_24H_PATTERN, "Use 24-hour format (YYYY-MM-DDTHH:mm).").optional())
+
 const ticketFormSchema = z.object({
     storm_event_id: z.string().min(1, "Storm event is required"),
     ticket_number: z.string().min(1, "Ticket number is required"),
@@ -58,8 +72,8 @@ const ticketFormSchema = z.object({
     special_instructions: z.string().optional(),
     priority: z.enum(["A", "B", "C", "X"]),
     status: z.enum(["DRAFT", "ASSIGNED", "REJECTED", "IN_ROUTE", "ON_SITE", "IN_PROGRESS", "COMPLETE", "PENDING_REVIEW", "APPROVED", "NEEDS_REWORK", "CLOSED", "ARCHIVED", "EXPIRED"]),
-    scheduled_date: z.string().optional(),
-    due_date: z.string().optional(),
+    scheduled_date: optionalDateTimeLocal24,
+    due_date: optionalDateTimeLocal24,
     equipment_type: z.string().optional(),
     address: z.string().min(5, "Valid address required"),
     city: z.string().min(1, "City is required"),
@@ -70,8 +84,8 @@ const ticketFormSchema = z.object({
     entergy_device_type: z.string().optional(),
     entergy_incident_type: z.string().optional(),
     entergy_duration_hours: optionalNonNegativeInteger,
-    entergy_start_time: z.string().optional(),
-    entergy_ert: z.string().optional(),
+    entergy_start_time: optionalDateTimeLocal24,
+    entergy_ert: optionalDateTimeLocal24,
     entergy_network: z.string().optional(),
     entergy_feeder: z.string().optional(),
     entergy_local_office: z.string().optional(),
@@ -196,6 +210,11 @@ interface TicketFormProps {
 function toTrimmedOrUndefined(value?: string): string | undefined {
     const trimmed = value?.trim()
     return trimmed ? trimmed : undefined
+}
+
+function toDateTimeLocal24OrUndefined(value?: string): string | undefined {
+    const normalized = normalizeDateTimeLocal24(value)
+    return normalized || undefined
 }
 
 export function TicketForm({
@@ -328,8 +347,8 @@ export function TicketForm({
                     workOrderId: toTrimmedOrUndefined(data.work_order_ref),
                     deviceName: data.entergy_device_name?.trim() ?? "",
                     deviceType: data.entergy_device_type?.trim() ?? "",
-                    startTime: data.entergy_start_time?.trim() ?? "",
-                    ert: data.entergy_ert?.trim() ?? "",
+                    startTime: data.entergy_start_time ?? "",
+                    ert: data.entergy_ert ?? "",
                     network: data.entergy_network?.trim() ?? "",
                     feeder: data.entergy_feeder?.trim() ?? "",
                     localOffice: data.entergy_local_office?.trim() ?? "",
@@ -360,8 +379,12 @@ export function TicketForm({
                     : toTrimmedOrUndefined(data.special_instructions),
                 priority: data.priority,
                 status: data.status,
-                scheduled_date: entergyInput ? data.entergy_start_time : data.scheduled_date,
-                due_date: entergyInput ? data.entergy_ert : data.due_date,
+                scheduled_date: entergyInput
+                    ? toDateTimeLocal24OrUndefined(data.entergy_start_time)
+                    : toDateTimeLocal24OrUndefined(data.scheduled_date),
+                due_date: entergyInput
+                    ? toDateTimeLocal24OrUndefined(data.entergy_ert)
+                    : toDateTimeLocal24OrUndefined(data.due_date),
                 equipment_type: entergyInput
                     ? toTrimmedOrUndefined(data.entergy_device_type)
                     : toTrimmedOrUndefined(data.equipment_type),
@@ -586,7 +609,14 @@ export function TicketForm({
                                         <FormItem>
                                             <FormLabel>Calls Start Time *</FormLabel>
                                             <FormControl>
-                                                <Input type="datetime-local" lang="en-GB" step={60} {...field} />
+                                                <Input
+                                                    type="datetime-local"
+                                                    lang="en-GB"
+                                                    step={60}
+                                                    {...field}
+                                                    value={normalizeDateTimeLocal24(field.value)}
+                                                    onChange={(event) => field.onChange(normalizeDateTimeLocal24(event.target.value))}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -599,7 +629,14 @@ export function TicketForm({
                                         <FormItem>
                                             <FormLabel>ERT *</FormLabel>
                                             <FormControl>
-                                                <Input type="datetime-local" lang="en-GB" step={60} {...field} />
+                                                <Input
+                                                    type="datetime-local"
+                                                    lang="en-GB"
+                                                    step={60}
+                                                    {...field}
+                                                    value={normalizeDateTimeLocal24(field.value)}
+                                                    onChange={(event) => field.onChange(normalizeDateTimeLocal24(event.target.value))}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -945,7 +982,14 @@ export function TicketForm({
                                     <FormItem>
                                         <FormLabel>Scheduled Date *</FormLabel>
                                         <FormControl>
-                                            <Input type="datetime-local" lang="en-GB" step={60} {...field} />
+                                            <Input
+                                                type="datetime-local"
+                                                lang="en-GB"
+                                                step={60}
+                                                {...field}
+                                                value={normalizeDateTimeLocal24(field.value)}
+                                                onChange={(event) => field.onChange(normalizeDateTimeLocal24(event.target.value))}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -958,7 +1002,14 @@ export function TicketForm({
                                     <FormItem>
                                         <FormLabel>Due Date *</FormLabel>
                                         <FormControl>
-                                            <Input type="datetime-local" lang="en-GB" step={60} {...field} />
+                                            <Input
+                                                type="datetime-local"
+                                                lang="en-GB"
+                                                step={60}
+                                                {...field}
+                                                value={normalizeDateTimeLocal24(field.value)}
+                                                onChange={(event) => field.onChange(normalizeDateTimeLocal24(event.target.value))}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

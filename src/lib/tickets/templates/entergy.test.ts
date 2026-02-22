@@ -21,16 +21,22 @@ describe('entergyPayloadSchema', () => {
     }
   });
 
-  it('enforces 24-hour datetime format for timing fields', () => {
-    const result = entergyPayloadSchema.safeParse({
+  it('normalizes 12-hour timing values into 24-hour format', () => {
+    const result = entergyPayloadSchema.parse({
       ...basePayload,
       calls_start_time: '02/21/2026 1:45 PM',
     });
 
+    expect(result.calls_start_time).toBe('2026-02-21T13:45');
+  });
+
+  it('rejects invalid timing values that cannot be normalized', () => {
+    const result = entergyPayloadSchema.safeParse({
+      ...basePayload,
+      calls_start_time: 'not-a-time',
+    });
+
     expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues[0]?.message).toBe('Use 24-hour format (YYYY-MM-DDTHH:mm).');
-    }
   });
 
   it('enforces feeder as N plus four digits', () => {

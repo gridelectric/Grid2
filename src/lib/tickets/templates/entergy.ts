@@ -1,8 +1,8 @@
 import { z } from 'zod';
+import { DATE_TIME_LOCAL_24H_PATTERN, normalizeDateTimeLocal24 } from '@/lib/utils/dateTime';
 import type { TicketTemplateDefinition } from './types';
 
 const incidentTypes = ['LGTS', 'WIRD', 'XFMR', 'OTHER'] as const;
-const dateTime24HourPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
 function normalizeOptionalString(value: unknown): unknown {
   if (typeof value !== 'string') {
@@ -14,10 +14,18 @@ function normalizeOptionalString(value: unknown): unknown {
 }
 
 const optionalMilitaryDateTimeSchema = z.preprocess(
-  normalizeOptionalString,
+  (value) => {
+    const normalized = normalizeOptionalString(value);
+    if (typeof normalized !== 'string') {
+      return normalized;
+    }
+
+    const converted = normalizeDateTimeLocal24(normalized);
+    return converted || normalized;
+  },
   z
     .string()
-    .regex(dateTime24HourPattern, 'Use 24-hour format (YYYY-MM-DDTHH:mm).')
+    .regex(DATE_TIME_LOCAL_24H_PATTERN, 'Use 24-hour format (YYYY-MM-DDTHH:mm).')
     .optional(),
 );
 

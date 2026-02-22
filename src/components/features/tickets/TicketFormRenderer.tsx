@@ -17,6 +17,7 @@ import {
   type TicketTemplateFieldConfig,
 } from '@/lib/tickets/templates';
 import { TICKET_OCR_ACCEPT_ATTRIBUTE } from '@/lib/tickets/ocr/fileIntake';
+import { normalizeDateTimeLocal24 } from '@/lib/utils/dateTime';
 
 interface StormHeaderSummary {
   id: string;
@@ -50,7 +51,6 @@ function toFieldName(name: string): string {
 const stormMetaLabelClass = "font-semibold text-white";
 const stormMetaValueClass = "font-normal text-white/95 [font-family:'Segoe_UI',Arial,sans-serif]";
 const formLabelClass = "font-normal text-white [font-family:'Segoe_UI',Arial,sans-serif]";
-const dateTimeLocalPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
 function applyFieldFormatting(
   value: string,
@@ -80,29 +80,6 @@ function applyFieldFormatting(
   }
 
   return next;
-}
-
-function normalizeDateTimeLocalValue(value: unknown): string {
-  const raw = String(value ?? '').trim();
-  if (raw.length === 0) {
-    return '';
-  }
-
-  if (dateTimeLocalPattern.test(raw)) {
-    return raw;
-  }
-
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(raw)) {
-    return raw.slice(0, 16);
-  }
-
-  const date = new Date(raw);
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
 }
 
 export function TicketFormRenderer({
@@ -313,9 +290,9 @@ export function TicketFormRenderer({
                                   type="datetime-local"
                                   lang="en-GB"
                                   {...field}
-                                  value={normalizeDateTimeLocalValue(currentValue)}
+                                  value={normalizeDateTimeLocal24(currentValue)}
                                   step={60}
-                                  onChange={(event) => field.onChange(event.target.value)}
+                                  onChange={(event) => field.onChange(normalizeDateTimeLocal24(event.target.value))}
                                 />
                               </FormControl>
                             ) : (
