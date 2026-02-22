@@ -26,8 +26,22 @@ function getPortalLabel(portal: 'admin' | 'contractor'): 'Admin Portal' | 'Contr
   return portal === 'admin' ? 'Admin Portal' : 'Contractor Portal';
 }
 
+function toTitleCase(value: string): string {
+  return value
+    .split(' ')
+    .filter((segment) => segment.length > 0)
+    .map((segment) => `${segment.slice(0, 1).toUpperCase()}${segment.slice(1)}`)
+    .join(' ');
+}
+
 function toRoleLabel(role: string) {
-  return role.toLowerCase().replaceAll('_', ' ');
+  const normalized = role.trim().toUpperCase();
+
+  if (normalized === 'CEO') {
+    return 'CEO';
+  }
+
+  return toTitleCase(normalized.toLowerCase().replaceAll('_', ' '));
 }
 
 export function TopBar({
@@ -128,7 +142,7 @@ export function TopBar({
 
           <div className="min-w-0 text-right">
             <p className="truncate text-sm font-semibold text-white">{userName}</p>
-            <p className="truncate text-xs capitalize text-blue-100">{toRoleLabel(userRole)}</p>
+            <p className="truncate text-xs text-blue-100">{toRoleLabel(userRole)}</p>
           </div>
         </div>
       </div>
